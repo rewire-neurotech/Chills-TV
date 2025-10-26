@@ -7,6 +7,7 @@ from datetime import datetime
 import joblib, numpy as np, onnxruntime as rt, pandas as pd
 import sklearn
 from typing import Any, Dict, List, Tuple, Optional
+from fastapi.responses import HTMLResponse, FileResponse
 os.makedirs("/data", exist_ok=True)
 # ---------- app + paths ----------
 a = FastAPI()
@@ -611,6 +612,12 @@ def feedback(req: Request, id: str, stimulus_id: str, url: str = "", score: floa
         "request": req, "id": id, "stimulus_id": stimulus_id, "url": url,
         "score": score, "stimulus_name": stimulus_name, "class_idx": -1
     })
+@a.get("/download-logs")
+def download_logs():
+    log_path = "/data/logs.csv"
+    if not os.path.exists(log_path):
+        return HTMLResponse("No logs yet — /data/logs.csv not found", status_code=404)
+    return FileResponse(log_path, filename="logs.csv", media_type="text/csv")
 
 @a.post("/submit", response_class=HTMLResponse)
 async def submit(req: Request,
@@ -714,5 +721,6 @@ def avoid_debug(threshold: float = 0.5):
             except Exception:
                 continue
     return {"threshold": float(threshold), "count": len(avoid), "avoid": avoid}
+
 
 
