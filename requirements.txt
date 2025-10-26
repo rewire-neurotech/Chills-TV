@@ -39,3 +39,5 @@ pydantic_core==2.41.4
 python-multipart==0.0.20
 uvicorn==0.38.0
 gunicorn==22.0.0
+gspread==5.12.4
+google-auth==2.35.0
