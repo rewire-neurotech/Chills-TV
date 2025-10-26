@@ -7,7 +7,7 @@ from datetime import datetime
 import joblib, numpy as np, onnxruntime as rt, pandas as pd
 import sklearn
 from typing import Any, Dict, List, Tuple, Optional
-
+os.makedirs("/data", exist_ok=True)
 # ---------- app + paths ----------
 a = FastAPI()
 b = os.path.dirname(__file__)
@@ -36,7 +36,7 @@ P = {
     "chosen_head_idx": None,     # <- debug: which ONNX head was used
     "chosen_head_name": None,    # <- debug: which ONNX head was used
 }
-LP = os.path.join(b, "debug_probs.csv")
+LP = "/data/debug_probs.csv"
 FW = {"pairs": [], "missing": [], "raw_answers": {}, "built_vector": []}
 
 # ---------- fixed 40 stimuli (order must match training) ----------
@@ -624,7 +624,7 @@ async def submit(req: Request,
     description: str = Form(""),
     email: str = Form("")
 ):
-    p = os.path.join(b, "logs.csv")
+    p = "/data/logs.csv"
     Hh = [
         "ts","participant_id","email","stimulus_id","url",
         "experienced","chills_amount_0_10","chills_length_0_6","chills_waves_0_10",
@@ -714,4 +714,5 @@ def avoid_debug(threshold: float = 0.5):
             except Exception:
                 continue
     return {"threshold": float(threshold), "count": len(avoid), "avoid": avoid}
+
 
