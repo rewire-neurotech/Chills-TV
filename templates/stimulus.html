@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>ReWire | Stimulus</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .bg-app {
+        background: linear-gradient(180deg, #f8fafc, #fff);
+      }
+      .btn {
+        background: linear-gradient(135deg, #ec4899, #db2777);
+      }
+      .btn-outline {
+        border-color: #ec4899;
+        color: #ec4899;
+      }
+      .btn-outline:hover {
+        background: #ec48991a;
+      }
+      .bar {
+        height: 3px;
+        background: linear-gradient(90deg, #ec4899, #60a5fa);
+        width: 75%;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-app text-slate-900">
+    <header class="bg-white/80 backdrop-blur border-b">
+      <div class="max-w-4xl mx-auto px-4 py-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div
+              class="h-8 w-8 rounded-xl"
+              style="background: linear-gradient(135deg, #ec4899, #60a5fa)"
+            ></div>
+            <h1 class="text-lg font-semibold">ReWire ML Study</h1>
+          </div>
+          <div class="text-xs text-slate-600">Step 3 of 4 • Stimulus</div>
+        </div>
+        <div class="bar mt-2 rounded"></div>
+      </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+      <div class="rounded-2xl border bg-white p-4">
+        {% if D.url %}{% set u = D.url.lower() %}{% if "youtube.com" in u or
+        "youtu.be" in u %} {% set em =
+        D.url.replace("watch?v=","embed/").replace("youtu.be/","www.youtube.com/embed/")
+        %}
+        <div class="aspect-video w-full rounded-2xl overflow-hidden shadow">
+          <iframe
+            class="w-full h-full"
+            src="{{ em }}"
+            title="stimulus"
+            allowfullscreen
+          ></iframe>
+        </div>
+        <p class="mt-3 text-sm">
+          <a
+            class="text-pink-600 underline"
+            href="{{ D.url }}"
+            target="_blank"
+            rel="noopener"
+            >Open on YouTube</a
+          >
+        </p>
+        {% elif u.endswith('.mp3') or u.endswith('.wav') or u.endswith('.ogg')
+        %}
+        <audio controls class="w-full mt-2"><source src="{{ D.url }}" /></audio>
+        {% elif u.endswith('.mp4') or u.endswith('.webm') or u.endswith('.mov')
+        %}
+        <video controls class="w-full rounded-2xl shadow mt-2">
+          <source src="{{ D.url }}" />
+        </video>
+        {% else %}
+        <a
+          class="text-pink-600 underline"
+          href="{{ D.url }}"
+          target="_blank"
+          rel="noopener"
+          >Open link</a
+        >
+        {% endif %}{% else %}
+        <div class="p-4 rounded-xl border bg-white text-sm text-slate-600">
+          No media link available for this item.
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="mt-6 flex items-center justify-between">
+        <button
+          type="button"
+          onclick="history.back()"
+          class="btn-outline rounded-xl border px-5 py-3"
+        >
+          Back
+        </button>
+        <form action="/feedback" method="get">
+          <input type="hidden" name="id" value="{{ D.id }}" />
+          <input type="hidden" name="stimulus_id" value="{{ D.stimulus_id }}" />
+          <input type="hidden" name="stimulus_name" value="{{ D.name }}" />
+          <input type="hidden" name="url" value="{{ D.url }}" />
+          <button class="btn rounded-xl text-white px-5 py-3">Continue</button>
+        </form>
+      </div>
+    </main>
+  </body>
+</html>
