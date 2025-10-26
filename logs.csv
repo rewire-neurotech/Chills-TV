@@ -1,0 +1,5 @@
+ts,participant_id,email,stimulus_id,url,experienced,chills_amount_0_10,chills_length_0_6,chills_waves_0_10,description
+2025-10-26T00:26:40.662775,P78,programmingashwin@gmail.com,A_Perfect_Planet,https://youtu.be/kV06adZPr8k,yes,3,3,3,Abc
+2025-10-26T00:31:29.372976,P2033,,Air_France,https://youtu.be/yEKe5xrAsyo,no,0,0,0,
+2025-10-26T02:04:33.649639,P2034,programmingashwin@gmail.com,Unsung_Hero,https://youtu.be/cEbh8SThLAA,yes,1,4,3,ABCDEF
+2025-10-26T17:20:29.054278,P093,,Unsung_Hero,https://youtu.be/cEbh8SThLAA,yes,0,0,0,
