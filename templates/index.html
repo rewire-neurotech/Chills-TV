@@ -6,52 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      :root {
-        --brand: #ec4899;
-        --ink: #0f172a;
-        --sub: #475569;
-      }
-      .bg-app {
-        background: linear-gradient(180deg, #f8fafc, #fff);
-      }
-      .card {
-        background: rgba(255, 255, 255, 0.92);
-        backdrop-filter: saturate(1.08) blur(6px);
-      }
-      .ring:focus-visible {
-        outline: 3px solid rgba(236, 72, 153, 0.35);
-        outline-offset: 2px;
-      }
-      .btn {
-        background: linear-gradient(135deg, #ec4899, #db2777);
-      }
-      .bar {
-        height: 3px;
-        background: linear-gradient(90deg, #ec4899, #60a5fa);
-      }
-      .radio {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-      }
-      .radio input {
-        width: 18px;
-        height: 18px;
-      }
+      :root { --brand:#ec4899; --ink:#0B0F19; --sub:#475569; }
+      .bg-app{background:linear-gradient(180deg,#f8fafc,#fff)}
+      .card{background:rgba(255,255,255,.92);backdrop-filter:saturate(1.08) blur(6px)}
+      /* remove colored focus rings */
+      *:focus{outline:none!important;box-shadow:none!important}
+      .btn{background:linear-gradient(135deg,#ec4899,#db2777)}
+      .bar{height:3px;background:linear-gradient(90deg,#ec4899,#60a5fa)}
+      .radio{display:flex;gap:.5rem;align-items:center}
+      .radio input{width:18px;height:18px}
     </style>
   </head>
   <body class="min-h-screen bg-app text-[15px] text-[color:var(--ink)]">
+    <!-- Step count only -->
     <header class="bg-white/80 backdrop-blur border-b">
       <div class="max-w-4xl mx-auto px-4 py-3">
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div
-              class="h-8 w-8 rounded-xl"
-              style="background: linear-gradient(135deg, #ec4899, #60a5fa)"
-            ></div>
-            <h1 class="text-lg font-semibold">ReWire ML Study</h1>
-          </div>
-          <div class="text-xs text-slate-600">Step 1 of 4 • Demographics</div>
+          <div></div>
+          <div class="text-xs text-slate-600">Step 1 of 4</div>
         </div>
         <div class="bar mt-2 w-1/4 rounded"></div>
       </div>
@@ -60,49 +32,25 @@
     <main class="max-w-4xl mx-auto px-4 py-8">
       <form action="/intake" method="post" id="f" class="space-y-6">
         <section class="card rounded-2xl border p-6">
-          <label for="pid" class="block text-sm font-medium mb-2"
-            >Participant ID</label
-          >
-          <input
-            id="pid"
-            name="pid"
-            required
-            autocomplete="off"
-            placeholder="e.g., Prolific PID"
-            class="ring w-full rounded-xl border px-3 py-2 bg-white/70"
-          />
+          <label for="pid" class="block text-sm font-medium mb-2">Participant ID</label>
+          <input id="pid" name="pid" required autocomplete="off"
+                 placeholder="e.g., Prolific PID"
+                 class="w-full rounded-xl border px-3 py-2 bg-white/70" />
         </section>
 
         <section class="card rounded-2xl border p-6 space-y-5">
           <div>
             <label class="block text-sm font-medium mb-2">Age</label>
             <div class="grid sm:grid-cols-2 gap-3">
-              <select
-                name="AgeSel"
-                id="ageSel"
-                class="ring rounded-xl border px-3 py-2 bg-white/70"
-                required
-              >
-                <option value="" selected disabled>
-                  Choose your age group…
-                </option>
-                <option>18-24</option>
-                <option>25-34</option>
-                <option>35-44</option>
-                <option>45-54</option>
-                <option>55-64</option>
-                <option>65+</option>
+              <select name="AgeSel" id="ageSel" class="rounded-xl border px-3 py-2 bg-white/70" required>
+                <option value="" selected disabled>Choose your age group…</option>
+                <option>18-24</option><option>25-34</option><option>35-44</option>
+                <option>45-54</option><option>55-64</option><option>65+</option>
                 <option value="__exact">Enter exact age…</option>
               </select>
-              <input
-                id="ageExact"
-                type="number"
-                min="10"
-                max="120"
-                step="1"
-                placeholder="Exact age (years)"
-                class="ring rounded-xl border px-3 py-2 bg-white/70 hidden"
-              />
+              <input id="ageExact" type="number" min="10" max="120" step="1"
+                     placeholder="Exact age (years)"
+                     class="rounded-xl border px-3 py-2 bg-white/70 hidden" />
               <input type="hidden" name="Age" id="ageFinal" />
             </div>
           </div>
@@ -110,43 +58,27 @@
           {% for x in DEMO %}
           <div>
             <label class="block text-sm font-medium mb-2">{{ x.q }}</label>
-
             {% if x.type == "rad" %}
-            <div class="grid sm:grid-cols-2 gap-2">
-              {% for o in x.opts %}
-              <label class="radio">
-                <input type="radio" name="{{ x.n }}" value="{{ o }}" required />
-                <span class="text-sm">{{ o }}</span>
-              </label>
-              {% endfor %}
-            </div>
+              <div class="grid sm:grid-cols-2 gap-2">
+                {% for o in x.opts %}
+                <label class="radio">
+                  <input type="radio" name="{{ x.n }}" value="{{ o }}" required />
+                  <span class="text-sm">{{ o }}</span>
+                </label>
+                {% endfor %}
+              </div>
             {% else %}
-            <select
-              name="{{ x.n }}"
-              class="ring w-full rounded-xl border px-3 py-2 bg-white/70"
-              required
-            >
-              {% for o in x.opts %}
-              <option value="{{ o }}">{{ o }}</option>
-              {% endfor %}
-            </select>
+              <select name="{{ x.n }}" class="w-full rounded-xl border px-3 py-2 bg-white/70" required>
+                {% for o in x.opts %}<option value="{{ o }}">{{ o }}</option>{% endfor %}
+              </select>
             {% endif %}
           </div>
           {% endfor %}
         </section>
 
-        <div class="flex items-center justify-between">
-          <button
-            type="button"
-            onclick="history.back()"
-            class="rounded-xl border px-5 py-3 text-pink-600 border-pink-400 hover:bg-pink-50"
-          >
-            Back
-          </button>
-          <button
-            id="btn"
-            class="btn inline-flex items-center justify-center rounded-xl text-white px-5 py-3 disabled:opacity-60 disabled:cursor-not-allowed transition"
-          >
+        <div class="flex items-center justify-end">
+          <button id="btn"
+                  class="btn inline-flex items-center justify-center rounded-xl text-white px-5 py-3 disabled:opacity-60 disabled:cursor-not-allowed transition">
             Continue
           </button>
         </div>
@@ -154,26 +86,14 @@
     </main>
 
     <script>
-      const f = document.getElementById("f"),
-        b = document.getElementById("btn");
-      f.addEventListener("submit", () => {
-        b.disabled = true;
-        b.textContent = "Submitting…";
-      });
-      const sel = document.getElementById("ageSel"),
-        ex = document.getElementById("ageExact"),
-        fin = document.getElementById("ageFinal");
-      const push = () => {
-        fin.value = sel.value === "__exact" ? ex.value : sel.value;
-      };
-      sel.addEventListener("change", () => {
-        ex.classList.toggle("hidden", sel.value !== "__exact");
-        if (sel.value !== "__exact") ex.value = "";
-        push();
-      });
-      ex.addEventListener("input", push);
-      push();
-      document.getElementById("pid").focus();
+      const f=document.getElementById("f"), b=document.getElementById("btn");
+      f.addEventListener("submit",()=>{b.disabled=true;b.textContent="Submitting…";});
+      const sel=document.getElementById("ageSel"),
+            ex=document.getElementById("ageExact"),
+            fin=document.getElementById("ageFinal");
+      const push=()=>{ fin.value = sel.value==="__exact" ? ex.value : sel.value; };
+      sel.addEventListener("change",()=>{ ex.classList.toggle("hidden", sel.value!=="__exact"); if(sel.value!=="__exact") ex.value=""; push(); });
+      ex.addEventListener("input",push); push(); document.getElementById("pid").focus();
     </script>
   </body>
 </html>
