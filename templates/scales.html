@@ -12,12 +12,36 @@
       .btn-outline:hover{background:#ec48991a}
       .bar{height:3px;background:linear-gradient(90deg,#ec4899,#60a5fa);width:50%}
       *:focus{outline:none!important;box-shadow:none!important}
-      .scale{display:flex;gap:12px;align-items:center;justify-content:center}
+
+      /* Numbers row uses a grid so anchors can align perfectly with first/last cells */
+      .scale{
+        --size:36px;        /* button width/height  */
+        --gap:12px;         /* spacing between buttons */
+        display:grid;
+        grid-template-columns: repeat(var(--steps), var(--size));
+        gap: var(--gap);
+        justify-content:center;      /* center whole grid block */
+        align-items:center;
+      }
       .scale input{display:none}
-      .scale label{display:grid;place-items:center;width:36px;height:36px;border:1px solid #e2e8f0;border-radius:.5rem;background:#fff;font-size:13px}
+      .scale label{
+        display:grid;place-items:center;
+        width:var(--size);height:var(--size);
+        border:1px solid #e2e8f0;border-radius:.5rem;background:#fff;font-size:13px
+      }
       .scale input:checked + label{background:#ec4899;color:#fff;border-color:#ec4899}
-      /* anchor text aligned with number row edges */
-      .anchors{display:flex;justify-content:space-between;margin-top:4px;color:#0B0F19;font-size:12px;padding:0 18px}
+
+      /* Anchors line: same grid so text centers align with button centers */
+      .anchors-grid{
+        display:grid;
+        grid-template-columns: repeat(var(--steps), var(--size));
+        gap: var(--gap);
+        justify-content:center;
+        margin-top:4px;color:#0B0F19;font-size:12px;
+      }
+      .anchors-grid span:first-child{grid-column:1; justify-self:center}
+      .anchors-grid span:last-child{grid-column:-1; justify-self:center}
+
       .q{color:#0B0F19;font-weight:600}
     </style>
   </head>
@@ -37,22 +61,29 @@
         <!-- ONE instruction line at the top only -->
         <p class="text-[15px] leading-6"><b>Please rate the following in terms of how much you agree or disagree with each statement.</b></p>
 
-        <!-- Statements only -->
         <section class="rounded-2xl border bg-white p-2">
           <div class="divide-y">
             {% for x in QS %}
               {% set mn = x.min if x.min else 1 %}
               {% set mx = x.max if x.max else 7 %}
+              {% set steps = (mx - mn + 1) %}
               {% set q1 = x.q | replace('Please rate the following in terms of how much you agree or disagree with each statement. - ','') | replace('Please rate the following in terms of how much you agree or disagree with each statement.','') %}
               <div class="p-4">
                 <div class="q mb-1">{{ q1 }}</div>
-                <div class="scale mt-2">
+
+                <!-- Numbers -->
+                <div class="scale mt-2" style="--steps: {{ steps }};">
                   {% for val in range(mn, mx + 1) %}
                     <input id="{{ x.n }}_{{ val }}" type="radio" name="{{ x.n }}" value="{{ val }}" />
                     <label for="{{ x.n }}_{{ val }}">{{ val }}</label>
                   {% endfor %}
                 </div>
-                <div class="anchors"><span>Completely untrue for me</span><span>Describes me perfectly</span></div>
+
+                <!-- Anchors perfectly aligned with first and last buttons -->
+                <div class="anchors-grid" style="--steps: {{ steps }};">
+                  <span>Completely untrue for me</span>
+                  <span>Describes me perfectly</span>
+                </div>
               </div>
             {% endfor %}
           </div>
