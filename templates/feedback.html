@@ -6,36 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      .bg-app {
-        background: linear-gradient(180deg, #f8fafc, #fff);
-      }
-      .card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: saturate(1.08) blur(6px);
-      }
-      .btn {
-        background: linear-gradient(135deg, #ec4899, #db2777);
-      }
-      .btn-outline {
-        border-color: #ec4899;
-        color: #ec4899;
-      }
-      .btn-outline:hover {
-        background: #ec48991a;
-      }
-      .bar {
-        height: 3px;
-        background: linear-gradient(90deg, #ec4899, #60a5fa);
-        width: 100%;
-      }
-      .radio {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-      }
-      .muted {
-        color: #64748b;
-      }
+      .bg-app { background: linear-gradient(180deg, #f8fafc, #fff); }
+      .card { background: rgba(255, 255, 255, 0.95); backdrop-filter: saturate(1.08) blur(6px); }
+      .btn { background: linear-gradient(135deg, #ec4899, #db2777); }
+      .btn-outline { border-color: #ec4899; color: #ec4899; }
+      .btn-outline:hover { background: #ec48991a; }
+      .bar { height: 3px; background: linear-gradient(90deg, #ec4899, #60a5fa); width: 100%; }
+      .radio { display: flex; gap: 0.5rem; align-items: center; }
+      .muted { color: #64748b; }
     </style>
   </head>
   <body class="min-h-screen bg-app text-slate-900">
@@ -43,10 +21,7 @@
       <div class="max-w-4xl mx-auto px-4 py-3">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div
-              class="h-8 w-8 rounded-xl"
-              style="background: linear-gradient(135deg, #ec4899, #60a5fa)"
-            ></div>
+            <div class="h-8 w-8 rounded-xl" style="background: linear-gradient(135deg, #ec4899, #60a5fa)"></div>
             <h1 class="text-lg font-semibold">ReWire ML Study</h1>
           </div>
           <div class="text-xs text-slate-600">Step 4 of 4 • Feedback</div>
@@ -66,28 +41,37 @@
           <div>
             <div class="block mb-2 font-medium">Did you experience chills?</div>
             <div class="flex gap-6">
-              <label class="radio"
-                ><input
-                  type="radio"
-                  name="experienced"
-                  value="yes"
-                  checked
-                /><span>Yes</span></label
-              >
-              <label class="radio"
-                ><input type="radio" name="experienced" value="no" /><span
-                  >No</span
-                ></label
-              >
+              <label class="radio">
+                <input type="radio" name="experienced" value="yes" checked />
+                <span>Yes</span>
+              </label>
+              <label class="radio">
+                <input type="radio" name="experienced" value="no" />
+                <span>No</span>
+              </label>
             </div>
           </div>
 
+          <!-- EMAIL: always shown (moved outside yesFields) -->
+          <div class="pt-2">
+            <label class="block mb-2 font-medium">Email (optional)</label>
+            <input
+              name="email"
+              type="email"
+              placeholder="Share your email if you want to be contacted for future studies or developments"
+              class="w-full rounded-xl border px-3 py-2 bg-white/70"
+            />
+            <p class="text-[12px] text-slate-500 mt-1">
+              Optional — used only for follow-up on future studies.
+            </p>
+          </div>
+
+          <!-- Fields that only show for 'Yes' -->
           <div id="yesFields" class="space-y-4">
             <div>
-              <label class="block mb-1 font-medium"
-                >How much chills did you experience?
-                <span class="muted text-sm">(0–10)</span></label
-              >
+              <label class="block mb-1 font-medium">
+                How much chills did you experience? <span class="muted text-sm">(0–10)</span>
+              </label>
               <input
                 name="chills_amount"
                 type="number"
@@ -100,12 +84,10 @@
             </div>
 
             <div>
-              <label class="block mb-1 font-medium"
-                >How long were the chills that you experienced?
-                <span class="muted text-sm"
-                  >(0–6, where 6 = more than 5 seconds)</span
-                ></label
-              >
+              <label class="block mb-1 font-medium">
+                How long were the chills that you experienced?
+                <span class="muted text-sm">(0–6, where 6 = more than 5 seconds)</span>
+              </label>
               <input
                 name="chills_length"
                 type="number"
@@ -118,10 +100,10 @@
             </div>
 
             <div>
-              <label class="block mb-1 font-medium"
-                >How many waves of chills did you experience?
-                <span class="muted text-sm">(0–10)</span></label
-              >
+              <label class="block mb-1 font-medium">
+                How many waves of chills did you experience?
+                <span class="muted text-sm">(0–10)</span>
+              </label>
               <input
                 name="chills_waves"
                 type="number"
@@ -134,10 +116,9 @@
             </div>
 
             <div>
-              <label class="block mb-2 font-medium"
-                >If you experienced chills during the video, please describe
-                what in the video gave you chills and why.</label
-              >
+              <label class="block mb-2 font-medium">
+                If you experienced chills during the video, please describe what in the video gave you chills and why.
+              </label>
               <textarea
                 name="description"
                 rows="5"
@@ -145,34 +126,14 @@
                 placeholder="Your answer (optional)…"
               ></textarea>
             </div>
-
-            <div class="pt-2">
-              <label class="block mb-2 font-medium">Email (optional)</label>
-              <input
-                name="email"
-                type="email"
-                placeholder="Share your email if you want to be contacted for future studies or developments"
-                class="w-full rounded-xl border px-3 py-2 bg-white/70"
-              />
-              <p class="text-[12px] text-slate-500 mt-1">
-                Optional — used only for follow-up on future studies.
-              </p>
-            </div>
           </div>
         </section>
 
         <div class="flex items-center justify-between">
-          <button
-            type="button"
-            onclick="history.back()"
-            class="btn-outline rounded-xl border px-5 py-3"
-          >
+          <button type="button" onclick="history.back()" class="btn-outline rounded-xl border px-5 py-3">
             Back
           </button>
-          <button
-            id="btn"
-            class="btn inline-flex items-center justify-center rounded-xl text-white px-5 py-3 disabled:opacity-60 disabled:cursor-not-allowed transition"
-          >
+          <button id="btn" class="btn inline-flex items-center justify-center rounded-xl text-white px-5 py-3 disabled:opacity-60 disabled:cursor-not-allowed transition">
             Submit
           </button>
         </div>
@@ -188,21 +149,15 @@
       });
 
       const yesWrap = document.getElementById("yesFields");
-      const radios = [
-        ...document.querySelectorAll('input[name="experienced"]'),
-      ];
+      const radios = [...document.querySelectorAll('input[name="experienced"]')];
+
       const toggle = () => {
-        const isYes =
-          document.querySelector('input[name="experienced"]:checked').value ===
-          "yes";
+        const isYes = document.querySelector('input[name="experienced"]:checked').value === "yes";
         yesWrap.style.display = isYes ? "block" : "none";
-        // Toggle required only if you want to enforce; currently optional per spec.
+        // Keep all fields optional; reset numeric + textarea when switching to "No".
         yesWrap.querySelectorAll("input,textarea,select").forEach((el) => {
-          if (el.name === "email" || el.name === "description") {
-            el.required = false;
-            return;
-          }
-          el.required = false; // keep optional
+          if (el.name === "description") { el.required = false; return; }
+          el.required = false;
           if (!isYes && (el.type === "number" || el.tagName === "TEXTAREA")) {
             el.value = el.type === "number" ? 0 : "";
           }
