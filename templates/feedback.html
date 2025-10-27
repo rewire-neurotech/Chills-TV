@@ -6,33 +6,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      .bg-app{background:linear-gradient(180deg,#f8fafc,#fff)}
-      .card{background:rgba(255,255,255,.95);backdrop-filter:saturate(1.08) blur(6px)}
-      .btn{background:linear-gradient(135deg,#ec4899,#db2777)}
-      .bar{height:3px;background:linear-gradient(90deg,#ec4899,#60a5fa);width:100%}
-      .radio{display:flex;gap:.5rem;align-items:center}
-      .muted{color:#64748b}
-      *:focus{outline:none!important;box-shadow:none!important}
+      :root{ --ink:#0B0F19; --btn:44px; --gap:22px; }
+      .bg-app{ background:linear-gradient(180deg,#f8fafc,#fff); }
+      .card{ background:rgba(255,255,255,.95); backdrop-filter:saturate(1.08) blur(6px); }
+      .btn{ background:linear-gradient(135deg,#ec4899,#db2777); }
+      .bar{ height:3px; background:linear-gradient(90deg,#ec4899,#60a5fa); width:100%; }
+      .radio{ display:flex; gap:.5rem; align-items:center; }
+      .muted{ color:#64748b; }
+      *:focus{ outline:none!important; box-shadow:none!important; }
 
-      /* Shared grid scale for perfect anchor alignment */
-      .scale{
-        --size:36px; --gap:12px;
-        display:grid; grid-template-columns: repeat(var(--steps), var(--size));
-        gap: var(--gap); justify-content:center; align-items:center;
-      }
+      /* Number row */
+      .scale{display:flex;gap:var(--gap);align-items:center;justify-content:center}
       .scale input{display:none}
-      .scale label{display:grid;place-items:center;width:var(--size);height:var(--size);border:1px solid #e2e8f0;border-radius:.5rem;background:#fff;font-size:13px}
-      .scale input:checked + label{background:#ec4899;color:#fff;border-color:#ec4899}
-      .anchors-grid{
-        display:grid; grid-template-columns: repeat(var(--steps), var(--size));
-        gap: var(--gap); justify-content:center; margin-top:4px; color:#0B0F19; font-size:12px;
+      .scale label{
+        display:grid;place-items:center;
+        width:var(--btn);height:var(--btn);
+        border:1px solid #e2e8f0;border-radius:.6rem;background:#fff;font-size:13px
       }
-      .anchors-grid span:first-child{grid-column:1; justify-self:center}
-      .anchors-grid span:last-child{grid-column:-1; justify-self:center}
-      .q{color:#0B0F19;font-weight:600}
+      .scale input:checked + label{background:#ec4899;color:#fff;border-color:#ec4899}
+
+      /* Anchors aligned via JS to exact width of number row */
+      .anchors{
+        display:flex;justify-content:space-between;margin-top:6px;
+        color:var(--ink);font-size:12px;opacity:.9;width:max-content;
+      }
+
+      .q{color:var(--ink);font-weight:600}
     </style>
   </head>
   <body class="min-h-screen bg-app text-slate-900">
+    <!-- Step count only -->
     <header class="bg-white/80 backdrop-blur border-b">
       <div class="max-w-4xl mx-auto px-4 py-3">
         <div class="flex items-center justify-between"><div></div><div class="text-xs text-slate-600">Step 4 of 4</div></div>
@@ -47,7 +50,7 @@
         <input type="hidden" name="stimulus_name" value="{{ stimulus_name }}" />
         <input type="hidden" name="url" value="{{ url }}" />
 
-        <!-- SCREEN 1 -->
+        <!-- SCREEN 1: Post-stimulus questions -->
         <section id="s1" class="card rounded-2xl border p-6 space-y-6">
           <div>
             <div class="block mb-2 font-medium">Did you experience chills?</div>
@@ -57,50 +60,45 @@
             </div>
           </div>
 
+          <!-- Show only if 'Yes' -->
           <div id="yesFields" class="space-y-6" style="display:none">
-            <!-- Intensity 0–10 -->
+            <!-- Intensity (0–10) -->
             <div>
               <div class="q mb-1">How intense were the chills you experienced? <span class="muted text-sm">(0–10)</span></div>
-              <div class="scale mt-2" style="--steps: 11;">
+              <div class="scale mt-2">
                 {% for val in range(0, 11) %}
                   <input id="intensity_{{ val }}" type="radio" name="chills_amount" value="{{ val }}" />
                   <label for="intensity_{{ val }}">{{ val }}</label>
                 {% endfor %}
               </div>
-              <div class="anchors-grid" style="--steps: 11;">
-                <span>Completely untrue for me</span><span>Describes me perfectly</span>
-              </div>
+              <div class="anchors"><span>Completely untrue for me</span><span>Describes me perfectly</span></div>
             </div>
 
-            <!-- Length 0–6 -->
+            <!-- Length (0–6) -->
             <div>
               <div class="q mb-1">How long were the chills that you experienced? <span class="muted text-sm">(0–6, where 6 = more than 5 seconds)</span></div>
-              <div class="scale mt-2" style="--steps: 7;">
+              <div class="scale mt-2">
                 {% for val in range(0, 7) %}
                   <input id="length_{{ val }}" type="radio" name="chills_length" value="{{ val }}" />
                   <label for="length_{{ val }}">{{ val }}</label>
                 {% endfor %}
               </div>
-              <div class="anchors-grid" style="--steps: 7;">
-                <span>Completely untrue for me</span><span>Describes me perfectly</span>
-              </div>
+              <div class="anchors"><span>Completely untrue for me</span><span>Describes me perfectly</span></div>
             </div>
 
-            <!-- Waves 0–10 -->
+            <!-- Waves (0–10) -->
             <div>
               <div class="q mb-1">How many waves of chills did you experience? <span class="muted text-sm">(0–10)</span></div>
-              <div class="scale mt-2" style="--steps: 11;">
+              <div class="scale mt-2">
                 {% for val in range(0, 11) %}
                   <input id="waves_{{ val }}" type="radio" name="chills_waves" value="{{ val }}" />
                   <label for="waves_{{ val }}">{{ val }}</label>
                 {% endfor %}
               </div>
-              <div class="anchors-grid" style="--steps: 11;">
-                <span>Completely untrue for me</span><span>Describes me perfectly</span>
-              </div>
+              <div class="anchors"><span>Completely untrue for me</span><span>Describes me perfectly</span></div>
             </div>
 
-            <!-- Free text -->
+            <!-- Free-text (copy updated wording request #4: remove leading clause) -->
             <div>
               <label class="block mb-2 font-medium">Please describe what in the video gave you chills and why.</label>
               <textarea name="description" rows="5" class="w-full rounded-xl border px-3 py-2 bg-white/70" placeholder="Your answer (optional)…"></textarea>
@@ -112,7 +110,7 @@
           </div>
         </section>
 
-        <!-- SCREEN 2 -->
+        <!-- SCREEN 2: Email-only (updated wording #5) -->
         <section id="s2" class="card rounded-2xl border p-6 space-y-4" style="display:none">
           <div>
             <label class="block mb-2 font-medium">If you wish to be contacted for future studies, please indicate your email.</label>
@@ -131,18 +129,37 @@
     </main>
 
     <script>
+      // Toggle yes-only fields
       const yesWrap=document.getElementById("yesFields");
       const radios=[...document.querySelectorAll('input[name="experienced"]')];
-      const toggle=()=>{ const r=document.querySelector('input[name="experienced"]:checked'); yesWrap.style.display = (r && r.value==="yes") ? "block" : "none"; };
+      const toggle=()=>{
+        const r=document.querySelector('input[name="experienced"]:checked');
+        yesWrap.style.display = (r && r.value==="yes") ? "block" : "none";
+      };
       radios.forEach(r=>r.addEventListener("change",toggle));
       toggle();
 
+      // two-screen wizard
       const s1=document.getElementById('s1'), s2=document.getElementById('s2');
-      const toEmail=document.getElementById('toEmail');
-      toEmail.addEventListener('click', ()=>{ s1.style.display='none'; s2.style.display='block'; });
+      document.getElementById('toEmail').addEventListener('click', ()=>{ s1.style.display='none'; s2.style.display='block'; });
 
+      // Disable double-submit
       const f=document.getElementById("f"), b=document.getElementById("btn");
       f.addEventListener("submit",()=>{ b.disabled=true; b.textContent="Submitting…"; });
+
+      // Align anchors width to numbers row width (same helper as scales.html)
+      function alignAnchors(){
+        document.querySelectorAll('.scale').forEach(sc=>{
+          const an = sc.parentElement.querySelector('.anchors');
+          if(!an) return;
+          const w = sc.scrollWidth;
+          an.style.width = w + 'px';
+          an.style.margin = '6px auto 0';
+        });
+      }
+      window.addEventListener('load', alignAnchors);
+      window.addEventListener('resize', alignAnchors);
+      setTimeout(alignAnchors, 50);
     </script>
   </body>
 </html>
