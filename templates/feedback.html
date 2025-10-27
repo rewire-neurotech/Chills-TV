@@ -13,11 +13,22 @@
       .radio{display:flex;gap:.5rem;align-items:center}
       .muted{color:#64748b}
       *:focus{outline:none!important;box-shadow:none!important}
-      .scale{display:flex;gap:12px;align-items:center;justify-content:center}
+
+      /* Shared grid scale for perfect anchor alignment */
+      .scale{
+        --size:36px; --gap:12px;
+        display:grid; grid-template-columns: repeat(var(--steps), var(--size));
+        gap: var(--gap); justify-content:center; align-items:center;
+      }
       .scale input{display:none}
-      .scale label{display:grid;place-items:center;width:36px;height:36px;border:1px solid #e2e8f0;border-radius:.5rem;background:#fff;font-size:13px}
+      .scale label{display:grid;place-items:center;width:var(--size);height:var(--size);border:1px solid #e2e8f0;border-radius:.5rem;background:#fff;font-size:13px}
       .scale input:checked + label{background:#ec4899;color:#fff;border-color:#ec4899}
-      .anchors{display:flex;justify-content:space-between;margin-top:4px;color:#0B0F19;font-size:12px;padding:0 18px}
+      .anchors-grid{
+        display:grid; grid-template-columns: repeat(var(--steps), var(--size));
+        gap: var(--gap); justify-content:center; margin-top:4px; color:#0B0F19; font-size:12px;
+      }
+      .anchors-grid span:first-child{grid-column:1; justify-self:center}
+      .anchors-grid span:last-child{grid-column:-1; justify-self:center}
       .q{color:#0B0F19;font-weight:600}
     </style>
   </head>
@@ -47,39 +58,49 @@
           </div>
 
           <div id="yesFields" class="space-y-6" style="display:none">
+            <!-- Intensity 0–10 -->
             <div>
               <div class="q mb-1">How intense were the chills you experienced? <span class="muted text-sm">(0–10)</span></div>
-              <div class="scale mt-2">
+              <div class="scale mt-2" style="--steps: 11;">
                 {% for val in range(0, 11) %}
                   <input id="intensity_{{ val }}" type="radio" name="chills_amount" value="{{ val }}" />
                   <label for="intensity_{{ val }}">{{ val }}</label>
                 {% endfor %}
               </div>
-              <div class="anchors"><span>Completely untrue for me</span><span>Describes me perfectly</span></div>
+              <div class="anchors-grid" style="--steps: 11;">
+                <span>Completely untrue for me</span><span>Describes me perfectly</span>
+              </div>
             </div>
 
+            <!-- Length 0–6 -->
             <div>
               <div class="q mb-1">How long were the chills that you experienced? <span class="muted text-sm">(0–6, where 6 = more than 5 seconds)</span></div>
-              <div class="scale mt-2">
+              <div class="scale mt-2" style="--steps: 7;">
                 {% for val in range(0, 7) %}
                   <input id="length_{{ val }}" type="radio" name="chills_length" value="{{ val }}" />
                   <label for="length_{{ val }}">{{ val }}</label>
                 {% endfor %}
               </div>
-              <div class="anchors"><span>Completely untrue for me</span><span>Describes me perfectly</span></div>
+              <div class="anchors-grid" style="--steps: 7;">
+                <span>Completely untrue for me</span><span>Describes me perfectly</span>
+              </div>
             </div>
 
+            <!-- Waves 0–10 -->
             <div>
               <div class="q mb-1">How many waves of chills did you experience? <span class="muted text-sm">(0–10)</span></div>
-              <div class="scale mt-2">
+              <div class="scale mt-2" style="--steps: 11;">
                 {% for val in range(0, 11) %}
                   <input id="waves_{{ val }}" type="radio" name="chills_waves" value="{{ val }}" />
                   <label for="waves_{{ val }}">{{ val }}</label>
                 {% endfor %}
               </div>
-              <div class="anchors"><span>Completely untrue for me</span><span>Describes me perfectly</span></div>
+              <div class="anchors-grid" style="--steps: 11;">
+                <span>Completely untrue for me</span><span>Describes me perfectly</span>
+              </div>
             </div>
 
+            <!-- Free text -->
             <div>
               <label class="block mb-2 font-medium">Please describe what in the video gave you chills and why.</label>
               <textarea name="description" rows="5" class="w-full rounded-xl border px-3 py-2 bg-white/70" placeholder="Your answer (optional)…"></textarea>
@@ -91,7 +112,7 @@
           </div>
         </section>
 
-        <!-- SCREEN 2 (email only) -->
+        <!-- SCREEN 2 -->
         <section id="s2" class="card rounded-2xl border p-6 space-y-4" style="display:none">
           <div>
             <label class="block mb-2 font-medium">If you wish to be contacted for future studies, please indicate your email.</label>
