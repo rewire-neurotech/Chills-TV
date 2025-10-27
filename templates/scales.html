@@ -6,39 +6,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      .bg-app { background: linear-gradient(180deg, #f8fafc, #fff); }
-      .card { background: rgba(255, 255, 255, 0.92); backdrop-filter: saturate(1.08) blur(6px); }
-      .btn  { background: linear-gradient(135deg, #ec4899, #db2777); }
-      .btn-outline { border-color: #ec4899; color: #ec4899; }
-      .btn-outline:hover { background: #ec48991a; }
-      .bar { height: 3px; background: linear-gradient(90deg, #ec4899, #60a5fa); width: 50%; }
-
-      .scale { display:flex; gap:12px; align-items:center; justify-content:center; }
-      .scale input { display:none; }
-      .scale label {
-        display:grid; place-items:center; width:36px; height:36px;
-        border:1px solid #e2e8f0; border-radius:0.5rem; background:#fff; font-size:13px;
-      }
-      .scale input:checked + label { background:#ec4899; color:#fff; border-color:#ec4899; }
-
-      /* anchors under the numbers, aligned with first/last buttons */
-      .anchors {
-        display:flex; justify-content:space-between; margin-top:4px;
-        color:#0f172a; font-size:12px;
-        padding: 0 18px; /* half of the number button width (36px) */
-      }
+      .bg-app{background:linear-gradient(180deg,#f8fafc,#fff)}
+      .btn{background:linear-gradient(135deg,#ec4899,#db2777)}
+      .btn-outline{border-color:#ec4899;color:#ec4899}
+      .btn-outline:hover{background:#ec48991a}
+      .bar{height:3px;background:linear-gradient(90deg,#ec4899,#60a5fa);width:50%}
+      *:focus{outline:none!important;box-shadow:none!important}
+      .scale{display:flex;gap:12px;align-items:center;justify-content:center}
+      .scale input{display:none}
+      .scale label{display:grid;place-items:center;width:36px;height:36px;border:1px solid #e2e8f0;border-radius:.5rem;background:#fff;font-size:13px}
+      .scale input:checked + label{background:#ec4899;color:#fff;border-color:#ec4899}
+      .anchors{display:flex;justify-content:space-between;margin-top:4px;color:#0B0F19;font-size:12px;padding:0 18px}
+      .q{color:#0B0F19;font-weight:600}
     </style>
   </head>
   <body class="min-h-screen bg-app text-slate-900">
+    <!-- Step count only -->
     <header class="bg-white/80 backdrop-blur border-b">
       <div class="max-w-4xl mx-auto px-4 py-3">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="h-8 w-8 rounded-xl" style="background: linear-gradient(135deg, #ec4899, #60a5fa)"></div>
-            <h1 class="text-lg font-semibold">ReWire ML Study</h1>
-          </div>
-          <div class="text-xs text-slate-600">Step 2 of 4 • Questionnaire</div>
-        </div>
+        <div class="flex items-center justify-between"><div></div><div class="text-xs text-slate-600">Step 2 of 4</div></div>
         <div class="bar mt-2 rounded"></div>
       </div>
     </header>
@@ -46,71 +32,50 @@
     <main class="max-w-4xl mx-auto px-4 py-8">
       <form action="/start" method="post" id="f" class="space-y-6">
         <input type="hidden" name="pid" value="{{ PID }}" />
-        {% for k,v in H.items() %}
-          <input type="hidden" name="{{ k }}" value="{{ v }}" />
-        {% endfor %}
+        {% for k,v in H.items() %}<input type="hidden" name="{{ k }}" value="{{ v }}" />{% endfor %}
 
-        <!-- Plain instruction line (no card) -->
-        <p class="text-[15px] leading-6">
-          <b>Please rate the following in terms of how much you agree or disagree with each statement.</b>
-        </p>
+        <p class="text-[15px] leading-6"><b>Please rate the following in terms of how much you agree or disagree with each statement.</b></p>
 
-        <!-- Statements only -->
-        <section class="card rounded-2xl border p-2">
+        <section class="rounded-2xl border bg-white p-2">
           <div class="divide-y">
             {% for x in QS %}
               {% set mn = x.min if x.min else 1 %}
               {% set mx = x.max if x.max else 7 %}
               <div class="p-4">
-                <div class="text-sm font-medium mb-1">{{ x.q }}</div>
-
-                <!-- 1–N scale -->
+                <div class="q mb-1">{{ x.q }}</div>
                 <div class="scale mt-2">
                   {% for val in range(mn, mx + 1) %}
-                    <input id="{{ x.n }}_{{ val }}" type="radio" name="{{ x.n }}" value="{{ val }}" {% if val==((mn+mx)//2) %}checked{% endif %}/>
+                    <input id="{{ x.n }}_{{ val }}" type="radio" name="{{ x.n }}" value="{{ val }}" />
                     <label for="{{ x.n }}_{{ val }}">{{ val }}</label>
                   {% endfor %}
                 </div>
-
-                <!-- anchors under the ends (black text) -->
-                <div class="anchors">
-                  <span>Completely untrue for me</span>
-                  <span>Describes me perfectly</span>
-                </div>
+                <div class="anchors"><span>Completely untrue for me</span><span>Describes me perfectly</span></div>
               </div>
             {% endfor %}
 
-            <!-- Final extra question -->
             <div class="p-4">
-              <div class="text-sm font-medium mb-1">
-                Would you describe yourself as someone who gets easily moved or touched?
-              </div>
+              <div class="q mb-1">Would you describe yourself as someone who gets easily moved or touched?</div>
               <div class="scale mt-2">
                 {% for val in range(1, 8) %}
-                  <input id="EasilyMoved_{{ val }}" type="radio" name="EasilyMoved" value="{{ val }}" {% if val==4 %}checked{% endif %}/>
+                  <input id="EasilyMoved_{{ val }}" type="radio" name="EasilyMoved" value="{{ val }}" />
                   <label for="EasilyMoved_{{ val }}">{{ val }}</label>
                 {% endfor %}
               </div>
-              <div class="anchors">
-                <span>Completely untrue for me</span>
-                <span>Describes me perfectly</span>
-              </div>
+              <div class="anchors"><span>Completely untrue for me</span><span>Describes me perfectly</span></div>
             </div>
           </div>
         </section>
 
         <div class="flex items-center justify-between">
           <button type="button" onclick="history.back()" class="btn-outline rounded-xl border px-5 py-3">Back</button>
-          <button id="btn" class="btn rounded-xl text-white px-5 py-3 disabled:opacity-60 disabled:cursor-not-allowed transition">
-            Continue
-          </button>
+          <button id="btn" class="btn rounded-xl text-white px-5 py-3 disabled:opacity-60 disabled:cursor-not-allowed transition">Continue</button>
         </div>
       </form>
     </main>
 
     <script>
-      const f = document.getElementById("f"), b = document.getElementById("btn");
-      f.addEventListener("submit", () => { b.disabled = true; b.textContent = "Submitting…"; });
+      const f=document.getElementById("f"), b=document.getElementById("btn");
+      f.addEventListener("submit",()=>{b.disabled=true;b.textContent="Submitting…";});
     </script>
   </body>
 </html>
