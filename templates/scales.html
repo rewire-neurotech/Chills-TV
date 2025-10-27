@@ -23,16 +23,18 @@
       }
       .scale input:checked + label{background:#ec4899;color:#fff;border-color:#ec4899}
 
-      /* anchors sit under the centers of the end buttons */
+      /* anchors: pin left text to left edge of 1, right text to right edge of last */
       .anchors{
-        display:flex;justify-content:space-between;margin-top:6px;color:#0B0F19;font-size:12px;
-        padding:0 21px; /* half of label width (42px) to center under end buttons */
+        position:relative;margin-top:6px;height:16px;line-height:16px;
+        color:#0B0F19;font-size:12px
       }
+      .anchors .l{position:absolute;left:0;text-align:left;white-space:nowrap}
+      .anchors .r{position:absolute;right:0;text-align:right;white-space:nowrap}
+
       .q{color:#0B0F19;font-weight:600}
     </style>
   </head>
   <body class="min-h-screen bg-app text-slate-900">
-    <!-- Step count only -->
     <header class="bg-white/80 backdrop-blur border-b">
       <div class="max-w-4xl mx-auto px-4 py-3">
         <div class="flex items-center justify-between"><div></div><div class="text-xs text-slate-600">Step 2 of 4</div></div>
@@ -45,7 +47,6 @@
         <input type="hidden" name="pid" value="{{ PID }}" />
         {% for k,v in H.items() %}<input type="hidden" name="{{ k }}" value="{{ v }}" />{% endfor %}
 
-        <!-- Single global instruction (not repeated per statement) -->
         <p class="text-[15px] leading-6"><b>Please rate the following in terms of how much you agree or disagree with each statement.</b></p>
 
         <section class="rounded-2xl border bg-white p-2">
@@ -56,7 +57,6 @@
               <div class="p-4">
                 <div class="q mb-2">{{ x.q }}</div>
 
-                <!-- Edge-to-edge 1–N scale -->
                 <div class="scale mt-2">
                   {% for val in range(mn, mx + 1) %}
                     <div class="opt">
@@ -65,11 +65,13 @@
                     </div>
                   {% endfor %}
                 </div>
-                <div class="anchors"><span>Completely untrue for me</span><span>Describes me perfectly</span></div>
+                <div class="anchors">
+                  <span class="l">Completely untrue for me</span>
+                  <span class="r">Describes me perfectly</span>
+                </div>
               </div>
             {% endfor %}
 
-            <!-- Final extra question (shown once) -->
             <div class="p-4">
               <div class="q mb-2">Would you describe yourself as someone who gets easily moved or touched?</div>
               <div class="scale mt-2">
@@ -80,7 +82,10 @@
                   </div>
                 {% endfor %}
               </div>
-              <div class="anchors"><span>Completely untrue for me</span><span>Describes me perfectly</span></div>
+              <div class="anchors">
+                <span class="l">Completely untrue for me</span>
+                <span class="r">Describes me perfectly</span>
+              </div>
             </div>
           </div>
         </section>
