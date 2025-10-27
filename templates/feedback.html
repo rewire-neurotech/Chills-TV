@@ -14,7 +14,6 @@
       .muted{color:#64748b}
       *:focus{outline:none!important;box-shadow:none!important}
 
-      /* same edge-to-edge scale for post-stimulus ratings */
       .scale{display:flex;justify-content:space-between;align-items:center;gap:0;width:100%}
       .scale .opt{display:flex;align-items:center;justify-content:center}
       .scale input{display:none}
@@ -23,12 +22,19 @@
         border:1px solid #e2e8f0;border-radius:.75rem;background:#fff;font-size:13px
       }
       .scale input:checked + label{background:#ec4899;color:#fff;border-color:#ec4899}
-      .anchors{display:flex;justify-content:space-between;margin-top:6px;color:#0B0F19;font-size:12px;padding:0 21px}
+
+      /* anchors pinned to edges */
+      .anchors{
+        position:relative;margin-top:6px;height:16px;line-height:16px;
+        color:#0B0F19;font-size:12px
+      }
+      .anchors .l{position:absolute;left:0;text-align:left;white-space:nowrap}
+      .anchors .r{position:absolute;right:0;text-align:right;white-space:nowrap}
+
       .q{color:#0B0F19;font-weight:600}
     </style>
   </head>
   <body class="min-h-screen bg-app text-slate-900">
-    <!-- Step count only -->
     <header class="bg-white/80 backdrop-blur border-b">
       <div class="max-w-4xl mx-auto px-4 py-3">
         <div class="flex items-center justify-between"><div></div><div class="text-xs text-slate-600">Step 4 of 4</div></div>
@@ -43,9 +49,7 @@
         <input type="hidden" name="stimulus_name" value="{{ stimulus_name }}" />
         <input type="hidden" name="url" value="{{ url }}" />
 
-        <!-- SCREEN 1: Post-stimulus questions -->
         <section id="s1" class="card rounded-2xl border p-6 space-y-6">
-          <!-- Did you experience chills? (no default) -->
           <div>
             <div class="block mb-2 font-medium">Did you experience chills?</div>
             <div class="flex gap-6">
@@ -54,9 +58,7 @@
             </div>
           </div>
 
-          <!-- Show only if 'Yes' -->
           <div id="yesFields" class="space-y-6" style="display:none">
-            <!-- Intensity (0–10) -->
             <div>
               <div class="q mb-1">How intense were the chills you experienced? <span class="muted text-sm">(0–10)</span></div>
               <div class="scale mt-2">
@@ -67,10 +69,9 @@
                   </div>
                 {% endfor %}
               </div>
-              <div class="anchors"><span>Completely untrue for me</span><span>Describes me perfectly</span></div>
+              <div class="anchors"><span class="l">Completely untrue for me</span><span class="r">Describes me perfectly</span></div>
             </div>
 
-            <!-- Length (0–6) -->
             <div>
               <div class="q mb-1">How long were the chills that you experienced? <span class="muted text-sm">(0–6, where 6 = more than 5 seconds)</span></div>
               <div class="scale mt-2">
@@ -81,10 +82,9 @@
                   </div>
                 {% endfor %}
               </div>
-              <div class="anchors"><span>Completely untrue for me</span><span>Describes me perfectly</span></div>
+              <div class="anchors"><span class="l">Completely untrue for me</span><span class="r">Describes me perfectly</span></div>
             </div>
 
-            <!-- Waves (0–10) -->
             <div>
               <div class="q mb-1">How many waves of chills did you experience? <span class="muted text-sm">(0–10)</span></div>
               <div class="scale mt-2">
@@ -95,10 +95,9 @@
                   </div>
                 {% endfor %}
               </div>
-              <div class="anchors"><span>Completely untrue for me</span><span>Describes me perfectly</span></div>
+              <div class="anchors"><span class="l">Completely untrue for me</span><span class="r">Describes me perfectly</span></div>
             </div>
 
-            <!-- Free-text (wording change requested) -->
             <div>
               <label class="block mb-2 font-medium">Please describe what in the video gave you chills and why.</label>
               <textarea name="description" rows="5" class="w-full rounded-xl border px-3 py-2 bg-white/70" placeholder="Your answer (optional)…"></textarea>
@@ -110,7 +109,6 @@
           </div>
         </section>
 
-        <!-- SCREEN 2: Email-only (copy per Felix) -->
         <section id="s2" class="card rounded-2xl border p-6 space-y-4" style="display:none">
           <div>
             <label class="block mb-2 font-medium">If you wish to be contacted for future studies, please indicate your email.</label>
