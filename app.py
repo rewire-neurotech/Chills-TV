@@ -614,10 +614,32 @@ def feedback(req: Request, id: str, stimulus_id: str, url: str = "", score: floa
     })
 @a.get("/download-logs")
 def download_logs():
-    log_path = "/data/logs.csv"
-    if not os.path.exists(log_path):
+    p = "/data/logs.csv"
+    if not os.path.exists(p):
         return HTMLResponse("No logs yet — /data/logs.csv not found", status_code=404)
-    return FileResponse(log_path, filename="logs.csv", media_type="text/csv")
+    headers = {"Cache-Control": "no-store, no-cache, must-revalidate, max-age=0"}
+    return FileResponse(p, media_type="text/csv", filename="logs.csv", headers=headers)
+
+@a.get("/_debug/logs_head")
+def logs_head(n: int = 5):
+    p = "/data/logs.csv"
+    if not os.path.exists(p):
+        return {"exists": False, "size": 0, "lines": []}
+    with open(p, "r", encoding="utf-8") as fh:
+        lines = fh.readlines()
+    return {"exists": True, "size": os.path.getsize(p), "rows": len(lines)-1, "tail": lines[-min(n, len(lines)):]}
+
+@a.get("/_debug/disk")
+def disk():
+    p = "/data"
+    exists = os.path.isdir(p)
+    listing = []
+    if exists:
+        try:
+            listing = sorted(os.listdir(p))
+        except Exception as e:
+            listing = [f"error: {e}"]
+    return {"mounted": exists, "path": p, "ls": listing}
 
 @a.post("/submit", response_class=HTMLResponse)
 async def submit(req: Request,
@@ -721,6 +743,7 @@ def avoid_debug(threshold: float = 0.5):
             except Exception:
                 continue
     return {"threshold": float(threshold), "count": len(avoid), "avoid": avoid}
+
 
 
 
