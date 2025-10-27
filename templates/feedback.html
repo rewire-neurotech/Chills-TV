@@ -22,7 +22,6 @@
     </style>
   </head>
   <body class="min-h-screen bg-app text-slate-900">
-    <!-- Step count only -->
     <header class="bg-white/80 backdrop-blur border-b">
       <div class="max-w-4xl mx-auto px-4 py-3">
         <div class="flex items-center justify-between"><div></div><div class="text-xs text-slate-600">Step 4 of 4</div></div>
@@ -37,9 +36,8 @@
         <input type="hidden" name="stimulus_name" value="{{ stimulus_name }}" />
         <input type="hidden" name="url" value="{{ url }}" />
 
-        <!-- SCREEN 1: Post-stimulus questions -->
+        <!-- SCREEN 1 -->
         <section id="s1" class="card rounded-2xl border p-6 space-y-6">
-          <!-- Did you experience chills? (no default) -->
           <div>
             <div class="block mb-2 font-medium">Did you experience chills?</div>
             <div class="flex gap-6">
@@ -48,9 +46,7 @@
             </div>
           </div>
 
-          <!-- Show only if 'Yes' -->
           <div id="yesFields" class="space-y-6" style="display:none">
-            <!-- Intensity (0–10) -->
             <div>
               <div class="q mb-1">How intense were the chills you experienced? <span class="muted text-sm">(0–10)</span></div>
               <div class="scale mt-2">
@@ -62,7 +58,6 @@
               <div class="anchors"><span>Completely untrue for me</span><span>Describes me perfectly</span></div>
             </div>
 
-            <!-- Length (0–6) -->
             <div>
               <div class="q mb-1">How long were the chills that you experienced? <span class="muted text-sm">(0–6, where 6 = more than 5 seconds)</span></div>
               <div class="scale mt-2">
@@ -74,7 +69,6 @@
               <div class="anchors"><span>Completely untrue for me</span><span>Describes me perfectly</span></div>
             </div>
 
-            <!-- Waves (0–10) -->
             <div>
               <div class="q mb-1">How many waves of chills did you experience? <span class="muted text-sm">(0–10)</span></div>
               <div class="scale mt-2">
@@ -86,9 +80,8 @@
               <div class="anchors"><span>Completely untrue for me</span><span>Describes me perfectly</span></div>
             </div>
 
-            <!-- Free-text -->
             <div>
-              <label class="block mb-2 font-medium">If you experienced chills during the video, please describe what in the video gave you chills and why.</label>
+              <label class="block mb-2 font-medium">Please describe what in the video gave you chills and why.</label>
               <textarea name="description" rows="5" class="w-full rounded-xl border px-3 py-2 bg-white/70" placeholder="Your answer (optional)…"></textarea>
             </div>
           </div>
@@ -98,10 +91,10 @@
           </div>
         </section>
 
-        <!-- SCREEN 2: Email-only (separate screen feel, same page) -->
+        <!-- SCREEN 2 (email only) -->
         <section id="s2" class="card rounded-2xl border p-6 space-y-4" style="display:none">
           <div>
-            <label class="block mb-2 font-medium">Email (optional)</label>
+            <label class="block mb-2 font-medium">If you wish to be contacted for future studies, please indicate your email.</label>
             <input name="email" type="email" placeholder="you@example.com"
                    class="w-full rounded-xl border px-3 py-2 bg-white/70" />
             <p class="text-[12px] text-slate-500 mt-1">Optional — used only for follow-up on future studies.</p>
@@ -121,9 +114,8 @@
       const radios=[...document.querySelectorAll('input[name="experienced"]')];
       const toggle=()=>{ const r=document.querySelector('input[name="experienced"]:checked'); yesWrap.style.display = (r && r.value==="yes") ? "block" : "none"; };
       radios.forEach(r=>r.addEventListener("change",toggle));
-      toggle(); // start hidden
+      toggle();
 
-      // two-screen wizard (no backend changes)
       const s1=document.getElementById('s1'), s2=document.getElementById('s2');
       const toEmail=document.getElementById('toEmail');
       toEmail.addEventListener('click', ()=>{ s1.style.display='none'; s2.style.display='block'; });
