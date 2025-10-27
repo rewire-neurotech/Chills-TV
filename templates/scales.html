@@ -12,16 +12,20 @@
       .btn-outline:hover{background:#ec48991a}
       .bar{height:3px;background:linear-gradient(90deg,#ec4899,#60a5fa);width:50%}
       *:focus{outline:none!important;box-shadow:none!important}
+
+      /* evenly spread numbers  */
       .scale{display:flex;justify-content:space-between;gap:8px;align-items:center}
       .scale input{display:none}
       .scale label{
         display:grid;place-items:center;
         width:42px;height:42px;
-        border:1px solid #e2e8f0;border-radius:.5rem;background:#fff;font-size:14px;
-        cursor:pointer;
+        border:1px solid #e2e8f0;border-radius:.5rem;background:#fff;font-size:14px;cursor:pointer;
       }
       .scale input:checked + label{background:#ec4899;color:#fff;border-color:#ec4899}
+
+      /* anchors align under first & last numbers */
       .anchors{display:flex;justify-content:space-between;margin-top:6px;color:#0B0F19;font-size:12px}
+
       .q{color:#0B0F19;font-weight:600}
     </style>
   </head>
@@ -44,20 +48,21 @@
           <input type="hidden" name="{{ k }}" value="{{ v }}" />
         {% endfor %}
 
+        <!-- Single instruction line (no card) -->
         <p class="text-[15px] leading-6 font-semibold text-center">
           Please rate the following in terms of how much you agree or disagree with each statement.
         </p>
 
-        <!-- Statements only -->
+        <!-- Statements -->
         <section class="rounded-2xl border bg-white p-2">
           <div class="divide-y">
             {% for x in QS %}
               {% set mn = x.min if x.min else 1 %}
               {% set mx = x.max if x.max else 7 %}
               <div class="p-4">
-                <div class="q mb-1">{{ x.q }}</div>
+                <!-- We print raw then clean it with JS to drop any leading 'Please rate...' prefixes -->
+                <div class="q mb-1 js-clean">{{ x.q }}</div>
 
-                <!-- Scales evenly spread -->
                 <div class="scale mt-2">
                   {% for val in range(mn, mx + 1) %}
                     <input id="{{ x.n }}_{{ val }}" type="radio" name="{{ x.n }}" value="{{ val }}" required />
@@ -70,6 +75,21 @@
                 </div>
               </div>
             {% endfor %}
+
+            <!-- Final single extra question -->
+            <div class="p-4">
+              <div class="q mb-1">Would you describe yourself as someone who gets easily moved or touched?</div>
+              <div class="scale mt-2">
+                {% for val in range(1, 8) %}
+                  <input id="EasilyMoved_{{ val }}" type="radio" name="EasilyMoved" value="{{ val }}" required />
+                  <label for="EasilyMoved_{{ val }}">{{ val }}</label>
+                {% endfor %}
+              </div>
+              <div class="anchors">
+                <span>Completely untrue for me</span>
+                <span>Describes me perfectly</span>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -83,8 +103,23 @@
     </main>
 
     <script>
+      // Disable double submit
       const f=document.getElementById("f"), b=document.getElementById("btn");
       f.addEventListener("submit",()=>{b.disabled=true;b.textContent="Submitting…";});
+
+      // Clean any leading questionnaire prefaces inside item texts:
+      // Examples to remove:
+      //  - "Please rate the following in terms of how much you agree or disagree with each statement. - ..."
+      //  - "Please rate the following in terms of how you generally are now, not as you wish to be in the future. - ..."
+      document.querySelectorAll('.js-clean').forEach(el=>{
+        const t = el.textContent.trim();
+        if (t.startsWith("Please rate the following")) {
+          const cut = t.indexOf(" - ");
+          if (cut !== -1 && cut + 3 < t.length) {
+            el.textContent = t.substring(cut + 3).trim();
+          }
+        }
+      });
     </script>
   </body>
 </html>
