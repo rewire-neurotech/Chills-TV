@@ -36,6 +36,21 @@
       .consent-box hr{border:none;border-top:1px solid #e2e8f0;margin:0.75rem 0}
       .consent-box strong{font-weight:600}
       .muted-note{font-size:12px;color:#64748b}
+      /* inside your existing <style> */
+      .consent-box ul{
+        list-style: disc;
+        list-style-position: outside;
+        padding-left: 1.25rem;
+        margin: 0.25rem 0 0.5rem 1.25rem;
+      }
+      .consent-box ol{
+        list-style: decimal;          /* <— ensures numbers show */
+        list-style-position: outside;
+        padding-left: 1.25rem;
+        margin: 0.25rem 0 0.5rem 1.25rem;
+      }
+      .consent-box li{ margin: 0.15rem 0; }
+
     </style>
   </head>
   <body class="min-h-screen bg-app text-[15px] text-[color:var(--ink)]">
