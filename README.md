@@ -1,6 +1,9 @@
 # ReWire ML App
 ReWire ML App is a FastAPI-based machine learning application that processes questionnaire inputs and generates ranked stimuli recommendations using a pre-trained ONNX model and a Scikit-learn preprocessing pipeline. It includes model inference, feature transformation, stimulus mapping, and CSV-based logging with a simple HTML frontend.
 
+## What This App Does
+This app takes answers from a small questionnaire, preprocesses them using a saved Scikit-learn pipeline, and sends the data to a trained ONNX model. The model then scores and ranks 40 predefined emotional audio/video stimuli and returns a personalized recommendation list. Everything runs through a FastAPI backend with a clean HTML interface, and all predictions are logged for tracking and improvement.
+
 ## Features
 - FastAPI backend
 - ONNX model inference
