@@ -13,7 +13,7 @@
       .bar{height:3px;background:linear-gradient(90deg,#ec4899,#60a5fa);width:50%}
       *:focus{outline:none!important;box-shadow:none!important}
 
-      /* number row = responsive equal slots, anchored edges */
+      
       .scale{--count:7; display:grid; grid-template-columns:repeat(var(--count),minmax(0,1fr)); gap:10px; align-items:center}
       .scale input{display:none}
       .scale label{
@@ -22,12 +22,12 @@
       }
       .scale input:checked + label{background:#ec4899;color:#fff;border-color:#ec4899}
 
-      /* anchors pinned exactly under first/last */
+      
       .anchors{position:relative; margin-top:6px; height:16px; color:#0B0F19; font-size:12px}
       .anchors .l{position:absolute; left:0}
       .anchors .r{position:absolute; right:0}
 
-      /* question text (not bold as requested) */
+      
       .q{color:#0B0F19; font-weight:400}
     </style>
   </head>
@@ -49,12 +49,12 @@
           <input type="hidden" name="{{ k }}" value="{{ v }}" />
         {% endfor %}
 
-        <!-- Single instruction line (bigger/highlighted) -->
+    
         <p class="text-center text-xl md:text-2xl font-semibold text-[color:#0B0F19]">
           Please rate the following in terms of how much you agree or disagree with each statement.
         </p>
 
-        <!-- Statements only -->
+    
         <section class="rounded-2xl border bg-white p-2">
           <div id="itemsWrap" class="divide-y">
             {% for x in QS %}
@@ -76,7 +76,7 @@
               </div>
             {% endfor %}
 
-            <!-- Keep only one final question -->
+           
             <div class="p-4" id="finalMovedTouched">
               <div class="q mb-2">Would you describe yourself as someone who gets easily moved or touched?</div>
               <div class="scale mt-2" data-count="7">
@@ -103,17 +103,17 @@
     </main>
 
     <script>
-      // disable double submit
+   
       const f=document.getElementById("f"), b=document.getElementById("btn");
       f.addEventListener("submit",()=>{b.disabled=true;b.textContent="Submitting…";});
 
-      // set responsive column count from data-count
+  
       document.querySelectorAll('.scale').forEach(el=>{
         const c = parseInt(el.dataset.count||'0',10);
         if (c>0) el.style.setProperty('--count', c);
       });
 
-      // clean prefixes + dedupe + drop duplicate "moved or touched"
+ 
       const TARGET = "would you describe yourself as someone who gets easily moved or touched?";
       const norm = s => s.toLowerCase().replace(/\s+/g,' ').replace(/[“”«»]/g,'"').replace(/[’‘]/g,"'").trim();
 
@@ -136,3 +136,4 @@
     </script>
   </body>
 </html>
+
