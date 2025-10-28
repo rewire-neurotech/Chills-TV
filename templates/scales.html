@@ -13,7 +13,7 @@
       .bar{height:3px;background:linear-gradient(90deg,#ec4899,#60a5fa);width:50%}
       *:focus{outline:none!important;box-shadow:none!important}
 
-      /* evenly spread numbers  */
+      /* evenly spread numbers across the row */
       .scale{display:flex;justify-content:space-between;gap:8px;align-items:center}
       .scale input{display:none}
       .scale label{
@@ -23,7 +23,7 @@
       }
       .scale input:checked + label{background:#ec4899;color:#fff;border-color:#ec4899}
 
-      /* anchors align under first & last numbers */
+      /* anchors aligned under first/last numbers */
       .anchors{display:flex;justify-content:space-between;margin-top:6px;color:#0B0F19;font-size:12px}
 
       .q{color:#0B0F19;font-weight:600}
@@ -55,13 +55,13 @@
 
         <!-- Statements -->
         <section class="rounded-2xl border bg-white p-2">
-          <div class="divide-y">
+          <div id="itemsWrap" class="divide-y">
             {% for x in QS %}
               {% set mn = x.min if x.min else 1 %}
               {% set mx = x.max if x.max else 7 %}
-              <div class="p-4">
-                <!-- We print raw then clean it with JS to drop any leading 'Please rate...' prefixes -->
-                <div class="q mb-1 js-clean">{{ x.q }}</div>
+              <div class="p-4 js-item">
+                <!-- raw text first; JS will clean prefixes & dedupe -->
+                <div class="q mb-1 js-clean" data-raw="{{ x.q|e }}">{{ x.q }}</div>
 
                 <div class="scale mt-2">
                   {% for val in range(mn, mx + 1) %}
@@ -76,8 +76,8 @@
               </div>
             {% endfor %}
 
-            <!-- Final single extra question -->
-            <div class="p-4">
+            <!-- Final single extra question (kept once) -->
+            <div class="p-4" id="finalMovedTouched">
               <div class="q mb-1">Would you describe yourself as someone who gets easily moved or touched?</div>
               <div class="scale mt-2">
                 {% for val in range(1, 8) %}
@@ -107,18 +107,39 @@
       const f=document.getElementById("f"), b=document.getElementById("btn");
       f.addEventListener("submit",()=>{b.disabled=true;b.textContent="Submitting…";});
 
-      // Clean any leading questionnaire prefaces inside item texts:
-      // Examples to remove:
-      //  - "Please rate the following in terms of how much you agree or disagree with each statement. - ..."
-      //  - "Please rate the following in terms of how you generally are now, not as you wish to be in the future. - ..."
+      // Clean prefixes & remove duplicates (including extra "moved or touched" copies)
+      const TARGET = "would you describe yourself as someone who gets easily moved or touched?";
+      const norm = s => s.toLowerCase()
+                         .replace(/\s+/g,' ')
+                         .replace(/[“”«»]/g,'"')
+                         .replace(/[’‘]/g,"'")
+                         .trim();
+
+      // Remove leading "Please rate the following ..." prefixes from each item text
       document.querySelectorAll('.js-clean').forEach(el=>{
-        const t = el.textContent.trim();
+        let t = el.textContent.trim();
         if (t.startsWith("Please rate the following")) {
           const cut = t.indexOf(" - ");
-          if (cut !== -1 && cut + 3 < t.length) {
-            el.textContent = t.substring(cut + 3).trim();
-          }
+          if (cut !== -1 && cut + 3 < t.length) t = t.substring(cut + 3).trim();
         }
+        el.textContent = t;
+      });
+
+      // Deduplicate items, and drop any QS copy that equals the final question
+      const seen = new Set();
+      document.querySelectorAll('.js-item').forEach(wrap=>{
+        const qEl = wrap.querySelector('.js-clean');
+        const txt = norm(qEl ? qEl.textContent : "");
+        if (!txt) { wrap.remove(); return; }
+        if (txt === TARGET) { // drop QS version of the "moved or touched" question
+          wrap.remove();
+          return;
+        }
+        if (seen.has(txt)) { // drop duplicates
+          wrap.remove();
+          return;
+        }
+        seen.add(txt);
       });
     </script>
   </body>
