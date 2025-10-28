@@ -9,7 +9,7 @@ import sklearn
 from typing import Any, Dict, List, Tuple, Optional
 from fastapi.responses import HTMLResponse, FileResponse
 os.makedirs("/data", exist_ok=True)
-# ---------- app + paths ----------
+
 a = FastAPI()
 b = os.path.dirname(__file__)
 t = Jinja2Templates(directory=os.path.join(b, "templates"))
@@ -34,13 +34,13 @@ P = {
     "probs": None,
     "argmax": None,
     "last_top5": [],
-    "chosen_head_idx": None,     # <- debug: which ONNX head was used
-    "chosen_head_name": None,    # <- debug: which ONNX head was used
+    "chosen_head_idx": None,     
+    "chosen_head_name": None,    
 }
 LP = "/data/debug_probs.csv"
 FW = {"pairs": [], "missing": [], "raw_answers": {}, "built_vector": []}
 
-# ---------- fixed 40 stimuli (order must match training) ----------
+
 STIM = [
     "Great Dictator",
     "Think Too Much Feel Too Little (audio)",
@@ -84,7 +84,7 @@ STIM = [
     "Aramaic Choir",
 ]
 
-# ---------- utils ----------
+
 def r1(p):
     try:
         return pd.read_csv(p, encoding="utf-8")
@@ -120,7 +120,7 @@ def canon(s):
     s = re.sub(r"\s+"," ", s).strip()
     return s
 
-# ---------- questionnaire ----------
+
 def qcsv():
     p = None
     for z in qfs:
@@ -163,7 +163,7 @@ def qdemo():
 def qall():
     u = []; u.extend(Q); u.extend(qdemo()); return u
 
-# ---------- model + pre ----------
+
 with open(ff, "r", encoding="utf-8") as f:
     F = json.load(f)["features"]
 
@@ -176,7 +176,7 @@ for c, d in [("_name_to_fitted_passthrough", {}), ("_remainder", "drop")]:
 sess = rt.InferenceSession(mf, providers=["CPUExecutionProvider"])
 inn = sess.get_inputs()[0].name
 
-# ---------- stimuli table ----------
+
 def sspath():
     for fn in sfs:
         p = os.path.join(b, fn)
@@ -225,7 +225,7 @@ def loadG():
 
 G = loadG()
 
-# ---------- CSV matching ----------
+
 ALIASES = {
     "mr rogers testimony": ["mr rogers testimony","mr rogers congress testimony","mr rogers senate testimony"],
     "mr rogers doc": ["mr rogers documentary","mr rogers doc"],
@@ -300,7 +300,7 @@ for si, sname in enumerate(STIM):
     else:
         IDX[si] = got
 
-# ---------- feature plumbing ----------
+
 with open(ff, "r", encoding="utf-8") as f:
     FEATURES = json.load(f)["features"]
 
@@ -370,8 +370,8 @@ def to40X(v):
     if hasattr(X, "toarray"): X = X.toarray()
     return np.asarray(X, dtype=np.float32)
 
-# ---------- ONNX inference helpers ----------
-CHILLS_HEAD_ENV = os.getenv("REWIRE_CHILLS_HEAD_INDEX")  # optional override
+
+CHILLS_HEAD_ENV = os.getenv("REWIRE_CHILLS_HEAD_INDEX")  
 CHILLS_NAME_HINTS = ("chills", "chills_bin", "prob_chills", "head0")
 
 def _choose_chills_head_index(outs: List[str]) -> int:
@@ -434,7 +434,7 @@ def topk(v, k=1, pid=""):
     outs = [o.name for o in out_defs]
     yl = sess.run(outs, {inn: X})
 
-    # --- FORCE "probabilities" head if present ---
+  
     p = None
     used_idx = None
     used_name = None
@@ -447,21 +447,21 @@ def topk(v, k=1, pid=""):
 
     if prob_idx is not None:
         y = yl[prob_idx]
-        # Case A: probabilities is a sequence of per-head tensors (e.g., 5 heads)
+        
         if isinstance(y, (list, tuple)):
             try:
-                head0 = y[0]  # engineer: probs_0 is CHILLS
+                head0 = y[0] 
             except Exception as ex:
                 raise RuntimeError(f"'probabilities' is a sequence but empty/invalid: type={type(y)}") from ex
             arr = np.asarray(head0)
             if arr.ndim == 2 and arr.shape[0] == len(STIM) and arr.shape[1] >= 2:
-                p = arr[:, 1].astype(np.float32)  # class-1 = Chills_bin
+                p = arr[:, 1].astype(np.float32)  
             elif arr.ndim == 1 and arr.shape[0] == len(STIM):
                 p = arr.astype(np.float32)
             else:
                 raise RuntimeError(f"Unexpected shape for CHILLS head0: {arr.shape}; expected (40,2) or (40,).")
         else:
-            # Case B: structured blob / ndarray with embedded probs
+            
             p = _extract_from_probabilities_struct(y)
             if p is None:
                 arr = np.asarray(y)
@@ -474,7 +474,7 @@ def topk(v, k=1, pid=""):
         used_idx = prob_idx
         used_name = outs[prob_idx]
 
-    # --- If no 'probabilities', pick CHILLS head by hint/index
+   
     if p is None:
         hi = _choose_chills_head_index(outs)
         y = yl[hi]
@@ -492,7 +492,7 @@ def topk(v, k=1, pid=""):
         used_idx = hi
         used_name = outs[hi]
 
-    # jitter then rank
+   
     eps = (np.arange(len(STIM)) * 1e-9).astype(np.float32)
     p = p + eps
     if np.max(p) - np.min(p) < 1e-6:
@@ -501,7 +501,7 @@ def topk(v, k=1, pid=""):
     else:
         idx = np.argsort(-p)[:k]
 
-    # record debug
+    
     try:
         P["onnx_called"] = True
         P["in_shape"] = tuple(X.shape)
@@ -518,7 +518,7 @@ def topk(v, k=1, pid=""):
     except Exception:
         pass
 
-    # outputs
+    
     o = []
     for j in idx:
         j = int(j)
@@ -539,7 +539,7 @@ def topk(v, k=1, pid=""):
         })
     return o
 
-# ---------- tie-handling helpers (ONE video output) ----------
+
 def _is_video(item: Dict) -> bool:
     name = (item.get("name","") or "").lower()
     url  = (item.get("url","") or "").lower()
@@ -563,7 +563,7 @@ def _choose_from_ties(items: List[Dict], pid: str, built_vec: list, tol_abs: flo
     h = int(hashlib.sha256(sig.encode("utf-8")).hexdigest(), 16)
     return pick_from[h % len(pick_from)]
 
-# ---------- routes ----------
+
 @a.get("/", response_class=HTMLResponse)
 def index(req: Request):
     q2 = [x for x in Q if x["k"] != "Age"]
@@ -670,7 +670,7 @@ async def submit(req: Request,
         ])
     return t.TemplateResponse("done.html", {"request": req, "id": id, "email": email})
 
-# ---------- debug ----------
+
 @a.get("/_debug/onnx_status")
 def onnx_status():
     cols = list(G.columns) if len(G) > 0 else []
@@ -743,6 +743,7 @@ def avoid_debug(threshold: float = 0.5):
             except Exception:
                 continue
     return {"threshold": float(threshold), "count": len(avoid), "avoid": avoid}
+
 
 
 
