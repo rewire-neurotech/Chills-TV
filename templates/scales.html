@@ -13,24 +13,25 @@
       .bar{height:3px;background:linear-gradient(90deg,#ec4899,#60a5fa);width:50%}
       *:focus{outline:none!important;box-shadow:none!important}
 
-      /* evenly spread numbers across the row */
-      .scale{display:flex;justify-content:space-between;gap:8px;align-items:center}
+      /* number row = responsive equal slots, anchored edges */
+      .scale{--count:7; display:grid; grid-template-columns:repeat(var(--count),minmax(0,1fr)); gap:10px; align-items:center}
       .scale input{display:none}
       .scale label{
-        display:grid;place-items:center;
-        width:42px;height:42px;
-        border:1px solid #e2e8f0;border-radius:.5rem;background:#fff;font-size:14px;cursor:pointer;
+        display:grid; place-items:center; width:100%; height:44px;
+        border:1px solid #e2e8f0; border-radius:.5rem; background:#fff; font-size:14px; cursor:pointer
       }
       .scale input:checked + label{background:#ec4899;color:#fff;border-color:#ec4899}
 
-      /* anchors aligned under first/last numbers */
-      .anchors{display:flex;justify-content:space-between;margin-top:6px;color:#0B0F19;font-size:12px}
+      /* anchors pinned exactly under first/last */
+      .anchors{position:relative; margin-top:6px; height:16px; color:#0B0F19; font-size:12px}
+      .anchors .l{position:absolute; left:0}
+      .anchors .r{position:absolute; right:0}
 
-      .q{color:#0B0F19;font-weight:600}
+      /* question text (not bold as requested) */
+      .q{color:#0B0F19; font-weight:400}
     </style>
   </head>
   <body class="min-h-screen bg-app text-slate-900">
-    <!-- Step count only -->
     <header class="bg-white/80 backdrop-blur border-b">
       <div class="max-w-4xl mx-auto px-4 py-3">
         <div class="flex items-center justify-between">
@@ -48,46 +49,45 @@
           <input type="hidden" name="{{ k }}" value="{{ v }}" />
         {% endfor %}
 
-        <!-- Single instruction line (no card) -->
-        <p class="text-[15px] leading-6 font-semibold text-center">
+        <!-- Single instruction line (bigger/highlighted) -->
+        <p class="text-center text-xl md:text-2xl font-semibold text-[color:#0B0F19]">
           Please rate the following in terms of how much you agree or disagree with each statement.
         </p>
 
-        <!-- Statements -->
+        <!-- Statements only -->
         <section class="rounded-2xl border bg-white p-2">
           <div id="itemsWrap" class="divide-y">
             {% for x in QS %}
               {% set mn = x.min if x.min else 1 %}
               {% set mx = x.max if x.max else 7 %}
               <div class="p-4 js-item">
-                <!-- raw text first; JS will clean prefixes & dedupe -->
-                <div class="q mb-1 js-clean" data-raw="{{ x.q|e }}">{{ x.q }}</div>
+                <div class="q mb-2 js-clean" data-raw="{{ x.q|e }}">{{ x.q }}</div>
 
-                <div class="scale mt-2">
+                <div class="scale mt-2" data-count="{{ mx - mn + 1 }}">
                   {% for val in range(mn, mx + 1) %}
                     <input id="{{ x.n }}_{{ val }}" type="radio" name="{{ x.n }}" value="{{ val }}" required />
                     <label for="{{ x.n }}_{{ val }}">{{ val }}</label>
                   {% endfor %}
                 </div>
                 <div class="anchors">
-                  <span>Completely untrue for me</span>
-                  <span>Describes me perfectly</span>
+                  <span class="l">Completely untrue for me</span>
+                  <span class="r">Describes me perfectly</span>
                 </div>
               </div>
             {% endfor %}
 
-            <!-- Final single extra question (kept once) -->
+            <!-- Keep only one final question -->
             <div class="p-4" id="finalMovedTouched">
-              <div class="q mb-1">Would you describe yourself as someone who gets easily moved or touched?</div>
-              <div class="scale mt-2">
+              <div class="q mb-2">Would you describe yourself as someone who gets easily moved or touched?</div>
+              <div class="scale mt-2" data-count="7">
                 {% for val in range(1, 8) %}
                   <input id="EasilyMoved_{{ val }}" type="radio" name="EasilyMoved" value="{{ val }}" required />
                   <label for="EasilyMoved_{{ val }}">{{ val }}</label>
                 {% endfor %}
               </div>
               <div class="anchors">
-                <span>Completely untrue for me</span>
-                <span>Describes me perfectly</span>
+                <span class="l">Completely untrue for me</span>
+                <span class="r">Describes me perfectly</span>
               </div>
             </div>
           </div>
@@ -103,19 +103,20 @@
     </main>
 
     <script>
-      // Disable double submit
+      // disable double submit
       const f=document.getElementById("f"), b=document.getElementById("btn");
       f.addEventListener("submit",()=>{b.disabled=true;b.textContent="Submitting…";});
 
-      // Clean prefixes & remove duplicates (including extra "moved or touched" copies)
-      const TARGET = "would you describe yourself as someone who gets easily moved or touched?";
-      const norm = s => s.toLowerCase()
-                         .replace(/\s+/g,' ')
-                         .replace(/[“”«»]/g,'"')
-                         .replace(/[’‘]/g,"'")
-                         .trim();
+      // set responsive column count from data-count
+      document.querySelectorAll('.scale').forEach(el=>{
+        const c = parseInt(el.dataset.count||'0',10);
+        if (c>0) el.style.setProperty('--count', c);
+      });
 
-      // Remove leading "Please rate the following ..." prefixes from each item text
+      // clean prefixes + dedupe + drop duplicate "moved or touched"
+      const TARGET = "would you describe yourself as someone who gets easily moved or touched?";
+      const norm = s => s.toLowerCase().replace(/\s+/g,' ').replace(/[“”«»]/g,'"').replace(/[’‘]/g,"'").trim();
+
       document.querySelectorAll('.js-clean').forEach(el=>{
         let t = el.textContent.trim();
         if (t.startsWith("Please rate the following")) {
@@ -125,20 +126,11 @@
         el.textContent = t;
       });
 
-      // Deduplicate items, and drop any QS copy that equals the final question
       const seen = new Set();
       document.querySelectorAll('.js-item').forEach(wrap=>{
         const qEl = wrap.querySelector('.js-clean');
         const txt = norm(qEl ? qEl.textContent : "");
-        if (!txt) { wrap.remove(); return; }
-        if (txt === TARGET) { // drop QS version of the "moved or touched" question
-          wrap.remove();
-          return;
-        }
-        if (seen.has(txt)) { // drop duplicates
-          wrap.remove();
-          return;
-        }
+        if (!txt || txt === TARGET || seen.has(txt)) { wrap.remove(); return; }
         seen.add(txt);
       });
     </script>
