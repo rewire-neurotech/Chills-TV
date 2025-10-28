@@ -14,325 +14,300 @@
       .bar{height:3px;background:linear-gradient(90deg,#ec4899,#60a5fa)}
       .radio{display:flex;gap:.5rem;align-items:center}
       .radio input{width:18px;height:18px}
-
-      /* scrollable consent box */
-      .consent-box{
-        height: 420px;
-        overflow-y: auto;
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 0.75rem;
-        padding: 1rem 1.1rem;
-        line-height: 1.55;
-        color: #0B0F19;
-      }
-      /* simple typography inside consent */
-      .consent-box h1{font-size:1.25rem;font-weight:700;margin:0.5rem 0}
-      .consent-box h2{font-size:1.15rem;font-weight:700;margin:0.75rem 0}
-      .consent-box h3{font-size:1.05rem;font-weight:700;margin:0.5rem 0}
-      .consent-box p{margin:0.35rem 0}
-      .consent-box ul, .consent-box ol{margin:0.25rem 0 0.5rem 1.25rem}
-      .consent-box li{margin:0.15rem 0}
-      .consent-box hr{border:none;border-top:1px solid #e2e8f0;margin:0.75rem 0}
-      .consent-box strong{font-weight:600}
-      .muted-note{font-size:12px;color:#64748b}
-      /* inside your existing <style> */
-      .consent-box ul{
-        list-style: disc;
-        list-style-position: outside;
-        padding-left: 1.25rem;
-        margin: 0.25rem 0 0.5rem 1.25rem;
-      }
-      .consent-box ol{
-        list-style: decimal;          /* <— ensures numbers show */
-        list-style-position: outside;
-        padding-left: 1.25rem;
-        margin: 0.25rem 0 0.5rem 1.25rem;
-      }
-      .consent-box li{ margin: 0.15rem 0; }
-
+      .scrollbox{max-height:520px;overflow:auto}
+      .consent h1,.consent h2,.consent h3{color:#0B0F19}
+      .consent h1{font-size:1.25rem;font-weight:700}
+      .consent h2{font-size:1.1rem;font-weight:700;margin-top:.75rem}
+      .consent h3{font-size:1rem;font-weight:700;margin-top:.5rem}
+      .consent p{margin:.5rem 0}
+      .consent ul{list-style:disc;margin-left:1.25rem}
+      .consent ol{list-style:decimal;margin-left:1.25rem}
+      .consent .muted{color:#64748b}
     </style>
   </head>
   <body class="min-h-screen bg-app text-[15px] text-[color:var(--ink)]">
+    <!-- Header -->
     <header class="bg-white/80 backdrop-blur border-b">
       <div class="max-w-4xl mx-auto px-4 py-3">
         <div class="flex items-center justify-between">
           <div></div>
-          <div class="text-xs text-slate-600">Step 1 of 4</div>
+          <div id="stepText" class="text-xs text-slate-600">Step 1 of 4</div>
         </div>
-        <div class="bar mt-2 w-1/4 rounded"></div>
+        <div class="bar mt-2 rounded" id="stepBar" style="width:25%"></div>
       </div>
     </header>
 
     <main class="max-w-4xl mx-auto px-4 py-8">
-      <!-- ===== Screen 0: Consent (NEW) ===== -->
-      <section id="consentScreen" class="card rounded-2xl border p-6 space-y-4">
-        <h2 class="text-lg font-semibold">Informed Consent & Authorization</h2>
 
-        <!-- markdown source (hidden) -->
-        <script type="text/plain" id="consent-md">
-## **Informed Consent to Participate in Research**
-
-### **and**
-
-## **Authorization to Use and Disclose Protected Health Information**
-
-**Study Title**
-
-**Effects of AI-Generated Chills-Eliciting Audio on Depression, Anxiety, and Early Maladaptive Schemas**
-
-**Key Information**
-
-You are invited to participate in a research study conducted by the Institute for Advanced Consciousness Studies.  
-This study examines the effects of artificial intelligence (AI)-generated **chills-eliciting audio** on **depression, anxiety,** and **early maladaptive schemas**—negative belief patterns formed early in life.
-
-* **Purpose:** Evaluate emotional and physiological responses to AI-generated audio and its potential mental health applications.
-* **Participants:** About 3,300 total (3,000 online; 300 on-site).
-* **Risks:** Possible transient emotional reactions.
-* **Benefits:** No guaranteed medical benefit; contribution to research knowledge only.
-* **Voluntary Participation:** You may withdraw at any time without penalty.
-
-**Purpose of the Study**
-
-This study aims to determine whether AI-generated chills-eliciting audio can reduce depressive and anxious symptoms and modify early maladaptive schemas.
-
-Participants will be randomly assigned (like a coin flip) to one of two groups:
-
-* **Chills-Eliciting Audio**
-* **Neutral Audio (Control)**
-
-Each session includes a 15-minute audio exposure surrounded by baseline and post-questionnaire periods.
-
-**Note:** The “Chills Engine” is investigational, not FDA-approved, and not intended to diagnose, treat, or cure any condition.
-
-**Online Study Procedures**
-
-If you qualify through our screening survey, you will gain access to a secure web portal for data collection.
-
-1. **Consent:** Sign electronically via a HIPAA-compliant e-signature platform.
-2. **Baseline Questionnaires:** Assess depression, anxiety, and early maladaptive schemas via HIPAA-compliant Google Forms.
-3. **Random Assignment:** You’ll be assigned to either the Chills or Neutral Audio group.
-4. **Audio Experience:**
-   * **Baseline (5 min):** Sit quietly with eyes closed.
-   * **Audio (15 min):** Listen to the assigned audio. Personalized AI-generated or machine-learning-enhanced content may be used.
-   * **Post (5 min):** Rest quietly again.
-5. **Post-Session Surveys:** Complete short questionnaires assessing immediate effects.
-6. **Duration:** ~1 hour per session; extended programs may last up to 8 weeks.
-
-**Compensation:** $15/hour via Prolific.
-
-While this may feel therapeutic, the study is not a substitute for professional treatment. If distress occurs, contact study staff for referral to mental health resources.
-
-**Technology**
-
-* **Personalized Clones:** AI-created audio tailored to individual profiles.
-* **Machine Learning-Enhanced Audio:** AI-adjusted sounds matched to your user data for increased relevance.
-* **AudioMotor Feedback:** Movements produce real-time sound through sensors, linking physical motion to audio output.
-
-**Tasks**
-
-Some participants may complete a brief computerized task involving rapid identification of animal images to earn points. The task tests focus and decision-making speed.
-
-**On-Site Study Procedures**
-
-Eligible participants will attend sessions at:  
- **2811 Wilshire Blvd, Suite 510, Santa Monica, CA 90403**
-
-1. **Informed Consent:** Review and sign the printed consent form.
-2. **Questionnaires:** Complete pre-experience measures.
-3. **Setup:** Attach bio-sensors (respiration, heart rate, EEG or Muse-S).
-   * EEG: 64-channel cap (for first and last sessions).
-   * Muse-S: Research-grade EEG headband (for other sessions).
-4. **Experience:**
-   * 5 min baseline silence
-   * 15 min Chills or Neutral Audio
-   * 5 min post-rest
-5. **Debrief:** Remove sensors, complete post questionnaires.
-6. **Compensation:** $30/hour (rounded to nearest 15 min); parking validated.
-
-Total time: ~1.5 hours per visit; up to 42 sessions for extended programs.
-
-**Potential Benefits**
-* No direct medical benefit.
-* May advance scientific understanding of AI-based emotional regulation.
-* Any commercial benefits from findings will not be shared with participants.
-
-**Potential Risks**
-* Temporary emotional discomfort.
-* Mild skin irritation from electrodes.
-* Possible privacy risks if using shared or insecure personal devices for eConsent.
-* Other unforeseen risks.
-
-If you experience distress:
-* Contact study staff immediately.
-* In emergencies, **call 911** or **988** (Suicide & Crisis Lifeline).
-
-**Participant Responsibilities**
-
-You must:
-* Follow all study instructions.
-* Complete sessions without interruption.
-
-Do **not** participate if under the influence of substances, ill, or experiencing symptoms such as nausea, headache, or sleep deprivation.
-
-**Exclusion Criteria**
-
-Do not participate if you have or are experiencing:
-* Epilepsy, seizures, or light/sound sensitivity.
-* Eye conditions (cataracts, corneal injury, uveitis).
-* Vertigo, claustrophobia, or motion sickness.
-* Pregnancy or suspected pregnancy.
-* Use of medications known to cause photosensitivity or hearing alteration.
-* Hairstyles preventing scalp contact (e.g., braids, dreadlocks, extensions).
-
-Participants must be **21+ years old** and **employed (full or part-time).**
-
-**Alternatives to Participation**
-The only alternative is **not to participate** in this study.
-
-**New Findings**
-If new information arises that could affect your decision to continue, you will be notified by email prior to your next session.
-
-**Payment**
-* **On-site:** $30/hour (rounded up by 15 minutes), payable by cash or Venmo.
-* **Online:** $15/hour via Prolific.  
-  No participation costs.
-
-**Privacy and Confidentiality**
-Only authorized research staff will have access to your identity.  
- Data will be:
-* **Coded** with subject ID numbers.
-* **Stored securely** on local encrypted servers.
-* **Anonymized** before analysis or publication.
-
-Regulatory authorities (FDA, IRB, etc.) may inspect records for compliance.
-
-**Intended Use of Data**
-Data will be analyzed to assess the effects of AI-generated audio on depression, anxiety, and schemas.  
- De-identified results may be used for:
-* Scientific publications or conference presentations.
-* Future grant applications.
-* Educational or public outreach (e.g., blog posts).
-
-**Voluntary Participation**
-Your participation is **entirely voluntary**.  
- You may withdraw anytime without penalty or loss of benefits.
-
-The study may also stop your participation if:
-* Continuing poses risk to you,
-* You fail to comply with procedures,
-* You become ineligible,
-* The study is canceled.
-
-All data collected prior to withdrawal may still be used.
-
-**Compensation for Injury**
-If injured, seek medical attention immediately.  
- There are **no funds** reserved for treatment costs.  
- You retain full legal rights to pursue compensation through appropriate channels.
-
-**Bill of Rights**
-You have been provided with a copy of the **California Experimental Research Subject’s Bill of Rights**, summarizing your protections as a participant in medical research.
-
-**Agreement to Participate**
-
-## **Agreement to Participate**
-Please read the statement below carefully before proceeding.
-
-By clicking **“I Accept”** at the bottom of this page, you acknowledge that:
-1. You have **read and understood** the information provided in this consent form.
-2. You have had the **opportunity to ask questions** about the study and received satisfactory answers.
-3. You **voluntarily agree** to participate in this research study, without any coercion or undue influence.
-4. You understand that your participation is **entirely voluntary**, and you may withdraw at any time without penalty or loss of benefits.
-5. You confirm that you **meet the eligibility criteria** (e.g., no history of epilepsy, seizures, or sensitivity to light/sound, and not currently pregnant).
-6. You understand that the **Chills Engine** and related audio interventions are investigational and **not intended to diagnose, treat, or cure** any condition.
-7. You understand that any information you provide will be handled **confidentially** and in accordance with HIPAA and IRB standards.
-
-By selecting **“I Accept”**, you give your **informed consent** to participate in the study:  
- **“Effects of AI-Generated Chills-Eliciting Audio on Depression, Anxiety, and Early Maladaptive Schemas.”**
-
-## **Whom to Contact**
-For any study-related questions, concerns, or emergencies, contact:  
- **Principal Investigator:** (310) 907-9216
-
-For questions about your **rights as a research participant**, contact:
-
-**Advarra IRB Study Subject Adviser**
-* Address: 6100 Merriweather Dr., Suite 600, Columbia, MD 21044
-* Phone: 877-992-4724
-* Email: adviser@advarra.com
-* Reference Number: Pro00081190
-
-Or contact:  
- **California Committee for the Protection of Human Subjects**
-* Phone: (916) 326-3661
-* Email: cphs-mail@oshpd.ca.gov
-* Address: 2020 West El Camino Avenue, Suite 1000, Sacramento, CA 95833
-
-## **Authorization to Use and Disclose Protected Health Information**
-If you participate, the study team will use and share certain **health data** about you, including:
-* Name, contact information, and date of birth
-* Medical history
-* Study records and test results
-
-This information may be shared with:
-* IACS representatives
-* Advarra IRB
-* FDA and other government agencies
-* Data safety monitoring boards (if applicable)
-* Research collaborators and vendors assisting in data storage or analysis
-
-Your health data will be used to **conduct and oversee the study**. Once shared, it may no longer be protected under federal law.
-
-Your permission to share data expires **50 years after signing** unless revoked sooner by written request.
-
-If revoked:
-* You will be withdrawn from the study.
-* Previously collected data may still be used as outlined.
-
-You may not access your health data during the study, but access will be restored after it concludes.
-
-## **California Experimental Research Subject’s Bill of Rights**
-Under California Health & Safety Code Section 24172, you are entitled to:
-1. Be informed of the nature and purpose of the experiment.
-2. Receive an explanation of all procedures, drugs, or devices involved.
-3. Be informed of any potential risks or discomforts.
-4. Receive an explanation of expected benefits.
-5. Be informed of available alternatives and their risks/benefits.
-6. Be informed of available medical treatment if complications arise.
-7. Ask questions freely at any time.
-8. Withdraw consent at any time without penalty.
-9. Receive a copy of the signed consent form.
-
-
-**Statement of Authorization**
-I have read this authorization and understand its contents.  
-I voluntarily consent to the collection, use, and sharing of my health data for this study.  
-I have read and understand the information above.  
-I have had the opportunity to ask questions, which were answered to my satisfaction.  
-I voluntarily agree to participate in this study.
-
-### **I accept and wish to continue**
-        </script>
-
-        <!-- rendered markdown goes here -->
-        <div id="consentBox" class="consent-box"></div>
-
-        <div class="flex items-center justify-between">
-          <label class="flex items-center gap-2">
-            <input id="acceptChk" type="checkbox" class="w-4 h-4" />
+      <!-- ===================== S0 — CONSENT ===================== -->
+      <section id="s0" class="card rounded-2xl border p-6 space-y-4 consent">
+        <h1>Informed Consent to Participate in Research</h1>
+        <h3>and</h3>
+        <h2>Authorization to Use and Disclose Protected Health Information</h2>
+
+        <h3>Study Title</h3>
+        <p><strong>Effects of AI-Generated Chills-Eliciting Audio on Depression, Anxiety, and Early Maladaptive Schemas</strong></p>
+
+        <div class="scrollbox rounded-xl border p-4 bg-white">
+          <div class="space-y-3">
+
+            <h3>Key Information</h3>
+            <p>You are invited to participate in a research study conducted by the Institute for Advanced Consciousness Studies.
+              This study examines the effects of artificial intelligence (AI)-generated <strong>chills-eliciting audio</strong> on
+              <strong>depression, anxiety</strong>, and <strong>early maladaptive schemas</strong>—negative belief patterns formed early in life.</p>
+            <ul>
+              <li><strong>Purpose:</strong> Evaluate emotional and physiological responses to AI-generated audio and its potential mental health applications.</li>
+              <li><strong>Participants:</strong> About 3,300 total (3,000 online; 300 on-site).</li>
+              <li><strong>Risks:</strong> Possible transient emotional reactions.</li>
+              <li><strong>Benefits:</strong> No guaranteed medical benefit; contribution to research knowledge only.</li>
+              <li><strong>Voluntary Participation:</strong> You may withdraw at any time without penalty.</li>
+            </ul>
+
+            <h3>Purpose of the Study</h3>
+            <p>This study aims to determine whether AI-generated chills-eliciting audio can reduce depressive and anxious symptoms and modify early maladaptive schemas.</p>
+            <p>Participants will be randomly assigned (like a coin flip) to one of two groups:</p>
+            <ul>
+              <li><strong>Chills-Eliciting Audio</strong></li>
+              <li><strong>Neutral Audio (Control)</strong></li>
+            </ul>
+            <p>Each session includes a 15-minute audio exposure surrounded by baseline and post-questionnaire periods.</p>
+            <p><strong>Note:</strong> The “Chills Engine” is investigational, not FDA-approved, and not intended to diagnose, treat, or cure any condition.</p>
+
+            <h3>Online Study Procedures</h3>
+            <!-- Correctly nested / numbered list -->
+            <ol>
+              <li><strong>Consent:</strong> Sign electronically via a HIPAA-compliant e-signature platform.</li>
+              <li><strong>Baseline Questionnaires:</strong> Assess depression, anxiety, and early maladaptive schemas via HIPAA-compliant Google Forms.</li>
+              <li><strong>Random Assignment:</strong> You’ll be assigned to either the Chills or Neutral Audio group.</li>
+              <li><strong>Audio Experience:</strong>
+                <ul>
+                  <li><strong>Baseline (5 min):</strong> Sit quietly with eyes closed.</li>
+                  <li><strong>Audio (15 min):</strong> Listen to the assigned audio. Personalized AI-generated or machine-learning-enhanced content may be used.</li>
+                  <li><strong>Post (5 min):</strong> Rest quietly again.</li>
+                </ul>
+              </li>
+              <li><strong>Post-Session Surveys:</strong> Complete short questionnaires assessing immediate effects.</li>
+              <li><strong>Duration:</strong> ~1 hour per session; extended programs may last up to 8 weeks.</li>
+            </ol>
+            <p><strong>Compensation:</strong> $15/hour via Prolific.</p>
+            <p>While this may feel therapeutic, the study is not a substitute for professional treatment. If distress occurs, contact study staff for referral to mental health resources.</p>
+
+            <h3>Technology</h3>
+            <ul>
+              <li><strong>Personalized Clones:</strong> AI-created audio tailored to individual profiles.</li>
+              <li><strong>Machine Learning-Enhanced Audio:</strong> AI-adjusted sounds matched to your user data for increased relevance.</li>
+              <li><strong>AudioMotor Feedback:</strong> Movements produce real-time sound through sensors, linking physical motion to audio output.</li>
+            </ul>
+
+            <h3>Tasks</h3>
+            <p>Some participants may complete a brief computerized task involving rapid identification of animal images to earn points. The task tests focus and decision-making speed.</p>
+
+            <h3>On-Site Study Procedures</h3>
+            <p>Eligible participants will attend sessions at:<br/><strong>2811 Wilshire Blvd, Suite 510, Santa Monica, CA 90403</strong></p>
+            <ol>
+              <li><strong>Informed Consent:</strong> Review and sign the printed consent form.</li>
+              <li><strong>Questionnaires:</strong> Complete pre-experience measures.</li>
+              <li><strong>Setup:</strong> Attach bio-sensors (respiration, heart rate, EEG or Muse-S).
+                <ul>
+                  <li>EEG: 64-channel cap (for first and last sessions).</li>
+                  <li>Muse-S: Research-grade EEG headband (for other sessions).</li>
+                </ul>
+              </li>
+              <li><strong>Experience:</strong>
+                <ul>
+                  <li>5 min baseline silence</li>
+                  <li>15 min Chills or Neutral Audio</li>
+                  <li>5 min post-rest</li>
+                </ul>
+              </li>
+              <li><strong>Debrief:</strong> Remove sensors, complete post questionnaires.</li>
+              <li><strong>Compensation:</strong> $30/hour (rounded to nearest 15 min); parking validated.</li>
+            </ol>
+            <p>Total time: ~1.5 hours per visit; up to 42 sessions for extended programs.</p>
+
+            <h3>Potential Benefits</h3>
+            <ul>
+              <li>No direct medical benefit.</li>
+              <li>May advance scientific understanding of AI-based emotional regulation.</li>
+              <li>Any commercial benefits from findings will not be shared with participants.</li>
+            </ul>
+
+            <h3>Potential Risks</h3>
+            <ul>
+              <li>Temporary emotional discomfort.</li>
+              <li>Mild skin irritation from electrodes.</li>
+              <li>Possible privacy risks if using shared or insecure personal devices for eConsent.</li>
+              <li>Other unforeseen risks.</li>
+            </ul>
+            <p>If you experience distress:</p>
+            <ul>
+              <li>Contact study staff immediately.</li>
+              <li>In emergencies, <strong>call 911</strong> or <strong>988</strong> (Suicide &amp; Crisis Lifeline).</li>
+            </ul>
+
+            <h3>Participant Responsibilities</h3>
+            <p>You must:</p>
+            <ul>
+              <li>Follow all study instructions.</li>
+              <li>Complete sessions without interruption.</li>
+            </ul>
+            <p>Do <strong>not</strong> participate if under the influence of substances, ill, or experiencing symptoms such as nausea, headache, or sleep deprivation.</p>
+
+            <h3>Exclusion Criteria</h3>
+            <p>Do not participate if you have or are experiencing:</p>
+            <ul>
+              <li>Epilepsy, seizures, or light/sound sensitivity.</li>
+              <li>Eye conditions (cataracts, corneal injury, uveitis).</li>
+              <li>Vertigo, claustrophobia, or motion sickness.</li>
+              <li>Pregnancy or suspected pregnancy.</li>
+              <li>Use of medications known to cause photosensitivity or hearing alteration.</li>
+              <li>Hairstyles preventing scalp contact (e.g., braids, dreadlocks, extensions).</li>
+            </ul>
+            <p>Participants must be <strong>21+ years old</strong> and <strong>employed (full or part-time).</strong></p>
+
+            <h3>Alternatives to Participation</h3>
+            <p>The only alternative is <strong>not to participate</strong> in this study.</p>
+
+            <h3>New Findings</h3>
+            <p>If new information arises that could affect your decision to continue, you will be notified by email prior to your next session.</p>
+
+            <h3>Payment</h3>
+            <ul>
+              <li><strong>On-site:</strong> $30/hour (rounded up by 15 minutes), payable by cash or Venmo.</li>
+              <li><strong>Online:</strong> $15/hour via Prolific.<br/>No participation costs.</li>
+            </ul>
+
+            <h3>Privacy and Confidentiality</h3>
+            <p>Only authorized research staff will have access to your identity. Data will be:</p>
+            <ul>
+              <li><strong>Coded</strong> with subject ID numbers.</li>
+              <li><strong>Stored securely</strong> on local encrypted servers.</li>
+              <li><strong>Anonymized</strong> before analysis or publication.</li>
+            </ul>
+            <p>Regulatory authorities (FDA, IRB, etc.) may inspect records for compliance.</p>
+
+            <h3>Intended Use of Data</h3>
+            <p>Data will be analyzed to assess the effects of AI-generated audio on depression, anxiety, and schemas. De-identified results may be used for:</p>
+            <ul>
+              <li>Scientific publications or conference presentations.</li>
+              <li>Future grant applications.</li>
+              <li>Educational or public outreach (e.g., blog posts).</li>
+            </ul>
+
+            <h3>Voluntary Participation</h3>
+            <p>Your participation is <strong>entirely voluntary</strong>. You may withdraw anytime without penalty or loss of benefits.</p>
+            <p>The study may also stop your participation if:</p>
+            <ul>
+              <li>Continuing poses risk to you,</li>
+              <li>You fail to comply with procedures,</li>
+              <li>You become ineligible,</li>
+              <li>The study is canceled.</li>
+            </ul>
+            <p>All data collected prior to withdrawal may still be used.</p>
+
+            <h3>Compensation for Injury</h3>
+            <p>If injured, seek medical attention immediately. There are <strong>no funds</strong> reserved for treatment costs. You retain full legal rights to pursue compensation through appropriate channels.</p>
+
+            <h3>Bill of Rights</h3>
+            <p>You have been provided with a copy of the <strong>California Experimental Research Subject’s Bill of Rights</strong>, summarizing your protections as a participant in medical research.</p>
+
+            <h2>Agreement to Participate</h2>
+            <p>Please read the statement below carefully before proceeding.</p>
+            <p>By clicking <strong>“I Accept”</strong> at the bottom of this page, you acknowledge that:</p>
+            <ol>
+              <li>You have <strong>read and understood</strong> the information provided in this consent form.</li>
+              <li>You have had the <strong>opportunity to ask questions</strong> about the study and received satisfactory answers.</li>
+              <li>You <strong>voluntarily agree</strong> to participate in this research study, without any coercion or undue influence.</li>
+              <li>You understand that your participation is <strong>entirely voluntary</strong>, and you may withdraw at any time without penalty or loss of benefits.</li>
+              <li>You confirm that you <strong>meet the eligibility criteria</strong> (e.g., no history of epilepsy, seizures, or sensitivity to light/sound, and not currently pregnant).</li>
+              <li>You understand that the <strong>Chills Engine</strong> and related audio interventions are investigational and <strong>not intended to diagnose, treat, or cure</strong> any condition.</li>
+              <li>You understand that any information you provide will be handled <strong>confidentially</strong> and in accordance with HIPAA and IRB standards.</li>
+            </ol>
+            <p>By selecting <strong>“I Accept”</strong>, you give your <strong>informed consent</strong> to participate in the study:
+              <strong>“Effects of AI-Generated Chills-Eliciting Audio on Depression, Anxiety, and Early Maladaptive Schemas.”</strong></p>
+
+            <h3>Whom to Contact</h3>
+            <p>For any study-related questions, concerns, or emergencies, contact:<br/>
+              <strong>Principal Investigator:</strong> (310) 907-9216</p>
+
+            <p>For questions about your <strong>rights as a research participant</strong>, contact:</p>
+            <p><strong>Advarra IRB Study Subject Adviser</strong></p>
+            <ul>
+              <li>Address: 6100 Merriweather Dr., Suite 600, Columbia, MD 21044</li>
+              <li>Phone: 877-992-4724</li>
+              <li>Email: adviser@advarra.com</li>
+              <li>Reference Number: Pro00081190</li>
+            </ul>
+            <p>Or contact:<br/><strong>California Committee for the Protection of Human Subjects</strong></p>
+            <ul>
+              <li>Phone: (916) 326-3661</li>
+              <li>Email: cphs-mail@oshpd.ca.gov</li>
+              <li>Address: 2020 West El Camino Avenue, Suite 1000, Sacramento, CA 95833</li>
+            </ul>
+
+            <h2>Authorization to Use and Disclose Protected Health Information</h2>
+            <p>If you participate, the study team will use and share certain <strong>health data</strong> about you, including:</p>
+            <ul>
+              <li>Name, contact information, and date of birth</li>
+              <li>Medical history</li>
+              <li>Study records and test results</li>
+            </ul>
+            <p>This information may be shared with:</p>
+            <ul>
+              <li>IACS representatives</li>
+              <li>Advarra IRB</li>
+              <li>FDA and other government agencies</li>
+              <li>Data safety monitoring boards (if applicable)</li>
+              <li>Research collaborators and vendors assisting in data storage or analysis</li>
+            </ul>
+            <p>Your health data will be used to <strong>conduct and oversee the study</strong>. Once shared, it may no longer be protected under federal law.</p>
+            <p>Your permission to share data expires <strong>50 years after signing</strong> unless revoked sooner by written request.</p>
+            <p>If revoked:</p>
+            <ul>
+              <li>You will be withdrawn from the study.</li>
+              <li>Previously collected data may still be used as outlined.</li>
+            </ul>
+            <p>You may not access your health data during the study, but access will be restored after it concludes.</p>
+
+            <h2>California Experimental Research Subject’s Bill of Rights</h2>
+            <p>Under California Health &amp; Safety Code Section 24172, you are entitled to:</p>
+            <ol>
+              <li>Be informed of the nature and purpose of the experiment.</li>
+              <li>Receive an explanation of all procedures, drugs, or devices involved.</li>
+              <li>Be informed of any potential risks or discomforts.</li>
+              <li>Receive an explanation of expected benefits.</li>
+              <li>Be informed of available alternatives and their risks/benefits.</li>
+              <li>Be informed of available medical treatment if complications arise.</li>
+              <li>Ask questions freely at any time.</li>
+              <li>Withdraw consent at any time without penalty.</li>
+              <li>Receive a copy of the signed consent form.</li>
+            </ol>
+
+            <h3>Statement of Authorization</h3>
+            <p>I have read this authorization and understand its contents.<br/>
+               I voluntarily consent to the collection, use, and sharing of my health data for this study.<br/>
+               I have read and understand the information above.<br/>
+               I have had the opportunity to ask questions, which were answered to my satisfaction.<br/>
+               I voluntarily agree to participate in this study.</p>
+            <h3 class="mt-2">✅ I accept and wish to continue</h3>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-2">
+          <label class="inline-flex items-center gap-2">
+            <input id="consentChk" type="checkbox" class="h-4 w-4" />
             <span>I have read and accept the above informed consent and authorization.</span>
           </label>
-          <button id="acceptBtn"
+          <button id="consentBtn"
                   class="btn inline-flex items-center justify-center rounded-xl text-white px-5 py-3 disabled:opacity-60 disabled:cursor-not-allowed transition"
                   disabled>
-            I Accept & Continue
+            I Accept &amp; Continue
           </button>
         </div>
-        <p class="muted-note">Please scroll and review all sections before accepting.</p>
+        <p class="muted text-xs">Please scroll and review all sections before accepting.</p>
       </section>
 
-      <!-- ===== Screen 1: Your ORIGINAL demographics form (unchanged) ===== -->
+      <!-- ===================== S1 — DEMOGRAPHICS ===================== -->
       <form action="/intake" method="post" id="f" class="space-y-6" style="display:none">
         <section class="card rounded-2xl border p-6">
           <label for="pid" class="block text-sm font-medium mb-2">Participant ID</label>
@@ -389,101 +364,32 @@ I voluntarily agree to participate in this study.
     </main>
 
     <script>
-      // --- Minimal Markdown renderer (headings, bold, lists, numbers, line breaks) ---
-      function renderMarkdown(md) {
-        md = md.replace(/\r\n/g, '\n');
+      // Progress header controls
+      const stepText = document.getElementById('stepText');
+      const stepBar  = document.getElementById('stepBar');
 
-        // horizontal rules like —-- or --- to <hr>
-        md = md.replace(/^\s*[-—]{3,}\s*$/gm, '<hr/>');
+      // Gate: consent -> demographics
+      const s0 = document.getElementById('s0');
+      const form = document.getElementById('f');
+      const consentChk = document.getElementById('consentChk');
+      const consentBtn = document.getElementById('consentBtn');
 
-        // escape HTML
-        md = md.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-        // bold **text**
-        md = md.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-
-        // headings
-        md = md.replace(/^###\s+(.*)$/gm, '<h3>$1</h3>');
-        md = md.replace(/^##\s+(.*)$/gm, '<h2>$1</h2>');
-        md = md.replace(/^#\s+(.*)$/gm, '<h1>$1</h1>');
-
-        // line breaks with two spaces + newline OR explicit double space before newline from the source
-        md = md.replace(/ {2}\n/g, '<br/>');
-
-        // lists: handle ordered then unordered in blocks
-        const lines = md.split('\n');
-        let out = [];
-        let inUl = false, inOl = false;
-
-        const closeLists = () => {
-          if (inUl) { out.push('</ul>'); inUl = false; }
-          if (inOl) { out.push('</ol>'); inOl = false; }
-        };
-
-        for (let i = 0; i < lines.length; i++) {
-          let line = lines[i];
-
-          // ordered list: "1. item"
-          if (/^\s*\d+\.\s+/.test(line)) {
-            if (!inOl) { closeLists(); out.push('<ol>'); inOl = true; }
-            line = line.replace(/^\s*(\d+)\.\s+/, '');
-            out.push('<li>' + line + '</li>');
-            continue;
-          }
-
-          // unordered list: "* item" or "- item"
-          if (/^\s*[\*\-]\s+/.test(line)) {
-            if (!inUl) { closeLists(); out.push('<ul>'); inUl = true; }
-            line = line.replace(/^\s*[\*\-]\s+/, '');
-            out.push('<li>' + line + '</li>');
-            continue;
-          }
-
-          // blank line => close lists and add paragraph break
-          if (/^\s*$/.test(line)) {
-            closeLists();
-            out.push('');
-            continue;
-          }
-
-          // normal paragraph
-          closeLists();
-          out.push('<p>' + line + '</p>');
-        }
-        closeLists();
-
-        // tidy multiple empty <p></p>
-        let html = out.join('\n').replace(/<p>\s*<\/p>/g, '');
-        return html;
-      }
-
-      // Inject rendered consent markdown
-      (function () {
-        const src = document.getElementById('consent-md').textContent;
-        document.getElementById('consentBox').innerHTML = renderMarkdown(src);
-      })();
-
-      // Consent gating
-      const consentScreen = document.getElementById('consentScreen');
-      const acceptChk = document.getElementById('acceptChk');
-      const acceptBtn = document.getElementById('acceptBtn');
-      const formScreen = document.getElementById('f');
-
-      acceptChk.addEventListener('change', () => {
-        acceptBtn.disabled = !acceptChk.checked;
+      consentChk.addEventListener('change', () => {
+        consentBtn.disabled = !consentChk.checked;
+      });
+      consentBtn.addEventListener('click', () => {
+        if (!consentChk.checked) return;
+        s0.style.display = 'none';
+        form.style.display = 'block';
+        stepText.textContent = 'Step 1 of 4';
+        stepBar.style.width = '25%';
+        document.getElementById('pid').focus();
       });
 
-      acceptBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (!acceptChk.checked) return;
-        consentScreen.style.display = 'none';
-        formScreen.style.display = 'block';
-        document.getElementById("pid").focus();
-      });
+      // Original demographics JS
+      const b=document.getElementById("btn");
+      form.addEventListener("submit",()=>{b.disabled=true;b.textContent="Submitting…";});
 
-      // Your original JS (unchanged)
-      const f=document.getElementById("f"), b=document.getElementById("btn");
-      f.addEventListener("submit",()=>{b.disabled=true;b.textContent="Submitting…";});
       const sel=document.getElementById("ageSel"),
             ex=document.getElementById("ageExact"),
             fin=document.getElementById("ageFinal");
