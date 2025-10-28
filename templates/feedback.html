@@ -14,24 +14,21 @@
       .muted{color:#64748b}
       *:focus{outline:none!important;box-shadow:none!important}
 
-      .scale{display:flex;justify-content:space-between;align-items:center;gap:0;width:100%}
-      .scale .opt{display:flex;align-items:center;justify-content:center}
+      /* responsive equal columns; no overflow on mobile */
+      .scale{--count:11; display:grid; grid-template-columns:repeat(var(--count),minmax(0,1fr)); gap:10px; align-items:center; width:100%}
       .scale input{display:none}
       .scale label{
-        display:grid;place-items:center;width:42px;height:42px;
-        border:1px solid #e2e8f0;border-radius:.75rem;background:#fff;font-size:13px
+        display:grid; place-items:center; width:100%; height:44px;
+        border:1px solid #e2e8f0; border-radius:.75rem; background:#fff; font-size:13px
       }
       .scale input:checked + label{background:#ec4899;color:#fff;border-color:#ec4899}
 
-      /* anchors pinned to edges */
-      .anchors{
-        position:relative;margin-top:6px;height:16px;line-height:16px;
-        color:#0B0F19;font-size:12px
-      }
-      .anchors .l{position:absolute;left:0;text-align:left;white-space:nowrap}
-      .anchors .r{position:absolute;right:0;text-align:right;white-space:nowrap}
+      /* anchors pinned to first/last positions */
+      .anchors{position:relative; margin-top:6px; height:16px; color:#0B0F19; font-size:12px}
+      .anchors .l{position:absolute; left:0}
+      .anchors .r{position:absolute; right:0}
 
-      .q{color:#0B0F19;font-weight:600}
+      .q{color:#0B0F19; font-weight:600}
     </style>
   </head>
   <body class="min-h-screen bg-app text-slate-900">
@@ -59,45 +56,52 @@
           </div>
 
           <div id="yesFields" class="space-y-6" style="display:none">
+            <!-- Intensity -->
             <div>
-              <div class="q mb-1">How intense were the chills you experienced? <span class="muted text-sm">(0–10)</span></div>
-              <div class="scale mt-2">
+              <div class="q mb-1">How intense were the chills you experienced?</div>
+              <div class="scale mt-2" data-count="11">
                 {% for val in range(0, 11) %}
-                  <div class="opt">
-                    <input id="intensity_{{ val }}" type="radio" name="chills_amount" value="{{ val }}" />
-                    <label for="intensity_{{ val }}">{{ val }}</label>
-                  </div>
+                  <input id="intensity_{{ val }}" type="radio" name="chills_amount" value="{{ val }}" />
+                  <label for="intensity_{{ val }}">{{ val }}</label>
                 {% endfor %}
               </div>
-              <div class="anchors"><span class="l">Completely untrue for me</span><span class="r">Describes me perfectly</span></div>
+              <div class="anchors">
+                <span class="l">No chills</span>
+                <span class="r">Chills all over my spine</span>
+              </div>
             </div>
 
+            <!-- Length -->
             <div>
-              <div class="q mb-1">How long were the chills that you experienced? <span class="muted text-sm">(0–6, where 6 = more than 5 seconds)</span></div>
-              <div class="scale mt-2">
+              <div class="q mb-1">How long were the chills that you experienced?</div>
+              <div class="scale mt-2" data-count="7">
                 {% for val in range(0, 7) %}
-                  <div class="opt">
-                    <input id="length_{{ val }}" type="radio" name="chills_length" value="{{ val }}" />
-                    <label for="length_{{ val }}">{{ val }}</label>
-                  </div>
+                  <input id="length_{{ val }}" type="radio" name="chills_length" value="{{ val }}" />
+                  <label for="length_{{ val }}">{{ val }}</label>
                 {% endfor %}
               </div>
-              <div class="anchors"><span class="l">Completely untrue for me</span><span class="r">Describes me perfectly</span></div>
+              <div class="anchors">
+                <span class="l">Very short</span>
+                <span class="r">More than 5 seconds</span>
+              </div>
             </div>
 
+            <!-- Waves -->
             <div>
-              <div class="q mb-1">How many waves of chills did you experience? <span class="muted text-sm">(0–10)</span></div>
-              <div class="scale mt-2">
+              <div class="q mb-1">How many waves of chills did you experience?</div>
+              <div class="scale mt-2" data-count="11">
                 {% for val in range(0, 11) %}
-                  <div class="opt">
-                    <input id="waves_{{ val }}" type="radio" name="chills_waves" value="{{ val }}" />
-                    <label for="waves_{{ val }}">{{ val }}</label>
-                  </div>
+                  <input id="waves_{{ val }}" type="radio" name="chills_waves" value="{{ val }}" />
+                  <label for="waves_{{ val }}">{{ val }}</label>
                 {% endfor %}
               </div>
-              <div class="anchors"><span class="l">Completely untrue for me</span><span class="r">Describes me perfectly</span></div>
+              <div class="anchors">
+                <span class="l">No waves</span>
+                <span class="r">Many waves</span>
+              </div>
             </div>
 
+            <!-- Free text -->
             <div>
               <label class="block mb-2 font-medium">Please describe what in the video gave you chills and why.</label>
               <textarea name="description" rows="5" class="w-full rounded-xl border px-3 py-2 bg-white/70" placeholder="Your answer (optional)…"></textarea>
@@ -109,12 +113,12 @@
           </div>
         </section>
 
+        <!-- Email screen (no optional helper text) -->
         <section id="s2" class="card rounded-2xl border p-6 space-y-4" style="display:none">
           <div>
             <label class="block mb-2 font-medium">If you wish to be contacted for future studies, please indicate your email.</label>
             <input name="email" type="email" placeholder="you@example.com"
                    class="w-full rounded-xl border px-3 py-2 bg-white/70" />
-            <p class="text-[12px] text-slate-500 mt-1">Optional — used only for follow-up on future studies.</p>
           </div>
 
           <div class="flex items-center justify-end">
@@ -127,15 +131,23 @@
     </main>
 
     <script>
+      // show/hide yes-only fields
       const yesWrap=document.getElementById("yesFields");
       const radios=[...document.querySelectorAll('input[name="experienced"]')];
       const toggle=()=>{ const r=document.querySelector('input[name="experienced"]:checked'); yesWrap.style.display = (r && r.value==="yes") ? "block" : "none"; };
-      radios.forEach(r=>r.addEventListener("change",toggle));
-      toggle();
+      radios.forEach(r=>r.addEventListener("change",toggle)); toggle();
 
+      // two-step flow
       const s1=document.getElementById('s1'), s2=document.getElementById('s2');
       document.getElementById('toEmail').addEventListener('click', ()=>{ s1.style.display='none'; s2.style.display='block'; });
 
+      // responsive counts for scales
+      document.querySelectorAll('.scale').forEach(el=>{
+        const c = parseInt(el.dataset.count||'0',10);
+        if (c>0) el.style.setProperty('--count', c);
+      });
+
+      // submit guard
       const f=document.getElementById("f"), b=document.getElementById("btn");
       f.addEventListener("submit",()=>{ if(b){b.disabled=true; b.textContent="Submitting…";} });
     </script>
