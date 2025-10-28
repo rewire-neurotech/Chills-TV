@@ -14,47 +14,53 @@
       .bar{height:3px;background:linear-gradient(90deg,#ec4899,#60a5fa)}
       .radio{display:flex;gap:.5rem;align-items:center}
       .radio input{width:18px;height:18px}
-      .scrollbox{max-height:520px;overflow:auto}
-      .consent h1,.consent h2,.consent h3{color:#0B0F19}
-      .consent h1{font-size:1.25rem;font-weight:700}
-      .consent h2{font-size:1.1rem;font-weight:700;margin-top:.75rem}
-      .consent h3{font-size:1rem;font-weight:700;margin-top:.5rem}
-      .consent p{margin:.5rem 0}
-      .consent ul{list-style:disc;margin-left:1.25rem}
-      .consent ol{list-style:decimal;margin-left:1.25rem}
-      .consent .muted{color:#64748b}
+
+      /* Consent screen styles */
+      .consent-overlay { background: linear-gradient(180deg,#f8fafc,#ffffff); }
+      .scroll-box { max-height: 60vh; overflow-y: auto; }
+      .consent-card { background: rgba(255,255,255,.96); backdrop-filter: saturate(1.08) blur(8px); }
+      .consent-prose h2 { font-size:1.25rem; font-weight:700; margin-top:1rem; margin-bottom:.5rem; }
+      .consent-prose h3 { font-size:1.05rem; font-weight:700; margin-top:.75rem; margin-bottom:.25rem; }
+      .consent-prose p { margin:.5rem 0; line-height:1.55; }
+      .consent-prose ul { list-style: disc; padding-left:1.25rem; margin:.5rem 0; }
+      .consent-prose ol { list-style: decimal; padding-left:1.25rem; margin:.5rem 0; }
+      .consent-prose li { margin:.25rem 0; }
+      .consent-prose strong { font-weight:600; }
+      .consent-prose em { font-style: italic; }
+      .consent-muted { color: #475569; }
+      .hidden-important { display: none !important; }
     </style>
   </head>
   <body class="min-h-screen bg-app text-[15px] text-[color:var(--ink)]">
-    <!-- Header -->
-    <header class="bg-white/80 backdrop-blur border-b">
-      <div class="max-w-4xl mx-auto px-4 py-3">
-        <div class="flex items-center justify-between">
-          <div></div>
-          <div id="stepText" class="text-xs text-slate-600">Step 1 of 4</div>
-        </div>
-        <div class="bar mt-2 rounded" id="stepBar" style="width:25%"></div>
-      </div>
-    </header>
+    <!-- =========================
+         CONSENT SCREEN (shown first)
+         ========================= -->
+    <div id="consentScreen" class="consent-overlay min-h-screen">
+      <div class="max-w-4xl mx-auto px-4 py-8">
+        <header class="mb-4">
+          <div class="text-xs text-slate-600">Consent</div>
+          <div class="bar mt-2 w-1/6 rounded"></div>
+        </header>
 
-    <main class="max-w-4xl mx-auto px-4 py-8">
+        <div class="consent-card rounded-2xl border p-6">
+          <div class="scroll-box pr-3 consent-prose">
+            <!-- BEGIN CONSENT CONTENT (verbatim structure & formatting preserved) -->
 
-      <!-- ===================== S0 — CONSENT ===================== -->
-      <section id="s0" class="card rounded-2xl border p-6 space-y-4 consent">
-        <h1>Informed Consent to Participate in Research</h1>
-        <h3>and</h3>
-        <h2>Authorization to Use and Disclose Protected Health Information</h2>
+            <h2><strong>Informed Consent to Participate in Research</strong></h2>
 
-        <h3>Study Title</h3>
-        <p><strong>Effects of AI-Generated Chills-Eliciting Audio on Depression, Anxiety, and Early Maladaptive Schemas</strong></p>
+            <h3><strong>and</strong></h3>
 
-        <div class="scrollbox rounded-xl border p-4 bg-white">
-          <div class="space-y-3">
+            <h2><strong>Authorization to Use and Disclose Protected Health Information</strong></h2>
 
-            <h3>Key Information</h3>
-            <p>You are invited to participate in a research study conducted by the Institute for Advanced Consciousness Studies.
-              This study examines the effects of artificial intelligence (AI)-generated <strong>chills-eliciting audio</strong> on
-              <strong>depression, anxiety</strong>, and <strong>early maladaptive schemas</strong>—negative belief patterns formed early in life.</p>
+            <p><strong>Study Title</strong></p>
+
+            <p><strong>Effects of AI-Generated Chills-Eliciting Audio on Depression, Anxiety, and Early Maladaptive Schemas</strong></p>
+
+            <p><strong>Key Information</strong></p>
+
+            <p>You are invited to participate in a research study conducted by the Institute for Advanced Consciousness Studies.<br />
+            This study examines the effects of artificial intelligence (AI)-generated <strong>chills-eliciting audio</strong> on <strong>depression, anxiety,</strong> and <strong>early maladaptive schemas</strong>—negative belief patterns formed early in life.</p>
+
             <ul>
               <li><strong>Purpose:</strong> Evaluate emotional and physiological responses to AI-generated audio and its potential mental health applications.</li>
               <li><strong>Participants:</strong> About 3,300 total (3,000 online; 300 on-site).</li>
@@ -63,18 +69,25 @@
               <li><strong>Voluntary Participation:</strong> You may withdraw at any time without penalty.</li>
             </ul>
 
-            <h3>Purpose of the Study</h3>
+            <p><strong>Purpose of the Study</strong></p>
+
             <p>This study aims to determine whether AI-generated chills-eliciting audio can reduce depressive and anxious symptoms and modify early maladaptive schemas.</p>
+
             <p>Participants will be randomly assigned (like a coin flip) to one of two groups:</p>
+
             <ul>
               <li><strong>Chills-Eliciting Audio</strong></li>
               <li><strong>Neutral Audio (Control)</strong></li>
             </ul>
+
             <p>Each session includes a 15-minute audio exposure surrounded by baseline and post-questionnaire periods.</p>
+
             <p><strong>Note:</strong> The “Chills Engine” is investigational, not FDA-approved, and not intended to diagnose, treat, or cure any condition.</p>
 
-            <h3>Online Study Procedures</h3>
-            <!-- Correctly nested / numbered list -->
+            <p><strong>Online Study Procedures</strong></p>
+
+            <p>If you qualify through our screening survey, you will gain access to a secure web portal for data collection.</p>
+
             <ol>
               <li><strong>Consent:</strong> Sign electronically via a HIPAA-compliant e-signature platform.</li>
               <li><strong>Baseline Questionnaires:</strong> Assess depression, anxiety, and early maladaptive schemas via HIPAA-compliant Google Forms.</li>
@@ -89,28 +102,35 @@
               <li><strong>Post-Session Surveys:</strong> Complete short questionnaires assessing immediate effects.</li>
               <li><strong>Duration:</strong> ~1 hour per session; extended programs may last up to 8 weeks.</li>
             </ol>
+
             <p><strong>Compensation:</strong> $15/hour via Prolific.</p>
+
             <p>While this may feel therapeutic, the study is not a substitute for professional treatment. If distress occurs, contact study staff for referral to mental health resources.</p>
 
-            <h3>Technology</h3>
+            <p><strong>Technology</strong></p>
+
             <ul>
               <li><strong>Personalized Clones:</strong> AI-created audio tailored to individual profiles.</li>
               <li><strong>Machine Learning-Enhanced Audio:</strong> AI-adjusted sounds matched to your user data for increased relevance.</li>
               <li><strong>AudioMotor Feedback:</strong> Movements produce real-time sound through sensors, linking physical motion to audio output.</li>
             </ul>
 
-            <h3>Tasks</h3>
+            <p><strong>Tasks</strong></p>
+
             <p>Some participants may complete a brief computerized task involving rapid identification of animal images to earn points. The task tests focus and decision-making speed.</p>
 
-            <h3>On-Site Study Procedures</h3>
-            <p>Eligible participants will attend sessions at:<br/><strong>2811 Wilshire Blvd, Suite 510, Santa Monica, CA 90403</strong></p>
+            <p><strong>On-Site Study Procedures</strong></p>
+
+            <p>Eligible participants will attend sessions at:<br />
+            <strong>2811 Wilshire Blvd, Suite 510, Santa Monica, CA 90403</strong></p>
+
             <ol>
               <li><strong>Informed Consent:</strong> Review and sign the printed consent form.</li>
               <li><strong>Questionnaires:</strong> Complete pre-experience measures.</li>
               <li><strong>Setup:</strong> Attach bio-sensors (respiration, heart rate, EEG or Muse-S).
                 <ul>
-                  <li>EEG: 64-channel cap (for first and last sessions).</li>
-                  <li>Muse-S: Research-grade EEG headband (for other sessions).</li>
+                  <li><strong>EEG:</strong> 64-channel cap (for first and last sessions).</li>
+                  <li><strong>Muse-S:</strong> Research-grade EEG headband (for other sessions).</li>
                 </ul>
               </li>
               <li><strong>Experience:</strong>
@@ -123,38 +143,48 @@
               <li><strong>Debrief:</strong> Remove sensors, complete post questionnaires.</li>
               <li><strong>Compensation:</strong> $30/hour (rounded to nearest 15 min); parking validated.</li>
             </ol>
+
             <p>Total time: ~1.5 hours per visit; up to 42 sessions for extended programs.</p>
 
-            <h3>Potential Benefits</h3>
+            <p><strong>Potential Benefits</strong></p>
+
             <ul>
               <li>No direct medical benefit.</li>
               <li>May advance scientific understanding of AI-based emotional regulation.</li>
               <li>Any commercial benefits from findings will not be shared with participants.</li>
             </ul>
 
-            <h3>Potential Risks</h3>
+            <p><strong>Potential Risks</strong></p>
+
             <ul>
               <li>Temporary emotional discomfort.</li>
               <li>Mild skin irritation from electrodes.</li>
               <li>Possible privacy risks if using shared or insecure personal devices for eConsent.</li>
               <li>Other unforeseen risks.</li>
             </ul>
+
             <p>If you experience distress:</p>
+
             <ul>
               <li>Contact study staff immediately.</li>
               <li>In emergencies, <strong>call 911</strong> or <strong>988</strong> (Suicide &amp; Crisis Lifeline).</li>
             </ul>
 
-            <h3>Participant Responsibilities</h3>
+            <p><strong>Participant Responsibilities</strong></p>
+
             <p>You must:</p>
+
             <ul>
               <li>Follow all study instructions.</li>
               <li>Complete sessions without interruption.</li>
             </ul>
+
             <p>Do <strong>not</strong> participate if under the influence of substances, ill, or experiencing symptoms such as nausea, headache, or sleep deprivation.</p>
 
-            <h3>Exclusion Criteria</h3>
+            <p><strong>Exclusion Criteria</strong></p>
+
             <p>Do not participate if you have or are experiencing:</p>
+
             <ul>
               <li>Epilepsy, seizures, or light/sound sensitivity.</li>
               <li>Eye conditions (cataracts, corneal injury, uveitis).</li>
@@ -163,57 +193,83 @@
               <li>Use of medications known to cause photosensitivity or hearing alteration.</li>
               <li>Hairstyles preventing scalp contact (e.g., braids, dreadlocks, extensions).</li>
             </ul>
+
             <p>Participants must be <strong>21+ years old</strong> and <strong>employed (full or part-time).</strong></p>
 
-            <h3>Alternatives to Participation</h3>
+            <p><strong>Alternatives to Participation</strong></p>
+
             <p>The only alternative is <strong>not to participate</strong> in this study.</p>
 
-            <h3>New Findings</h3>
+            <p><strong>New Findings</strong></p>
+
             <p>If new information arises that could affect your decision to continue, you will be notified by email prior to your next session.</p>
 
-            <h3>Payment</h3>
+            <p><strong>Payment</strong></p>
+
             <ul>
               <li><strong>On-site:</strong> $30/hour (rounded up by 15 minutes), payable by cash or Venmo.</li>
-              <li><strong>Online:</strong> $15/hour via Prolific.<br/>No participation costs.</li>
+              <li><strong>Online:</strong> $15/hour via Prolific.<br />
+                 No participation costs.</li>
             </ul>
 
-            <h3>Privacy and Confidentiality</h3>
-            <p>Only authorized research staff will have access to your identity. Data will be:</p>
+            <p><strong>Privacy and Confidentiality</strong></p>
+
+            <p>Only authorized research staff will have access to your identity.<br />
+            Data will be:</p>
+
             <ul>
               <li><strong>Coded</strong> with subject ID numbers.</li>
               <li><strong>Stored securely</strong> on local encrypted servers.</li>
               <li><strong>Anonymized</strong> before analysis or publication.</li>
             </ul>
+
             <p>Regulatory authorities (FDA, IRB, etc.) may inspect records for compliance.</p>
 
-            <h3>Intended Use of Data</h3>
-            <p>Data will be analyzed to assess the effects of AI-generated audio on depression, anxiety, and schemas. De-identified results may be used for:</p>
+            <p><strong>Intended Use of Data</strong></p>
+
+            <p>Data will be analyzed to assess the effects of AI-generated audio on depression, anxiety, and schemas.<br />
+            De-identified results may be used for:</p>
+
             <ul>
               <li>Scientific publications or conference presentations.</li>
               <li>Future grant applications.</li>
               <li>Educational or public outreach (e.g., blog posts).</li>
             </ul>
 
-            <h3>Voluntary Participation</h3>
-            <p>Your participation is <strong>entirely voluntary</strong>. You may withdraw anytime without penalty or loss of benefits.</p>
+            <p><strong>Voluntary Participation</strong></p>
+
+            <p>Your participation is <strong>entirely voluntary</strong>.<br />
+            You may withdraw anytime without penalty or loss of benefits.</p>
+
             <p>The study may also stop your participation if:</p>
+
             <ul>
               <li>Continuing poses risk to you,</li>
               <li>You fail to comply with procedures,</li>
               <li>You become ineligible,</li>
               <li>The study is canceled.</li>
             </ul>
+
             <p>All data collected prior to withdrawal may still be used.</p>
 
-            <h3>Compensation for Injury</h3>
-            <p>If injured, seek medical attention immediately. There are <strong>no funds</strong> reserved for treatment costs. You retain full legal rights to pursue compensation through appropriate channels.</p>
+            <p><strong>Compensation for Injury</strong></p>
 
-            <h3>Bill of Rights</h3>
+            <p>If injured, seek medical attention immediately.<br />
+            There are <strong>no funds</strong> reserved for treatment costs.<br />
+            You retain full legal rights to pursue compensation through appropriate channels.</p>
+
+            <p><strong>Bill of Rights</strong></p>
+
             <p>You have been provided with a copy of the <strong>California Experimental Research Subject’s Bill of Rights</strong>, summarizing your protections as a participant in medical research.</p>
 
-            <h2>Agreement to Participate</h2>
+            <p><strong>Agreement to Participate</strong></p>
+
+            <h2><strong>Agreement to Participate</strong></h2>
+
             <p>Please read the statement below carefully before proceeding.</p>
+
             <p>By clicking <strong>“I Accept”</strong> at the bottom of this page, you acknowledge that:</p>
+
             <ol>
               <li>You have <strong>read and understood</strong> the information provided in this consent form.</li>
               <li>You have had the <strong>opportunity to ask questions</strong> about the study and received satisfactory answers.</li>
@@ -223,14 +279,17 @@
               <li>You understand that the <strong>Chills Engine</strong> and related audio interventions are investigational and <strong>not intended to diagnose, treat, or cure</strong> any condition.</li>
               <li>You understand that any information you provide will be handled <strong>confidentially</strong> and in accordance with HIPAA and IRB standards.</li>
             </ol>
-            <p>By selecting <strong>“I Accept”</strong>, you give your <strong>informed consent</strong> to participate in the study:
-              <strong>“Effects of AI-Generated Chills-Eliciting Audio on Depression, Anxiety, and Early Maladaptive Schemas.”</strong></p>
 
-            <h3>Whom to Contact</h3>
-            <p>For any study-related questions, concerns, or emergencies, contact:<br/>
-              <strong>Principal Investigator:</strong> (310) 907-9216</p>
+            <p>By selecting <strong>“I Accept”</strong>, you give your <strong>informed consent</strong> to participate in the study:<br />
+            <strong>“Effects of AI-Generated Chills-Eliciting Audio on Depression, Anxiety, and Early Maladaptive Schemas.”</strong></p>
+
+            <p><strong>Whom to Contact</strong></p>
+
+            <p>For any study-related questions, concerns, or emergencies, contact:<br />
+            <strong>Principal Investigator:</strong> (310) 907-9216</p>
 
             <p>For questions about your <strong>rights as a research participant</strong>, contact:</p>
+
             <p><strong>Advarra IRB Study Subject Adviser</strong></p>
             <ul>
               <li>Address: 6100 Merriweather Dr., Suite 600, Columbia, MD 21044</li>
@@ -238,21 +297,27 @@
               <li>Email: adviser@advarra.com</li>
               <li>Reference Number: Pro00081190</li>
             </ul>
-            <p>Or contact:<br/><strong>California Committee for the Protection of Human Subjects</strong></p>
+
+            <p>Or contact:<br />
+            <strong>California Committee for the Protection of Human Subjects</strong></p>
             <ul>
               <li>Phone: (916) 326-3661</li>
               <li>Email: cphs-mail@oshpd.ca.gov</li>
               <li>Address: 2020 West El Camino Avenue, Suite 1000, Sacramento, CA 95833</li>
             </ul>
 
-            <h2>Authorization to Use and Disclose Protected Health Information</h2>
+            <h2><strong>Authorization to Use and Disclose Protected Health Information</strong></h2>
+
             <p>If you participate, the study team will use and share certain <strong>health data</strong> about you, including:</p>
+
             <ul>
               <li>Name, contact information, and date of birth</li>
               <li>Medical history</li>
               <li>Study records and test results</li>
             </ul>
+
             <p>This information may be shared with:</p>
+
             <ul>
               <li>IACS representatives</li>
               <li>Advarra IRB</li>
@@ -260,17 +325,24 @@
               <li>Data safety monitoring boards (if applicable)</li>
               <li>Research collaborators and vendors assisting in data storage or analysis</li>
             </ul>
+
             <p>Your health data will be used to <strong>conduct and oversee the study</strong>. Once shared, it may no longer be protected under federal law.</p>
+
             <p>Your permission to share data expires <strong>50 years after signing</strong> unless revoked sooner by written request.</p>
+
             <p>If revoked:</p>
+
             <ul>
               <li>You will be withdrawn from the study.</li>
               <li>Previously collected data may still be used as outlined.</li>
             </ul>
+
             <p>You may not access your health data during the study, but access will be restored after it concludes.</p>
 
-            <h2>California Experimental Research Subject’s Bill of Rights</h2>
+            <h2><strong>California Experimental Research Subject’s Bill of Rights</strong></h2>
+
             <p>Under California Health &amp; Safety Code Section 24172, you are entitled to:</p>
+
             <ol>
               <li>Be informed of the nature and purpose of the experiment.</li>
               <li>Receive an explanation of all procedures, drugs, or devices involved.</li>
@@ -283,113 +355,137 @@
               <li>Receive a copy of the signed consent form.</li>
             </ol>
 
-            <h3>Statement of Authorization</h3>
-            <p>I have read this authorization and understand its contents.<br/>
-               I voluntarily consent to the collection, use, and sharing of my health data for this study.<br/>
-               I have read and understand the information above.<br/>
-               I have had the opportunity to ask questions, which were answered to my satisfaction.<br/>
-               I voluntarily agree to participate in this study.</p>
-            <h3 class="mt-2">✅ I accept and wish to continue</h3>
-          </div>
-        </div>
+            <p><em>—--</em></p>
 
-        <div class="flex items-center justify-between pt-2">
-          <label class="inline-flex items-center gap-2">
-            <input id="consentChk" type="checkbox" class="h-4 w-4" />
-            <span>I have read and accept the above informed consent and authorization.</span>
-          </label>
-          <button id="consentBtn"
-                  class="btn inline-flex items-center justify-center rounded-xl text-white px-5 py-3 disabled:opacity-60 disabled:cursor-not-allowed transition"
-                  disabled>
-            I Accept &amp; Continue
-          </button>
-        </div>
-        <p class="muted text-xs">Please scroll and review all sections before accepting.</p>
-      </section>
+            <p><strong>Statement of Authorization</strong></p>
 
-      <!-- ===================== S1 — DEMOGRAPHICS ===================== -->
-      <form action="/intake" method="post" id="f" class="space-y-6" style="display:none">
-        <section class="card rounded-2xl border p-6">
-          <label for="pid" class="block text-sm font-medium mb-2">Participant ID</label>
-          <input id="pid" name="pid" required autocomplete="off"
-                 placeholder="e.g., Prolific PID"
-                 class="w-full rounded-xl border px-3 py-2 bg-white/70" />
-        </section>
+            <p>I have read this authorization and understand its contents.<br />
+            I voluntarily consent to the collection, use, and sharing of my health data for this study.<br />
+            I have read and understand the information above.<br />
+            I have had the opportunity to ask questions, which were answered to my satisfaction.<br />
+            I voluntarily agree to participate in this study.</p>
 
-        <section class="card rounded-2xl border p-6 space-y-5">
-          <div>
-            <label class="block text-sm font-medium mb-2">Age</label>
-            <div class="grid sm:grid-cols-2 gap-3">
-              <select name="AgeSel" id="ageSel" class="rounded-xl border px-3 py-2 bg-white/70" required>
-                <option value="" selected disabled>Choose your age group…</option>
-                <option>18-24</option><option>25-34</option><option>35-44</option>
-                <option>45-54</option><option>55-64</option><option>65+</option>
-                <option value="__exact">Enter exact age…</option>
-              </select>
-              <input id="ageExact" type="number" min="10" max="120" step="1"
-                     placeholder="Exact age (years)"
-                     class="rounded-xl border px-3 py-2 bg-white/70 hidden" />
-              <input type="hidden" name="Age" id="ageFinal" />
-            </div>
+            <h3><strong>I accept and wish to continue</strong></h3>
+
+            <!-- END CONSENT CONTENT -->
           </div>
 
-          {% for x in DEMO %}
-          <div>
-            <label class="block text-sm font-medium mb-2">{{ x.q }}</label>
-            {% if x.type == "rad" %}
-              <div class="grid sm:grid-cols-2 gap-2">
-                {% for o in x.opts %}
-                <label class="radio">
-                  <input type="radio" name="{{ x.n }}" value="{{ o }}" required />
-                  <span class="text-sm">{{ o }}</span>
-                </label>
-                {% endfor %}
+          <div class="flex items-center justify-between gap-3 mt-4">
+            <label class="flex items-center gap-2 text-sm text-slate-700">
+              <input id="consentChk" type="checkbox" class="w-4 h-4">
+              I have read and agree to the terms above.
+            </label>
+            <button id="acceptBtn"
+                    class="btn inline-flex items-center justify-center rounded-xl text-white px-5 py-3 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    disabled>
+              I Accept &amp; Continue
+            </button>
+          </div>
+          <p class="text-xs consent-muted mt-3">Scroll and review the entire consent before continuing.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================
+         ORIGINAL PAGE (hidden until consent)
+         ========================= -->
+    <div id="appShell" class="hidden-important">
+      <header class="bg-white/80 backdrop-blur border-b">
+        <div class="max-w-4xl mx-auto px-4 py-3">
+          <div class="flex items-center justify-between">
+            <div></div>
+            <div class="text-xs text-slate-600">Step 1 of 4</div>
+          </div>
+          <div class="bar mt-2 w-1/4 rounded"></div>
+        </div>
+      </header>
+
+      <main class="max-w-4xl mx-auto px-4 py-8">
+        <form action="/intake" method="post" id="f" class="space-y-6">
+          <section class="card rounded-2xl border p-6">
+            <label for="pid" class="block text-sm font-medium mb-2">Participant ID</label>
+            <input id="pid" name="pid" required autocomplete="off"
+                   placeholder="e.g., Prolific PID"
+                   class="w-full rounded-xl border px-3 py-2 bg-white/70" />
+          </section>
+
+          <section class="card rounded-2xl border p-6 space-y-5">
+            <div>
+              <label class="block text-sm font-medium mb-2">Age</label>
+              <div class="grid sm:grid-cols-2 gap-3">
+                <select name="AgeSel" id="ageSel" class="rounded-xl border px-3 py-2 bg-white/70" required>
+                  <option value="" selected disabled>Choose your age group…</option>
+                  <option>18-24</option><option>25-34</option><option>35-44</option>
+                  <option>45-54</option><option>55-64</option><option>65+</option>
+                  <option value="__exact">Enter exact age…</option>
+                </select>
+                <input id="ageExact" type="number" min="10" max="120" step="1"
+                       placeholder="Exact age (years)"
+                       class="rounded-xl border px-3 py-2 bg-white/70 hidden" />
+                <input type="hidden" name="Age" id="ageFinal" />
               </div>
-            {% else %}
-              <select name="{{ x.n }}" class="w-full rounded-xl border px-3 py-2 bg-white/70" required>
-                {% for o in x.opts %}<option value="{{ o }}">{{ o }}</option>{% endfor %}
-              </select>
-            {% endif %}
-          </div>
-          {% endfor %}
-        </section>
+            </div>
 
-        <div class="flex items-center justify-end">
-          <button id="btn"
-                  class="btn inline-flex items-center justify-center rounded-xl text-white px-5 py-3 disabled:opacity-60 disabled:cursor-not-allowed transition">
-            Continue
-          </button>
-        </div>
-      </form>
-    </main>
+            {% for x in DEMO %}
+            <div>
+              <label class="block text-sm font-medium mb-2">{{ x.q }}</label>
+              {% if x.type == "rad" %}
+                <div class="grid sm:grid-cols-2 gap-2">
+                  {% for o in x.opts %}
+                  <label class="radio">
+                    <input type="radio" name="{{ x.n }}" value="{{ o }}" required />
+                    <span class="text-sm">{{ o }}</span>
+                  </label>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <select name="{{ x.n }}" class="w-full rounded-xl border px-3 py-2 bg-white/70" required>
+                  {% for o in x.opts %}<option value="{{ o }}">{{ o }}</option>{% endfor %}
+                </select>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </section>
+
+          <div class="flex items-center justify-end">
+            <button id="btn"
+                    class="btn inline-flex items-center justify-center rounded-xl text-white px-5 py-3 disabled:opacity-60 disabled:cursor-not-allowed transition">
+              Continue
+            </button>
+          </div>
+        </form>
+      </main>
+    </div>
 
     <script>
-      // Progress header controls
-      const stepText = document.getElementById('stepText');
-      const stepBar  = document.getElementById('stepBar');
-
-      // Gate: consent -> demographics
-      const s0 = document.getElementById('s0');
-      const form = document.getElementById('f');
+      // --- Consent gating ---
+      const consentScreen = document.getElementById('consentScreen');
+      const appShell = document.getElementById('appShell');
+      const acceptBtn = document.getElementById('acceptBtn');
       const consentChk = document.getElementById('consentChk');
-      const consentBtn = document.getElementById('consentBtn');
+      const scrollBox = document.querySelector('.scroll-box');
 
-      consentChk.addEventListener('change', () => {
-        consentBtn.disabled = !consentChk.checked;
+      // Enable button only after checkbox + user saw bottom once
+      let seenBottom = false;
+      const atBottom = () => scrollBox.scrollTop + scrollBox.clientHeight >= scrollBox.scrollHeight - 4;
+      const updateAccept = () => { acceptBtn.disabled = !(consentChk.checked && seenBottom); };
+
+      scrollBox.addEventListener('scroll', () => { if (atBottom()) { seenBottom = true; updateAccept(); }});
+      consentChk.addEventListener('change', updateAccept);
+
+      acceptBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Hide consent, show app
+        consentScreen.classList.add('hidden-important');
+        appShell.classList.remove('hidden-important');
+        // focus PID once shown
+        const pid = document.getElementById('pid');
+        if (pid) setTimeout(() => pid.focus(), 50);
       });
-      consentBtn.addEventListener('click', () => {
-        if (!consentChk.checked) return;
-        s0.style.display = 'none';
-        form.style.display = 'block';
-        stepText.textContent = 'Step 1 of 4';
-        stepBar.style.width = '25%';
-        document.getElementById('pid').focus();
-      });
 
-      // Original demographics JS
-      const b=document.getElementById("btn");
-      form.addEventListener("submit",()=>{b.disabled=true;b.textContent="Submitting…";});
-
+      // --- Existing form behavior (unchanged) ---
+      const f=document.getElementById("f"), b=document.getElementById("btn");
+      f.addEventListener("submit",()=>{b.disabled=true;b.textContent="Submitting…";});
       const sel=document.getElementById("ageSel"),
             ex=document.getElementById("ageExact"),
             fin=document.getElementById("ageFinal");
