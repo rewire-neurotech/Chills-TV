@@ -14,7 +14,7 @@
       .muted{color:#64748b}
       *:focus{outline:none!important;box-shadow:none!important}
 
-      /* responsive equal columns; no overflow on mobile */
+      
       .scale{--count:11; display:grid; grid-template-columns:repeat(var(--count),minmax(0,1fr)); gap:10px; align-items:center; width:100%}
       .scale input{display:none}
       .scale label{
@@ -23,7 +23,7 @@
       }
       .scale input:checked + label{background:#ec4899;color:#fff;border-color:#ec4899}
 
-      /* anchors pinned to first/last positions */
+      
       .anchors{position:relative; margin-top:6px; height:16px; color:#0B0F19; font-size:12px}
       .anchors .l{position:absolute; left:0}
       .anchors .r{position:absolute; right:0}
@@ -56,7 +56,7 @@
           </div>
 
           <div id="yesFields" class="space-y-6" style="display:none">
-            <!-- Intensity -->
+            
             <div>
               <div class="q mb-1">How intense were the chills you experienced?</div>
               <div class="scale mt-2" data-count="11">
@@ -71,7 +71,7 @@
               </div>
             </div>
 
-            <!-- Length -->
+            
             <div>
               <div class="q mb-1">How long were the chills that you experienced?</div>
               <div class="scale mt-2" data-count="7">
@@ -86,7 +86,7 @@
               </div>
             </div>
 
-            <!-- Waves -->
+            
             <div>
               <div class="q mb-1">How many waves of chills did you experience?</div>
               <div class="scale mt-2" data-count="11">
@@ -101,7 +101,7 @@
               </div>
             </div>
 
-            <!-- Free text -->
+            
             <div>
               <label class="block mb-2 font-medium">Please describe what in the video gave you chills and why.</label>
               <textarea name="description" rows="5" class="w-full rounded-xl border px-3 py-2 bg-white/70" placeholder="Your answer (optional)…"></textarea>
@@ -113,7 +113,7 @@
           </div>
         </section>
 
-        <!-- Email screen (no optional helper text) -->
+       
         <section id="s2" class="card rounded-2xl border p-6 space-y-4" style="display:none">
           <div>
             <label class="block mb-2 font-medium">If you wish to be contacted for future studies, please indicate your email.</label>
@@ -131,25 +131,26 @@
     </main>
 
     <script>
-      // show/hide yes-only fields
+      
       const yesWrap=document.getElementById("yesFields");
       const radios=[...document.querySelectorAll('input[name="experienced"]')];
       const toggle=()=>{ const r=document.querySelector('input[name="experienced"]:checked'); yesWrap.style.display = (r && r.value==="yes") ? "block" : "none"; };
       radios.forEach(r=>r.addEventListener("change",toggle)); toggle();
 
-      // two-step flow
+      
       const s1=document.getElementById('s1'), s2=document.getElementById('s2');
       document.getElementById('toEmail').addEventListener('click', ()=>{ s1.style.display='none'; s2.style.display='block'; });
 
-      // responsive counts for scales
+      
       document.querySelectorAll('.scale').forEach(el=>{
         const c = parseInt(el.dataset.count||'0',10);
         if (c>0) el.style.setProperty('--count', c);
       });
 
-      // submit guard
+      
       const f=document.getElementById("f"), b=document.getElementById("btn");
       f.addEventListener("submit",()=>{ if(b){b.disabled=true; b.textContent="Submitting…";} });
     </script>
   </body>
 </html>
+
