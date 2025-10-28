@@ -23,7 +23,7 @@ Python • FastAPI • ONNX Runtime • Scikit-learn • Jinja2 • Uvicorn
 git clone https://github.com/Ashwin0410/rewire-ml-app.git
 cd rewire-ml-app
 pip install -r requirements.txt
-uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app:app --host 0.0.0.0 --port 8000 --reload'''
 Visit: http://localhost:8000
 
 ### Deployment
