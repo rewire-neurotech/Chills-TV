@@ -15,7 +15,7 @@
       .radio{display:flex;gap:.5rem;align-items:center}
       .radio input{width:18px;height:18px}
 
-      /* Consent screen styles */
+      
       .consent-overlay { background: linear-gradient(180deg,#f8fafc,#ffffff); }
       .scroll-box { max-height: 60vh; overflow-y: auto; }
       .consent-card { background: rgba(255,255,255,.96); backdrop-filter: saturate(1.08) blur(8px); }
@@ -32,9 +32,7 @@
     </style>
   </head>
   <body class="min-h-screen bg-app text-[15px] text-[color:var(--ink)]">
-    <!-- =========================
-         CONSENT SCREEN (shown first)
-         ========================= -->
+
     <div id="consentScreen" class="consent-overlay min-h-screen">
       <div class="max-w-4xl mx-auto px-4 py-8">
         <header class="mb-4">
@@ -44,7 +42,7 @@
 
         <div class="consent-card rounded-2xl border p-6">
           <div class="scroll-box pr-3 consent-prose">
-            <!-- BEGIN CONSENT CONTENT (verbatim structure & formatting preserved) -->
+          
 
             <h2><strong>Informed Consent to Participate in Research</strong></h2>
 
@@ -367,7 +365,7 @@
 
             
 
-            <!-- END CONSENT CONTENT -->
+           
           </div>
 
           <div class="flex items-center justify-between gap-3 mt-4">
@@ -386,9 +384,7 @@
       </div>
     </div>
 
-    <!-- =========================
-         ORIGINAL PAGE (hidden until consent)
-         ========================= -->
+    
     <div id="appShell" class="hidden-important">
       <header class="bg-white/80 backdrop-blur border-b">
         <div class="max-w-4xl mx-auto px-4 py-3">
@@ -458,14 +454,14 @@
     </div>
 
     <script>
-      // --- Consent gating ---
+     
       const consentScreen = document.getElementById('consentScreen');
       const appShell = document.getElementById('appShell');
       const acceptBtn = document.getElementById('acceptBtn');
       const consentChk = document.getElementById('consentChk');
       const scrollBox = document.querySelector('.scroll-box');
 
-      // Enable button only after checkbox + user saw bottom once
+  
       let seenBottom = false;
       const atBottom = () => scrollBox.scrollTop + scrollBox.clientHeight >= scrollBox.scrollHeight - 4;
       const updateAccept = () => { acceptBtn.disabled = !(consentChk.checked && seenBottom); };
@@ -475,7 +471,7 @@
 
       acceptBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        // Hide consent, show app
+     
         consentScreen.classList.add('hidden-important');
         appShell.classList.remove('hidden-important');
         // focus PID once shown
@@ -483,7 +479,7 @@
         if (pid) setTimeout(() => pid.focus(), 50);
       });
 
-      // --- Existing form behavior (unchanged) ---
+    
       const f=document.getElementById("f"), b=document.getElementById("btn");
       f.addEventListener("submit",()=>{b.disabled=true;b.textContent="Submitting…";});
       const sel=document.getElementById("ageSel"),
