@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>ReWire | Demographics</title>
+    <title>ChillsTV | ReWire</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -15,7 +15,6 @@
       .radio{display:flex;gap:.5rem;align-items:center}
       .radio input{width:18px;height:18px}
 
-      
       .consent-overlay { background: linear-gradient(180deg,#f8fafc,#ffffff); }
       .scroll-box { max-height: 60vh; overflow-y: auto; }
       .consent-card { background: rgba(255,255,255,.96); backdrop-filter: saturate(1.08) blur(8px); }
@@ -29,11 +28,260 @@
       .consent-prose em { font-style: italic; }
       .consent-muted { color: #475569; }
       .hidden-important { display: none !important; }
+
+      /* ---- ChillsTV landing page styles (Felix) ---- */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: #ffffff;
+        color: #1d1d1f;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .landing-container {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 0 40px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 24px 0;
+      }
+
+      .logo-rewire {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        color: #1d1d1f;
+      }
+
+      .logo-icon {
+        width: 32px;
+        height: 32px;
+        background: #1d1d1f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+      }
+
+      .logo-icon svg {
+        width: 20px;
+        height: 20px;
+        fill: #fff;
+      }
+
+      .logo-rewire-text {
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: -0.3px;
+      }
+
+      .logo-separator {
+        color: #d2d2d7;
+        font-size: 20px;
+        font-weight: 300;
+      }
+
+      .logo-chills {
+        font-size: 22px;
+        font-weight: 500;
+        letter-spacing: -0.3px;
+        color: #6e6e73;
+      }
+
+      .hero {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 60px 0;
+        max-width: 720px;
+        margin: 0 auto;
+      }
+
+      .hero h1 {
+        font-size: 80px;
+        font-weight: 600;
+        letter-spacing: -2.5px;
+        margin-bottom: 32px;
+        color: #1d1d1f;
+        line-height: 0.95;
+      }
+
+      .counter {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 8px;
+        font-size: 17px;
+        color: #86868b;
+        margin-bottom: 48px;
+      }
+
+      .counter-number {
+        font-size: 19px;
+        font-weight: 600;
+        color: #1d1d1f;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .hero-description {
+        font-size: 21px;
+        line-height: 1.5;
+        color: #6e6e73;
+        margin-bottom: 56px;
+        font-weight: 400;
+      }
+
+      .cta-button {
+        display: inline-block;
+        background: linear-gradient(135deg, #e91e63 0%, #9c27b0 100%);
+        color: #fff;
+        padding: 18px 56px;
+        border-radius: 12px;
+        font-size: 19px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 16px rgba(233, 30, 99, 0.25);
+        border: none;
+        cursor: pointer;
+      }
+
+      .cta-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(233, 30, 99, 0.35);
+      }
+
+      footer.landing-footer {
+        border-top: 1px solid #d2d2d7;
+        padding: 32px 0;
+        margin-top: auto;
+      }
+
+      .disclaimer {
+        font-size: 11px;
+        line-height: 1.6;
+        color: #86868b;
+        margin-bottom: 16px;
+        text-align: center;
+      }
+
+      .footer-links {
+        text-align: center;
+        margin-bottom: 12px;
+      }
+
+      .footer-links a {
+        color: #06c;
+        text-decoration: none;
+        font-size: 11px;
+        margin: 0 12px;
+      }
+
+      .footer-links a:hover {
+        text-decoration: underline;
+      }
+
+      .copyright {
+        text-align: center;
+        font-size: 11px;
+        color: #86868b;
+      }
+
+      @media (max-width: 768px) {
+        .landing-container {
+          padding: 0 24px;
+        }
+
+        .hero h1 {
+          font-size: 48px;
+          margin-bottom: 24px;
+        }
+
+        .hero-description {
+          font-size: 19px;
+          margin-bottom: 40px;
+        }
+
+        .cta-button {
+          padding: 16px 48px;
+          font-size: 17px;
+        }
+      }
     </style>
   </head>
   <body class="min-h-screen bg-app text-[15px] text-[color:var(--ink)]">
 
-    <div id="consentScreen" class="consent-overlay min-h-screen">
+    <!-- 1) FELIX LANDING PAGE -->
+    <div id="landingScreen">
+      <div class="landing-container">
+        <div class="logo">
+          <a href="https://rewireneuro.com" class="logo-rewire">
+            <div class="logo-icon">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13 2L3 14h8l-2 8 10-12h-8l2-8z"/>
+              </svg>
+            </div>
+            <span class="logo-rewire-text">ReWire</span>
+          </a>
+          <span class="logo-separator">/</span>
+          <span class="logo-chills">ChillsTV</span>
+        </div>
+
+        <div class="hero">
+          <h1>Find Your Chills</h1>
+
+          <p class="hero-description">
+            We trained an AI to predict what gives you goosebumps. Sounds impossible? Works disturbingly well.
+          </p>
+
+          <div class="counter">
+            <span class="counter-number" id="counter">4,247</span>
+            <span>people experienced chills</span>
+          </div>
+
+          <!-- Button that moves to Terms & Conditions -->
+          <button id="startBtn" class="cta-button">Try It Now</button>
+        </div>
+
+        <footer class="landing-footer">
+          <p class="disclaimer">
+            ChillsTV is a free research platform from
+            <a href="https://rewireneuro.com" style="color: #06c; text-decoration: none;">
+              ReWire Neurotechnologies, Inc.
+            </a>, a neuroscience company developing next-generation therapeutics for depression.
+            This tool is designed for research and educational purposes only and is not a medical device or diagnostic tool.
+          </p>
+          <div class="footer-links">
+            <a href="#privacy">Privacy Policy</a>
+            <a href="#terms">Terms of Use</a>
+            <a href="#contact">Contact Us</a>
+          </div>
+          <p class="copyright">
+            © 2025 ReWire Neurotechnologies, Inc. All rights reserved.
+          </p>
+        </footer>
+      </div>
+    </div>
+
+    <!-- 2) TERMS & CONDITIONS / CONSENT -->
+    <div id="consentScreen" class="consent-overlay min-h-screen hidden-important">
       <div class="max-w-4xl mx-auto px-4 py-8">
         <header class="mb-4">
           <div class="text-xs text-slate-600">Consent</div>
@@ -42,8 +290,6 @@
 
         <div class="consent-card rounded-2xl border p-6">
           <div class="scroll-box pr-3 consent-prose">
-          
-
             <h2><strong>Informed Consent to Participate in Research</strong></h2>
 
             <h3><strong>and</strong></h3>
@@ -353,8 +599,6 @@
               <li>Receive a copy of the signed consent form.</li>
             </ol>
 
-            
-
             <p><strong>Statement of Authorization</strong></p>
 
             <p>I have read this authorization and understand its contents.<br />
@@ -362,10 +606,6 @@
             I have read and understand the information above.<br />
             I have had the opportunity to ask questions, which were answered to my satisfaction.<br />
             I voluntarily agree to participate in this study.</p>
-
-            
-
-           
           </div>
 
           <div class="flex items-center justify-between gap-3 mt-4">
@@ -384,7 +624,7 @@
       </div>
     </div>
 
-    
+    <!-- 3) DEMOGRAPHICS / APP SHELL -->
     <div id="appShell" class="hidden-important">
       <header class="bg-white/80 backdrop-blur border-b">
         <div class="max-w-4xl mx-auto px-4 py-3">
@@ -454,40 +694,92 @@
     </div>
 
     <script>
-     
+      // Landing counter animation
+      function animateCounter() {
+        const counter = document.getElementById('counter');
+        if (!counter) return;
+        const target = 4247;
+        const start = 4200;
+        const duration = 2000;
+        const startTime = performance.now();
+
+        function update(currentTime) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+
+          const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+          const current = Math.floor(start + (target - start) * easeOutQuart);
+
+          counter.textContent = current.toLocaleString();
+
+          if (progress < 1) {
+            requestAnimationFrame(update);
+          }
+        }
+
+        requestAnimationFrame(update);
+      }
+
+      window.addEventListener('load', animateCounter);
+
+      // Screen refs
+      const landingScreen = document.getElementById('landingScreen');
+      const startBtn = document.getElementById('startBtn');
+
       const consentScreen = document.getElementById('consentScreen');
       const appShell = document.getElementById('appShell');
       const acceptBtn = document.getElementById('acceptBtn');
       const consentChk = document.getElementById('consentChk');
       const scrollBox = document.querySelector('.scroll-box');
 
-  
-      let seenBottom = false;
-      const atBottom = () => scrollBox.scrollTop + scrollBox.clientHeight >= scrollBox.scrollHeight - 4;
-      const updateAccept = () => { acceptBtn.disabled = !(consentChk.checked && seenBottom); };
+      // 1) Try It Now -> show consent
+      if (startBtn) {
+        startBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          landingScreen.classList.add('hidden-important');
+          consentScreen.classList.remove('hidden-important');
+          window.scrollTo(0, 0);
+        });
+      }
 
-      scrollBox.addEventListener('scroll', () => { if (atBottom()) { seenBottom = true; updateAccept(); }});
+      // 2) Consent scroll + checkbox gating
+      let seenBottom = false;
+      const atBottom = () =>
+        scrollBox.scrollTop + scrollBox.clientHeight >= scrollBox.scrollHeight - 4;
+      const updateAccept = () => {
+        acceptBtn.disabled = !(consentChk.checked && seenBottom);
+      };
+
+      scrollBox.addEventListener('scroll', () => {
+        if (atBottom()) { seenBottom = true; updateAccept(); }
+      });
       consentChk.addEventListener('change', updateAccept);
 
+      // 3) Accept & Continue -> show demographics form
       acceptBtn.addEventListener('click', (e) => {
         e.preventDefault();
-     
         consentScreen.classList.add('hidden-important');
         appShell.classList.remove('hidden-important');
-        // focus PID once shown
         const pid = document.getElementById('pid');
         if (pid) setTimeout(() => pid.focus(), 50);
       });
 
-    
-      const f=document.getElementById("f"), b=document.getElementById("btn");
-      f.addEventListener("submit",()=>{b.disabled=true;b.textContent="Submitting…";});
-      const sel=document.getElementById("ageSel"),
-            ex=document.getElementById("ageExact"),
-            fin=document.getElementById("ageFinal");
-      const push=()=>{ fin.value = sel.value==="__exact" ? ex.value : sel.value; };
-      sel.addEventListener("change",()=>{ ex.classList.toggle("hidden", sel.value!=="__exact"); if(sel.value!=="__exact") ex.value=""; push(); });
-      ex.addEventListener("input",push); push();
+      // 4) Form submit: disable button
+      const f = document.getElementById("f"), b = document.getElementById("btn");
+      f.addEventListener("submit", () => { b.disabled = true; b.textContent = "Submitting…"; });
+
+      // 5) Age selection logic
+      const sel = document.getElementById("ageSel"),
+            ex  = document.getElementById("ageExact"),
+            fin = document.getElementById("ageFinal");
+      const push = () => { fin.value = sel.value==="__exact" ? ex.value : sel.value; };
+      sel.addEventListener("change", () => {
+        ex.classList.toggle("hidden", sel.value!=="__exact");
+        if (sel.value!=="__exact") ex.value="";
+        push();
+      });
+      ex.addEventListener("input", push);
+      push();
     </script>
   </body>
 </html>
