@@ -14,7 +14,6 @@
       .muted{color:#64748b}
       *:focus{outline:none!important;box-shadow:none!important}
 
-      
       .scale{--count:11; display:grid; grid-template-columns:repeat(var(--count),minmax(0,1fr)); gap:10px; align-items:center; width:100%}
       .scale input{display:none}
       .scale label{
@@ -23,7 +22,6 @@
       }
       .scale input:checked + label{background:#ec4899;color:#fff;border-color:#ec4899}
 
-      
       .anchors{position:relative; margin-top:6px; height:16px; color:#0B0F19; font-size:12px}
       .anchors .l{position:absolute; left:0}
       .anchors .r{position:absolute; right:0}
@@ -34,7 +32,10 @@
   <body class="min-h-screen bg-app text-slate-900">
     <header class="bg-white/80 backdrop-blur border-b">
       <div class="max-w-4xl mx-auto px-4 py-3">
-        <div class="flex items-center justify-between"><div></div><div class="text-xs text-slate-600">Step 4 of 4</div></div>
+        <div class="flex items-center justify-between">
+          <div></div>
+          <div class="text-xs text-slate-600">Step 4 of 4</div>
+        </div>
         <div class="bar mt-2 rounded"></div>
       </div>
     </header>
@@ -46,17 +47,23 @@
         <input type="hidden" name="stimulus_name" value="{{ stimulus_name }}" />
         <input type="hidden" name="url" value="{{ url }}" />
 
+        <!-- STEP 1: chills feedback -->
         <section id="s1" class="card rounded-2xl border p-6 space-y-6">
           <div>
             <div class="block mb-2 font-medium">Did you experience chills?</div>
             <div class="flex gap-6">
-              <label class="radio"><input type="radio" name="experienced" value="yes" /><span>Yes</span></label>
-              <label class="radio"><input type="radio" name="experienced" value="no" /><span>No</span></label>
+              <label class="radio">
+                <input type="radio" name="experienced" value="yes" />
+                <span>Yes</span>
+              </label>
+              <label class="radio">
+                <input type="radio" name="experienced" value="no" />
+                <span>No</span>
+              </label>
             </div>
           </div>
 
           <div id="yesFields" class="space-y-6" style="display:none">
-            
             <div>
               <div class="q mb-1">How intense were the chills you experienced?</div>
               <div class="scale mt-2" data-count="11">
@@ -71,7 +78,6 @@
               </div>
             </div>
 
-            
             <div>
               <div class="q mb-1">How long were the chills that you experienced?</div>
               <div class="scale mt-2" data-count="7">
@@ -86,7 +92,6 @@
               </div>
             </div>
 
-            
             <div>
               <div class="q mb-1">How many waves of chills did you experience?</div>
               <div class="scale mt-2" data-count="11">
@@ -101,28 +106,62 @@
               </div>
             </div>
 
-            
             <div>
-              <label class="block mb-2 font-medium">Please describe what in the video gave you chills and why.</label>
-              <textarea name="description" rows="5" class="w-full rounded-xl border px-3 py-2 bg-white/70" placeholder="Your answer (optional)…"></textarea>
+              <label class="block mb-2 font-medium">
+                Please describe what in the video gave you chills and why.
+              </label>
+              <textarea
+                name="description"
+                rows="5"
+                class="w-full rounded-xl border px-3 py-2 bg-white/70"
+                placeholder="Your answer (optional)…"
+              ></textarea>
             </div>
           </div>
 
           <div class="flex items-center justify-end">
-            <button id="toEmail" class="btn rounded-xl text-white px-5 py-3" type="button">Continue</button>
+            <button
+              id="toEmail"
+              class="btn rounded-xl text-white px-5 py-3"
+              type="button"
+            >
+              Continue
+            </button>
           </div>
         </section>
 
-       
+        <!-- STEP 2: email + Prolific ID (frontend only, no backend change) -->
         <section id="s2" class="card rounded-2xl border p-6 space-y-4" style="display:none">
           <div>
-            <label class="block mb-2 font-medium">If you wish to be contacted for future studies, please indicate your email.</label>
-            <input name="email" type="email" placeholder="you@example.com"
-                   class="w-full rounded-xl border px-3 py-2 bg-white/70" />
+            <label class="block mb-2 font-medium">
+              If you wish to be contacted for future studies, please indicate your email.
+            </label>
+            <input
+              name="email"
+              type="email"
+              placeholder="you@example.com"
+              class="w-full rounded-xl border px-3 py-2 bg-white/70"
+            />
+          </div>
+
+          <div>
+            <label class="block mb-2 font-medium">
+              Prolific ID
+              <span class="text-xs text-slate-500">(optional, not required)</span>
+            </label>
+            <!-- NOTE: no name attribute = NOT sent to backend -->
+            <input
+              type="text"
+              placeholder="Enter your Prolific ID (optional)"
+              class="w-full rounded-xl border px-3 py-2 bg-white/70"
+            />
           </div>
 
           <div class="flex items-center justify-end">
-            <button id="btn" class="btn inline-flex items-center justify-center rounded-xl text-white px-5 py-3 disabled:opacity-60 disabled:cursor-not-allowed transition">
+            <button
+              id="btn"
+              class="btn inline-flex items-center justify-center rounded-xl text-white px-5 py-3 disabled:opacity-60 disabled:cursor-not-allowed transition"
+            >
               Submit
             </button>
           </div>
@@ -131,25 +170,39 @@
     </main>
 
     <script>
-      
-      const yesWrap=document.getElementById("yesFields");
-      const radios=[...document.querySelectorAll('input[name="experienced"]')];
-      const toggle=()=>{ const r=document.querySelector('input[name="experienced"]:checked'); yesWrap.style.display = (r && r.value==="yes") ? "block" : "none"; };
-      radios.forEach(r=>r.addEventListener("change",toggle)); toggle();
+      // Show/hide chills detail fields
+      const yesWrap = document.getElementById("yesFields");
+      const radios = [...document.querySelectorAll('input[name="experienced"]')];
+      const toggle = () => {
+        const r = document.querySelector('input[name="experienced"]:checked');
+        yesWrap.style.display = (r && r.value === "yes") ? "block" : "none";
+      };
+      radios.forEach(r => r.addEventListener("change", toggle));
+      toggle();
 
-      
-      const s1=document.getElementById('s1'), s2=document.getElementById('s2');
-      document.getElementById('toEmail').addEventListener('click', ()=>{ s1.style.display='none'; s2.style.display='block'; });
-
-      
-      document.querySelectorAll('.scale').forEach(el=>{
-        const c = parseInt(el.dataset.count||'0',10);
-        if (c>0) el.style.setProperty('--count', c);
+      // Step 1 -> Step 2
+      const s1 = document.getElementById("s1"),
+            s2 = document.getElementById("s2");
+      document.getElementById("toEmail").addEventListener("click", () => {
+        s1.style.display = "none";
+        s2.style.display = "block";
       });
 
-      
-      const f=document.getElementById("f"), b=document.getElementById("btn");
-      f.addEventListener("submit",()=>{ if(b){b.disabled=true; b.textContent="Submitting…";} });
+      // Dynamic scale column count
+      document.querySelectorAll(".scale").forEach(el => {
+        const c = parseInt(el.dataset.count || "0", 10);
+        if (c > 0) el.style.setProperty("--count", c);
+      });
+
+      // Disable submit on form post
+      const f = document.getElementById("f"),
+            b = document.getElementById("btn");
+      f.addEventListener("submit", () => {
+        if (b) {
+          b.disabled = true;
+          b.textContent = "Submitting…";
+        }
+      });
     </script>
   </body>
 </html>
