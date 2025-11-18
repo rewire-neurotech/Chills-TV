@@ -651,11 +651,12 @@ async def submit(req: Request,
     chills_length: int = Form(0),
     chills_waves: int = Form(0),
     description: str = Form(""),
-    email: str = Form("")
+    email: str = Form(""),
+    prolific_id: str = Form("")
 ):
     p = "/data/logs.csv"
     Hh = [
-        "ts","participant_id","email","stimulus_id","url",
+        "ts","participant_id","email","prolific_id","stimulus_id","url",
         "experienced","chills_amount_0_10","chills_length_0_6","chills_waves_0_10",
         "description"
     ]
@@ -664,7 +665,7 @@ async def submit(req: Request,
         w = csv.writer(fh)
         if is_new: w.writerow(Hh)
         w.writerow([
-            datetime.utcnow().isoformat(), id, email, stimulus_id, url,
+            datetime.utcnow().isoformat(), id, email,prolific_id, stimulus_id, url,
             experienced, chills_amount, chills_length, chills_waves,
             description.replace("\r\n","\n").strip()
         ])
@@ -743,6 +744,7 @@ def avoid_debug(threshold: float = 0.5):
             except Exception:
                 continue
     return {"threshold": float(threshold), "count": len(avoid), "avoid": avoid}
+
 
 
 
