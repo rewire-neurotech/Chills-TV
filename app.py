@@ -808,6 +808,7 @@ async def payment_complete(req: Request, session_id: str = ""):
     stim = sess_data.get("stimulus", {})
     pid = sess_data.get("pid", "")
     S = build_profile_data(stim.get("name", ""), stim.get("url", ""), stim.get("desc", ""))
+    S["stimulus_id"] = stim.get("stimulus_id", "")
 
     share_url = f"https://chillstv.com/p/{sid[:8]}"
 
@@ -882,6 +883,49 @@ async def stripe_webhook(req: Request):
             SESSIONS[sid]["paid"] = True
 
     return JSONResponse({"status": "ok"})
+
+
+# ═══════════════════════════════════════════════════
+# FEEDBACK ROUTES (original detailed questionnaire)
+# ═══════════════════════════════════════════════════
+
+@a.get("/feedback", response_class=HTMLResponse)
+def feedback(req: Request, id: str = "", stimulus_id: str = "", url: str = "", score: float = 0.0, stimulus_name: str = "", session_id: str = ""):
+    return t.TemplateResponse("feedback.html", {
+        "request": req, "id": id, "stimulus_id": stimulus_id, "url": url,
+        "score": score, "stimulus_name": stimulus_name, "class_idx": -1,
+        "session_id": session_id
+    })
+
+@a.post("/submit", response_class=HTMLResponse)
+async def submit(req: Request,
+    id: str = Form(...),
+    stimulus_id: str = Form(...),
+    url: str = Form(""),
+    experienced: str = Form(...),
+    chills_amount: int = Form(0),
+    chills_length: int = Form(0),
+    chills_waves: int = Form(0),
+    description: str = Form(""),
+    email: str = Form(""),
+    prolific_id: str = Form("")
+):
+    p = "/data/logs.csv"
+    Hh = [
+        "ts","participant_id","email","prolific_id","stimulus_id","url",
+        "experienced","chills_amount_0_10","chills_length_0_6","chills_waves_0_10",
+        "description"
+    ]
+    is_new = not os.path.exists(p)
+    with open(p, "a", newline="", encoding="utf-8") as fh:
+        w = csv.writer(fh)
+        if is_new: w.writerow(Hh)
+        w.writerow([
+            datetime.utcnow().isoformat(), id, email, prolific_id, stimulus_id, url,
+            experienced, chills_amount, chills_length, chills_waves,
+            description.replace("\r\n","\n").strip()
+        ])
+    return t.TemplateResponse("done.html", {"request": req, "id": id, "email": email})
 
 
 # ═══════════════════════════════════════════════════
