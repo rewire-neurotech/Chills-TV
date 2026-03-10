@@ -1,15 +1,17 @@
 import sitecustomize
 from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-import csv, hashlib, json, os, re, unicodedata
+import csv, hashlib, json, os, re, secrets, time, unicodedata
 from datetime import datetime
 import joblib, numpy as np, onnxruntime as rt, pandas as pd
-import sklearn
+import sklearn, stripe
 from typing import Any, Dict, List, Tuple, Optional
-from fastapi.responses import HTMLResponse, FileResponse
 os.makedirs("/data", exist_ok=True)
 
+# ═══════════════════════════════════════════════════
+# APP SETUP
+# ═══════════════════════════════════════════════════
 a = FastAPI()
 b = os.path.dirname(__file__)
 t = Jinja2Templates(directory=os.path.join(b, "templates"))
@@ -85,6 +87,9 @@ STIM = [
 ]
 
 
+# ═══════════════════════════════════════════════════
+# HELPERS (original)
+# ═══════════════════════════════════════════════════
 def r1(p):
     try:
         return pd.read_csv(p, encoding="utf-8")
@@ -94,7 +99,7 @@ def r1(p):
 def nm(x): return re.sub(r"[^0-9a-zA-Z_]+", "_", str(x).strip())
 
 def cq(x):
-    x = (x or "").replace("â€™", "’").replace("â€œ", "“").replace("â€�", "”")
+    x = (x or "").replace("\u00e2\u0080\u0099", "'").replace("\u00e2\u0080\u009c", "\u201c").replace("\u00e2\u0080\u009d", "\u201d")
     x = re.sub(r"\s*-\s*\d+\s*$", "", x)
     return x.strip()
 
@@ -114,13 +119,16 @@ def canon(s):
     s = unicodedata.normalize("NFKD", s)
     s = "".join(ch for ch in s if not unicodedata.combining(ch))
     s = s.lower()
-    s = s.replace("&"," and ").replace("’","'").replace("‘","'").replace("“","\"").replace("”","\"")
+    s = s.replace("&"," and ").replace("\u2018","'").replace("\u2019","'").replace("\u201c","\"").replace("\u201d","\"")
     s = re.sub(r"\(audio\)","", s)
     s = re.sub(r"[^a-z0-9]+"," ", s)
     s = re.sub(r"\s+"," ", s).strip()
     return s
 
 
+# ═══════════════════════════════════════════════════
+# QUESTIONNAIRE
+# ═══════════════════════════════════════════════════
 def qcsv():
     p = None
     for z in qfs:
@@ -164,6 +172,9 @@ def qall():
     u = []; u.extend(Q); u.extend(qdemo()); return u
 
 
+# ═══════════════════════════════════════════════════
+# MODEL + PREPROCESSOR LOADING
+# ═══════════════════════════════════════════════════
 with open(ff, "r", encoding="utf-8") as f:
     F = json.load(f)["features"]
 
@@ -177,6 +188,9 @@ sess = rt.InferenceSession(mf, providers=["CPUExecutionProvider"])
 inn = sess.get_inputs()[0].name
 
 
+# ═══════════════════════════════════════════════════
+# STIMULI CSV LOADING
+# ═══════════════════════════════════════════════════
 def sspath():
     for fn in sfs:
         p = os.path.join(b, fn)
@@ -226,6 +240,9 @@ def loadG():
 G = loadG()
 
 
+# ═══════════════════════════════════════════════════
+# STIMULUS MATCHING
+# ═══════════════════════════════════════════════════
 ALIASES = {
     "mr rogers testimony": ["mr rogers testimony","mr rogers congress testimony","mr rogers senate testimony"],
     "mr rogers doc": ["mr rogers documentary","mr rogers doc"],
@@ -301,6 +318,9 @@ for si, sname in enumerate(STIM):
         IDX[si] = got
 
 
+# ═══════════════════════════════════════════════════
+# FEATURE MAPPING + MODEL INFERENCE
+# ═══════════════════════════════════════════════════
 with open(ff, "r", encoding="utf-8") as f:
     FEATURES = json.load(f)["features"]
 
@@ -309,7 +329,7 @@ def ag(x):
     try: return float(x)
     except:
         y = re.sub(r"\s+","",x)
-        m = re.match(r"^(\d+)[\-–](\d+)$", y)
+        m = re.match(r"^(\d+)[\-\u2013](\d+)$", y)
         if m: return (float(m.group(1)) + float(m.group(2))) / 2.0
         m = re.match(r"^(\d+)\+$", y)
         if m: return float(m.group(1)) + 5.0
@@ -434,7 +454,6 @@ def topk(v, k=1, pid=""):
     outs = [o.name for o in out_defs]
     yl = sess.run(outs, {inn: X})
 
-  
     p = None
     used_idx = None
     used_name = None
@@ -447,7 +466,6 @@ def topk(v, k=1, pid=""):
 
     if prob_idx is not None:
         y = yl[prob_idx]
-        
         if isinstance(y, (list, tuple)):
             try:
                 head0 = y[0] 
@@ -461,7 +479,6 @@ def topk(v, k=1, pid=""):
             else:
                 raise RuntimeError(f"Unexpected shape for CHILLS head0: {arr.shape}; expected (40,2) or (40,).")
         else:
-            
             p = _extract_from_probabilities_struct(y)
             if p is None:
                 arr = np.asarray(y)
@@ -474,7 +491,6 @@ def topk(v, k=1, pid=""):
         used_idx = prob_idx
         used_name = outs[prob_idx]
 
-   
     if p is None:
         hi = _choose_chills_head_index(outs)
         y = yl[hi]
@@ -492,7 +508,6 @@ def topk(v, k=1, pid=""):
         used_idx = hi
         used_name = outs[hi]
 
-   
     eps = (np.arange(len(STIM)) * 1e-9).astype(np.float32)
     p = p + eps
     if np.max(p) - np.min(p) < 1e-6:
@@ -501,7 +516,6 @@ def topk(v, k=1, pid=""):
     else:
         idx = np.argsort(-p)[:k]
 
-    
     try:
         P["onnx_called"] = True
         P["in_shape"] = tuple(X.shape)
@@ -518,7 +532,6 @@ def topk(v, k=1, pid=""):
     except Exception:
         pass
 
-    
     o = []
     for j in idx:
         j = int(j)
@@ -564,6 +577,125 @@ def _choose_from_ties(items: List[Dict], pid: str, built_vec: list, tol_abs: flo
     return pick_from[h % len(pick_from)]
 
 
+# ═══════════════════════════════════════════════════
+# NEW: STIMULUS PROFILES (from Felix's JSON)
+# ═══════════════════════════════════════════════════
+_sp_path = os.path.join(b, "stimulus_profiles.json")
+if os.path.exists(_sp_path):
+    with open(_sp_path, "r", encoding="utf-8") as f:
+        SPROF = json.load(f)
+else:
+    SPROF = {"stimuli": [], "dataset_summary": {}}
+
+# build lookup by canonicalized name
+SPROF_IDX: Dict[str, dict] = {}
+for _s in SPROF.get("stimuli", []):
+    SPROF_IDX[canon(_s.get("name", ""))] = _s
+
+
+def _parse_scale(s: str) -> Tuple[float, float]:
+    s = str(s).replace("\u2013", "-").replace("\u2014", "-")
+    m = re.match(r"(\d+)\s*-\s*(\d+)", s)
+    if m:
+        return float(m.group(1)), float(m.group(2))
+    return 0, 100
+
+def _scale_pct(val: float, scale_str: str) -> float:
+    lo, hi = _parse_scale(scale_str)
+    if hi <= lo: return 50.0
+    return max(0.0, min(100.0, (val - lo) / (hi - lo) * 100.0))
+
+def _to_embed_url(url: str) -> str:
+    if not url: return ""
+    url = url.strip()
+    if "youtube.com/watch?v=" in url:
+        return url.replace("watch?v=", "embed/")
+    if "youtu.be/" in url:
+        vid = url.split("youtu.be/")[-1].split("?")[0].split("&")[0]
+        return "https://www.youtube.com/embed/" + vid
+    return ""
+
+def build_profile_data(stimulus_name: str, stimulus_url: str = "", stimulus_desc: str = "") -> dict:
+    cn = canon(stimulus_name)
+    profile = SPROF_IDX.get(cn)
+    if not profile:
+        for k, v in SPROF_IDX.items():
+            if cn in k or k in cn:
+                profile = v
+                break
+
+    ds = SPROF.get("dataset_summary", {})
+
+    if not profile:
+        return {
+            "title": stimulus_name,
+            "desc": stimulus_desc,
+            "url": stimulus_url,
+            "embed_url": _to_embed_url(stimulus_url),
+            "stats": {"chills_rate_pct": 0, "n_participants": 0, "most_common_age_group": "N/A"},
+            "who_matches_paragraph": "",
+            "profile_cards": [],
+            "dataset_n": "2,937",
+            "dataset_url": ds.get("dataset_url", ""),
+            "study_url": ds.get("primary_study_url", ""),
+        }
+
+    cards = []
+    for c in profile.get("profile_cards", []):
+        scale_str = c.get("scale", "1-7")
+        val = c.get("value", 0)
+        avg = c.get("global_avg", 0)
+        cards.append({
+            **c,
+            "pct": round(_scale_pct(val, scale_str), 1),
+            "avg_pct": round(_scale_pct(avg, scale_str), 1),
+        })
+
+    return {
+        "title": profile.get("title", stimulus_name),
+        "desc": stimulus_desc,
+        "url": stimulus_url,
+        "embed_url": _to_embed_url(stimulus_url),
+        "stats": profile.get("stats", {}),
+        "who_matches_paragraph": profile.get("who_matches_paragraph", ""),
+        "profile_cards": cards,
+        "dataset_n": "2,937",
+        "dataset_url": ds.get("dataset_url", ""),
+        "study_url": ds.get("primary_study_url", ""),
+    }
+
+
+# ═══════════════════════════════════════════════════
+# NEW: SERVER-SIDE SESSION STORAGE
+# ═══════════════════════════════════════════════════
+SESSIONS: Dict[str, dict] = {}
+SESSION_TTL = 86400  # 24 hours
+
+def _cleanup_sessions():
+    now = time.time()
+    expired = [k for k, v in SESSIONS.items() if now - v.get("ts", 0) > SESSION_TTL]
+    for k in expired:
+        del SESSIONS[k]
+
+def _new_session() -> str:
+    _cleanup_sessions()
+    sid = secrets.token_urlsafe(16)
+    SESSIONS[sid] = {"ts": time.time()}
+    return sid
+
+
+# ═══════════════════════════════════════════════════
+# NEW: STRIPE SETUP
+# ═══════════════════════════════════════════════════
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_PRICE_ID = "price_1T8VZXLFGVq6dtu2SdgbNnAu"
+
+
+# ═══════════════════════════════════════════════════
+# ROUTES
+# ═══════════════════════════════════════════════════
+
 @a.get("/", response_class=HTMLResponse)
 def index(req: Request):
     q2 = [x for x in Q if x["k"] != "Age"]
@@ -582,7 +714,7 @@ async def intake(req: Request):
         E["msg"] = str(ex); E["when"] = datetime.utcnow().isoformat()
         return HTMLResponse(f"<pre>Internal error during /intake\n\n{E['msg']}</pre>", status_code=500)
 
-@a.post("/start", response_class=HTMLResponse)
+@a.post("/start")
 async def start(req: Request):
     try:
         f = await req.form()
@@ -599,26 +731,175 @@ async def start(req: Request):
             "score": 0.0, "stimulus_id": "", "url": "", "name": "", "desc": "", "dur": "", "cap": ""
         }
 
-        d = {"id": pid, "score": best["score"], "stimulus_id": best["stimulus_id"], "url": best["url"],
-             "name": best["name"], "desc": best["desc"], "dur": best["dur"], "cap": best["cap"]}
-        return t.TemplateResponse("stimulus.html", {"request": req, "D": d})
+        # store in session
+        sid = _new_session()
+        SESSIONS[sid]["pid"] = pid
+        SESSIONS[sid]["stimulus"] = best
+        SESSIONS[sid]["paid"] = False
+
+        return RedirectResponse(f"/paywall?sid={sid}", status_code=303)
     except Exception as ex:
         E["msg"] = str(ex); E["when"] = datetime.utcnow().isoformat()
         return HTMLResponse(f"<pre>Internal error during /start\n\n{E['msg']}\n\nCheck /_debug/feature_wire and /_debug/stim_match</pre>", status_code=500)
 
-@a.get("/feedback", response_class=HTMLResponse)
-def feedback(req: Request, id: str, stimulus_id: str, url: str = "", score: float = 0.0, stimulus_name: str = ""):
-    return t.TemplateResponse("feedback.html", {
-        "request": req, "id": id, "stimulus_id": stimulus_id, "url": url,
-        "score": score, "stimulus_name": stimulus_name, "class_idx": -1
+@a.get("/research", response_class=HTMLResponse)
+def research(req: Request):
+    return t.TemplateResponse("research.html", {"request": req})
+
+@a.get("/paywall", response_class=HTMLResponse)
+def paywall(req: Request, sid: str = ""):
+    if not sid or sid not in SESSIONS:
+        return RedirectResponse("/")
+    return t.TemplateResponse("paywall.html", {"request": req, "session_id": sid})
+
+@a.post("/create-checkout-session")
+async def create_checkout_session(req: Request):
+    try:
+        body = await req.json()
+    except Exception:
+        return JSONResponse({"error": "Invalid JSON"}, status_code=400)
+
+    sid = body.get("session_id", "")
+    if sid not in SESSIONS:
+        return JSONResponse({"error": "Invalid session"}, status_code=400)
+
+    host = req.headers.get("host", "chillstv.com")
+    scheme = req.headers.get("x-forwarded-proto", "https")
+    base = f"{scheme}://{host}"
+
+    try:
+        checkout = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[{"price": STRIPE_PRICE_ID, "quantity": 1}],
+            mode="payment",
+            success_url=base + "/payment-complete?session_id={CHECKOUT_SESSION_ID}",
+            cancel_url=base + f"/paywall?sid={sid}",
+            metadata={
+                "session_id": sid,
+                "product": "chillstv_unlock",
+                "user_id": SESSIONS[sid].get("pid", ""),
+            },
+        )
+        return JSONResponse({"url": checkout.url})
+    except Exception as ex:
+        E["msg"] = str(ex); E["when"] = datetime.utcnow().isoformat()
+        return JSONResponse({"error": str(ex)}, status_code=500)
+
+@a.get("/payment-complete", response_class=HTMLResponse)
+async def payment_complete(req: Request, session_id: str = ""):
+    if not session_id:
+        return RedirectResponse("/")
+
+    try:
+        stripe_sess = stripe.checkout.Session.retrieve(session_id)
+    except Exception:
+        return RedirectResponse("/")
+
+    if stripe_sess.payment_status != "paid":
+        return RedirectResponse("/")
+
+    sid = (stripe_sess.metadata or {}).get("session_id", "")
+    if sid not in SESSIONS:
+        return RedirectResponse("/")
+
+    sess_data = SESSIONS[sid]
+    sess_data["paid"] = True
+
+    stim = sess_data.get("stimulus", {})
+    pid = sess_data.get("pid", "")
+    S = build_profile_data(stim.get("name", ""), stim.get("url", ""), stim.get("desc", ""))
+
+    share_url = f"https://chillstv.com/p/{sid[:8]}"
+
+    # log the unlock
+    try:
+        lp = "/data/logs.csv"
+        hdr = ["ts","participant_id","email","prolific_id","stimulus_id","url",
+               "experienced","chills_amount_0_10","chills_length_0_6","chills_waves_0_10","description"]
+        is_new = not os.path.exists(lp)
+        with open(lp, "a", newline="", encoding="utf-8") as fh:
+            w = csv.writer(fh)
+            if is_new: w.writerow(hdr)
+            w.writerow([
+                datetime.utcnow().isoformat(), pid, "", "", stim.get("stimulus_id",""),
+                stim.get("url",""), "unlock", 0, 0, 0, f"stripe_session={session_id}"
+            ])
+    except Exception:
+        pass
+
+    return t.TemplateResponse("profile.html", {
+        "request": req,
+        "pid": pid,
+        "session_id": sid,
+        "share_url": share_url,
+        "S": S,
     })
+
+@a.post("/chills-response")
+async def chills_response(req: Request):
+    try:
+        body = await req.json()
+    except Exception:
+        return JSONResponse({"error": "Invalid JSON"}, status_code=400)
+
+    sid = body.get("session_id", "")
+    experienced = body.get("experienced", "")
+
+    if sid in SESSIONS:
+        stim = SESSIONS[sid].get("stimulus", {})
+        pid = SESSIONS[sid].get("pid", "")
+        try:
+            lp = "/data/logs.csv"
+            hdr = ["ts","participant_id","email","prolific_id","stimulus_id","url",
+                   "experienced","chills_amount_0_10","chills_length_0_6","chills_waves_0_10","description"]
+            is_new = not os.path.exists(lp)
+            with open(lp, "a", newline="", encoding="utf-8") as fh:
+                w = csv.writer(fh)
+                if is_new: w.writerow(hdr)
+                w.writerow([
+                    datetime.utcnow().isoformat(), pid, "", "", stim.get("stimulus_id",""),
+                    stim.get("url",""), experienced, 0, 0, 0, ""
+                ])
+        except Exception:
+            pass
+
+    return JSONResponse({"status": "ok"})
+
+@a.post("/webhook")
+async def stripe_webhook(req: Request):
+    payload = await req.body()
+    sig = req.headers.get("stripe-signature", "")
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig, STRIPE_WEBHOOK_SECRET)
+    except Exception:
+        return JSONResponse({"error": "Invalid signature"}, status_code=400)
+
+    if event["type"] == "checkout.session.completed":
+        obj = event["data"]["object"]
+        sid = (obj.get("metadata") or {}).get("session_id", "")
+        if sid in SESSIONS:
+            SESSIONS[sid]["paid"] = True
+
+    return JSONResponse({"status": "ok"})
+
+
+# ═══════════════════════════════════════════════════
+# EXISTING UTILITY ROUTES
+# ═══════════════════════════════════════════════════
+
 @a.get("/download-logs")
 def download_logs():
     p = "/data/logs.csv"
     if not os.path.exists(p):
-        return HTMLResponse("No logs yet — /data/logs.csv not found", status_code=404)
+        return HTMLResponse("No logs yet \u2014 /data/logs.csv not found", status_code=404)
     headers = {"Cache-Control": "no-store, no-cache, must-revalidate, max-age=0"}
     return FileResponse(p, media_type="text/csv", filename="logs.csv", headers=headers)
+
+
+# ═══════════════════════════════════════════════════
+# DEBUG ROUTES (all preserved)
+# ═══════════════════════════════════════════════════
 
 @a.get("/_debug/logs_head")
 def logs_head(n: int = 5):
@@ -640,37 +921,6 @@ def disk():
         except Exception as e:
             listing = [f"error: {e}"]
     return {"mounted": exists, "path": p, "ls": listing}
-
-@a.post("/submit", response_class=HTMLResponse)
-async def submit(req: Request,
-    id: str = Form(...),
-    stimulus_id: str = Form(...),
-    url: str = Form(""),
-    experienced: str = Form(...),
-    chills_amount: int = Form(0),
-    chills_length: int = Form(0),
-    chills_waves: int = Form(0),
-    description: str = Form(""),
-    email: str = Form(""),
-    prolific_id: str = Form("")
-):
-    p = "/data/logs.csv"
-    Hh = [
-        "ts","participant_id","email","prolific_id","stimulus_id","url",
-        "experienced","chills_amount_0_10","chills_length_0_6","chills_waves_0_10",
-        "description"
-    ]
-    is_new = not os.path.exists(p)
-    with open(p, "a", newline="", encoding="utf-8") as fh:
-        w = csv.writer(fh)
-        if is_new: w.writerow(Hh)
-        w.writerow([
-            datetime.utcnow().isoformat(), id, email,prolific_id, stimulus_id, url,
-            experienced, chills_amount, chills_length, chills_waves,
-            description.replace("\r\n","\n").strip()
-        ])
-    return t.TemplateResponse("done.html", {"request": req, "id": id, "email": email})
-
 
 @a.get("/_debug/onnx_status")
 def onnx_status():
@@ -744,9 +994,3 @@ def avoid_debug(threshold: float = 0.5):
             except Exception:
                 continue
     return {"threshold": float(threshold), "count": len(avoid), "avoid": avoid}
-
-
-
-
-
-
