@@ -41,3 +41,4 @@ uvicorn==0.38.0
 gunicorn==22.0.0
 gspread==5.12.4
 google-auth==2.35.0
+stripe==12.1.0
