@@ -1,0 +1,2018 @@
+{
+  "_readme": "ChillsTV stimulus profile data. Sorted by chills rate (highest first). 'who_matches_paragraph' is a plain-English description of who gets matched to this video and why, grounded in data. 'profile_cards' contains 0–4 personality/emotion traits that genuinely deviate from the dataset average (threshold: >2.5% of scale range). Each card includes the actual score, the dataset average, what the scale measures, and a source paper URL. All data from ChillsDB (N=2,937 participants, 40 stimuli).",
+  "dataset_summary": {
+    "n_participants": 2937,
+    "n_stimuli": 40,
+    "global_avg_chills_rate_pct": 51.3,
+    "primary_study_url": "https://academic.oup.com/pnasnexus/article/3/3/pgae066/7618479",
+    "primary_study_citation": "Schoeller et al. (2024). Predicting aesthetic chills from individual differences. PNAS Nexus.",
+    "dataset_url": "https://www.nature.com/articles/s41597-023-02064-8",
+    "dataset_citation": "Schoeller et al. (2023). ChillsDB: A large dataset of chills cues. Scientific Data (Nature)."
+  },
+  "stimuli": [
+    {
+      "id": "A06",
+      "name": "Hallelujah Choir (Audio)",
+      "title": "Choir! Choir! Choir! – Hallelujah",
+      "stats": {
+        "n_participants": 74,
+        "chills_rate_pct": 75.7,
+        "chills_rate_rank_of_40": 1,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 68.5,
+        "most_common_age_group": "35-44",
+        "pct_female": 48.6
+      },
+      "who_matches_paragraph": "The highest chills rate in the dataset — 76% of matched participants experienced chills. This is the most consistently effective stimulus across the 40 tested. People matched here score above average on absorption, compassion, love, joy, and awe — essentially elevated across every positive emotion style measured. They're not a niche profile; they're just people whose emotional responsiveness runs high across the board. They also score noticeably higher on extraversion than the dataset average, which is unusual — most chills stimuli don't select strongly for extraverts. This may reflect the communal quality of the piece: 1,500 people singing Hallelujah together. Something about collective emotional experience seems to land differently for people who are socially attuned.",
+      "profile_cards": [
+        {
+          "trait_key": "DPES_compassion",
+          "label": "Dispositional Compassion",
+          "scale": "1–9",
+          "value": 6.34,
+          "global_avg": 5.79,
+          "direction": "higher",
+          "what_it_measures": "The DPES Compassion subscale measures how often you feel moved by others' pain or suffering — not pity, but the kind of deep empathic resonance that tightens your chest when someone else is struggling. People high in compassion are strongly wired for chills triggered by witnessing hardship overcome.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion. (DPES scale paper)",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "MODTAS",
+          "label": "Absorption",
+          "scale": "1–5",
+          "value": 3.43,
+          "global_avg": 3.19,
+          "direction": "higher",
+          "what_it_measures": "Absorption measures how completely you lose yourself in experiences — music, film, a daydream. High scorers forget where they are. They don't just listen; they disappear into it. Across every type of stimulus in this dataset, absorption is one of the most consistent predictors of chills.",
+          "source": {
+            "citation": "Tellegen & Atkinson (1974); updated by Jamieson (2005). \"Modified Tellegen Absorption Scale.\"",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/7288649/"
+          }
+        },
+        {
+          "trait_key": "Extraversion",
+          "label": "Extraversion (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 40.43,
+          "global_avg": 37.91,
+          "direction": "higher",
+          "what_it_measures": "Extraversion in the NEO-FFI captures sociability, positive affect, and outward expressiveness. Higher scorers tend to be energetic and socially engaged. Lower scorers are more inward-facing — they often process experiences quietly and internally, which may actually deepen certain types of emotional response.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI: Revised NEO Personality Inventory.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        },
+        {
+          "trait_key": "DPES_love",
+          "label": "Dispositional Love",
+          "scale": "1–9",
+          "value": 5.1,
+          "global_avg": 4.79,
+          "direction": "higher",
+          "what_it_measures": "The DPES Love subscale measures how often you feel warmth, closeness, and deep affection — for people, places, or ideas. High scorers bond easily and are moved by intimacy and tenderness. They tend to be reliably affected by content centered on human connection.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AV20",
+      "name": "Think Too Much Feel Too Little",
+      "title": "We Think Too Much and Feel Too Little",
+      "stats": {
+        "n_participants": 75,
+        "chills_rate_pct": 62.7,
+        "chills_rate_rank_of_40": 2,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 63.7,
+        "most_common_age_group": "65+",
+        "pct_female": 52.0
+      },
+      "who_matches_paragraph": "The second-highest chills rate in the dataset (63%), and one of the few stimuli where the matched group scores slightly above average on neuroticism — people who feel things intensely. The content is explicitly about emotional repression and the cost of living in your head, which may be why it resonates so strongly with people who recognize that pattern in themselves. Nothing dramatically unusual about the profile — absorption and love are modestly above average — but the emotional recognition factor seems to be doing a lot of the work here.",
+      "profile_cards": [
+        {
+          "trait_key": "MODTAS",
+          "label": "Absorption",
+          "scale": "1–5",
+          "value": 3.31,
+          "global_avg": 3.19,
+          "direction": "higher",
+          "what_it_measures": "Absorption measures how completely you lose yourself in experiences — music, film, a daydream. High scorers forget where they are. They don't just listen; they disappear into it. Across every type of stimulus in this dataset, absorption is one of the most consistent predictors of chills.",
+          "source": {
+            "citation": "Tellegen & Atkinson (1974); updated by Jamieson (2005). \"Modified Tellegen Absorption Scale.\"",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/7288649/"
+          }
+        },
+        {
+          "trait_key": "Neuroticism",
+          "label": "Neuroticism (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 37.2,
+          "global_avg": 36.0,
+          "direction": "higher",
+          "what_it_measures": "Neuroticism measures emotional sensitivity and reactivity — how easily you experience anxiety, sadness, or intense feeling. Higher scorers feel things more acutely. In the context of chills, higher neuroticism can correlate with deeper emotional peaks — the same sensitivity that makes life harder also makes certain moments hit harder.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A16",
+      "name": "Great Dictator (Audio)",
+      "title": "The Great Dictator Speech (Audio)",
+      "stats": {
+        "n_participants": 74,
+        "chills_rate_pct": 62.2,
+        "chills_rate_rank_of_40": 3,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 64.3,
+        "most_common_age_group": "35-44",
+        "pct_female": 48.6
+      },
+      "who_matches_paragraph": "62% chills rate — one of the strongest in the dataset, and almost purely an audio stimulus (just the speech). The matched group shows very little that's distinctive on personality measures; dispositional love is slightly below average, and that's about it. This suggests the chills here aren't being driven by who you are emotionally — they're being driven by the sheer force of the content. Charlie Chaplin's 1940 speech, his first spoken words on film, delivered in the middle of World War II. The stimulus is carrying the weight, not the listener's personality profile.",
+      "profile_cards": [
+        {
+          "trait_key": "DPES_love",
+          "label": "Dispositional Love",
+          "scale": "1–9",
+          "value": 4.58,
+          "global_avg": 4.79,
+          "direction": "lower",
+          "what_it_measures": "The DPES Love subscale measures how often you feel warmth, closeness, and deep affection — for people, places, or ideas. High scorers bond easily and are moved by intimacy and tenderness. They tend to be reliably affected by content centered on human connection.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AV18",
+      "name": "Rocky",
+      "title": "Rocky – Retrospective",
+      "stats": {
+        "n_participants": 75,
+        "chills_rate_pct": 61.3,
+        "chills_rate_rank_of_40": 4,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 64.3,
+        "most_common_age_group": "35-44",
+        "pct_female": 45.3
+      },
+      "who_matches_paragraph": "61% chills rate, with a notably lower compassion and awe than average. People matched here aren't particularly sensitive to suffering or transcendence — they respond to a different emotional register entirely: grit, triumph, the accumulation of struggle. Pre-stimulus arousal is the highest of any matched group in the dataset (avg 5.0/9 vs. 4.0 overall), meaning people arrive already activated. The video may work because it amplifies existing energy rather than creating it from stillness.",
+      "profile_cards": [
+        {
+          "trait_key": "DPES_compassion",
+          "label": "Dispositional Compassion",
+          "scale": "1–9",
+          "value": 5.51,
+          "global_avg": 5.79,
+          "direction": "lower",
+          "what_it_measures": "The DPES Compassion subscale measures how often you feel moved by others' pain or suffering — not pity, but the kind of deep empathic resonance that tightens your chest when someone else is struggling. People high in compassion are strongly wired for chills triggered by witnessing hardship overcome.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion. (DPES scale paper)",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "DPES_awe",
+          "label": "Dispositional Awe",
+          "scale": "1–9",
+          "value": 4.98,
+          "global_avg": 5.2,
+          "direction": "lower",
+          "what_it_measures": "The DPES Awe subscale measures how often you feel a sense of vastness — something larger than you that shifts your perspective. Grand music, a sweeping landscape, a great speech. High scorers are more likely to get chills from beauty and scale, and tend to seek out experiences that produce that feeling.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A04",
+      "name": "Unbroken (Audio)",
+      "title": "Unbroken – Motivation",
+      "stats": {
+        "n_participants": 75,
+        "chills_rate_pct": 61.3,
+        "chills_rate_rank_of_40": 5,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 65.1,
+        "most_common_age_group": "25-34",
+        "pct_female": 50.7
+      },
+      "who_matches_paragraph": "61% chills rate. The profile shows slightly above-average absorption alongside below-average compassion and joy. The people matched here tend to be contemplative and inward-facing — not particularly upbeat, not particularly moved by others' suffering, but deeply immersed when something grabs them. The content (a motivational compilation built around surviving hardship) seems to work for people with a serious, focused inner life rather than an emotionally expressive one.",
+      "profile_cards": [
+        {
+          "trait_key": "MODTAS",
+          "label": "Absorption",
+          "scale": "1–5",
+          "value": 3.34,
+          "global_avg": 3.19,
+          "direction": "higher",
+          "what_it_measures": "Absorption measures how completely you lose yourself in experiences — music, film, a daydream. High scorers forget where they are. They don't just listen; they disappear into it. Across every type of stimulus in this dataset, absorption is one of the most consistent predictors of chills.",
+          "source": {
+            "citation": "Tellegen & Atkinson (1974); updated by Jamieson (2005). \"Modified Tellegen Absorption Scale.\"",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/7288649/"
+          }
+        },
+        {
+          "trait_key": "DPES_joy",
+          "label": "Dispositional Joy",
+          "scale": "1–9",
+          "value": 4.76,
+          "global_avg": 4.98,
+          "direction": "lower",
+          "what_it_measures": "The DPES Joy subscale measures free-flowing positive energy — exuberance, vitality, enthusiasm. High scorers bring high positive charge into emotional experiences, which amplifies their response to uplifting content. Lower scorers tend toward a more restrained or contemplative style.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "DPES_compassion",
+          "label": "Dispositional Compassion",
+          "scale": "1–9",
+          "value": 5.57,
+          "global_avg": 5.79,
+          "direction": "lower",
+          "what_it_measures": "The DPES Compassion subscale measures how often you feel moved by others' pain or suffering — not pity, but the kind of deep empathic resonance that tightens your chest when someone else is struggling. People high in compassion are strongly wired for chills triggered by witnessing hardship overcome.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion. (DPES scale paper)",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "Agreeableness",
+          "label": "Agreeableness (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 38.6,
+          "global_avg": 39.84,
+          "direction": "lower",
+          "what_it_measures": "Agreeableness measures prosocial warmth, cooperation, and trust. High scorers tend to be empathic and oriented toward others' wellbeing. It's associated with responsiveness to content involving kindness, generosity, and moral virtue.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A17",
+      "name": "Think Too Much Feel Too Little (audio)",
+      "title": "We Think Too Much and Feel Too Little (Audio)",
+      "stats": {
+        "n_participants": 69,
+        "chills_rate_pct": 60.9,
+        "chills_rate_rank_of_40": 6,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 57.9,
+        "most_common_age_group": "65+",
+        "pct_female": 52.2
+      },
+      "who_matches_paragraph": "61% chills rate — essentially the same content as the video version but audio-only, and the profile is similar. One interesting difference: awe is below average for this group, and extraversion is lower too. Audio-only stripping of a visual-speech hybrid may be shifting who it reaches toward more introverted, less awe-prone listeners who connect with the words specifically.",
+      "profile_cards": [
+        {
+          "trait_key": "DPES_awe",
+          "label": "Dispositional Awe",
+          "scale": "1–9",
+          "value": 4.89,
+          "global_avg": 5.2,
+          "direction": "lower",
+          "what_it_measures": "The DPES Awe subscale measures how often you feel a sense of vastness — something larger than you that shifts your perspective. Grand music, a sweeping landscape, a great speech. High scorers are more likely to get chills from beauty and scale, and tend to seek out experiences that produce that feeling.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "Extraversion",
+          "label": "Extraversion (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 36.62,
+          "global_avg": 37.91,
+          "direction": "lower",
+          "what_it_measures": "Extraversion in the NEO-FFI captures sociability, positive affect, and outward expressiveness. Higher scorers tend to be energetic and socially engaged. Lower scorers are more inward-facing — they often process experiences quietly and internally, which may actually deepen certain types of emotional response.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI: Revised NEO Personality Inventory.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AV16",
+      "name": "Hans Zimmer Time",
+      "title": "Hans Zimmer – Time (Inception, Live)",
+      "stats": {
+        "n_participants": 71,
+        "chills_rate_pct": 59.2,
+        "chills_rate_rank_of_40": 7,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 66.0,
+        "most_common_age_group": "35-44",
+        "pct_female": 50.7
+      },
+      "who_matches_paragraph": "59% chills rate. Above-average absorption and slightly elevated neuroticism — people who lose themselves in music and feel things intensely. Compassion is below average, which is notable for a film score stimulus. The chills here seem to be coming from the pure sonic and emotional architecture of the piece itself rather than from empathy or social resonance. This is music as a direct neural trigger, not an emotional story.",
+      "profile_cards": [
+        {
+          "trait_key": "DPES_compassion",
+          "label": "Dispositional Compassion",
+          "scale": "1–9",
+          "value": 5.51,
+          "global_avg": 5.79,
+          "direction": "lower",
+          "what_it_measures": "The DPES Compassion subscale measures how often you feel moved by others' pain or suffering — not pity, but the kind of deep empathic resonance that tightens your chest when someone else is struggling. People high in compassion are strongly wired for chills triggered by witnessing hardship overcome.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion. (DPES scale paper)",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "Neuroticism",
+          "label": "Neuroticism (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 37.61,
+          "global_avg": 36.0,
+          "direction": "higher",
+          "what_it_measures": "Neuroticism measures emotional sensitivity and reactivity — how easily you experience anxiety, sadness, or intense feeling. Higher scorers feel things more acutely. In the context of chills, higher neuroticism can correlate with deeper emotional peaks — the same sensitivity that makes life harder also makes certain moments hit harder.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        },
+        {
+          "trait_key": "MODTAS",
+          "label": "Absorption",
+          "scale": "1–5",
+          "value": 3.31,
+          "global_avg": 3.19,
+          "direction": "higher",
+          "what_it_measures": "Absorption measures how completely you lose yourself in experiences — music, film, a daydream. High scorers forget where they are. They don't just listen; they disappear into it. Across every type of stimulus in this dataset, absorption is one of the most consistent predictors of chills.",
+          "source": {
+            "citation": "Tellegen & Atkinson (1974); updated by Jamieson (2005). \"Modified Tellegen Absorption Scale.\"",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/7288649/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AV10",
+      "name": "Thai Medicine",
+      "title": "Thai Medicine – Giving is the Best Communication",
+      "stats": {
+        "n_participants": 78,
+        "chills_rate_pct": 57.7,
+        "chills_rate_rank_of_40": 8,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 66.9,
+        "most_common_age_group": "65+",
+        "pct_female": 51.3
+      },
+      "who_matches_paragraph": "57% chills rate despite below-average scores on KAMF, absorption, awe, and joy — almost every scale is lower than average. This is unusual. A high chills rate with a flat or below-average personality profile may indicate that the stimulus works through a mechanism the scales aren't fully capturing — perhaps the simplicity and directness of a kindness story cuts through regardless of profile. Alternatively, the model may be selecting for a profile that's hard to characterize with these particular instruments.",
+      "profile_cards": [
+        {
+          "trait_key": "MODTAS",
+          "label": "Absorption",
+          "scale": "1–5",
+          "value": 2.9,
+          "global_avg": 3.19,
+          "direction": "lower",
+          "what_it_measures": "Absorption measures how completely you lose yourself in experiences — music, film, a daydream. High scorers forget where they are. They don't just listen; they disappear into it. Across every type of stimulus in this dataset, absorption is one of the most consistent predictors of chills.",
+          "source": {
+            "citation": "Tellegen & Atkinson (1974); updated by Jamieson (2005). \"Modified Tellegen Absorption Scale.\"",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/7288649/"
+          }
+        },
+        {
+          "trait_key": "DPES_joy",
+          "label": "Dispositional Joy",
+          "scale": "1–9",
+          "value": 4.56,
+          "global_avg": 4.98,
+          "direction": "lower",
+          "what_it_measures": "The DPES Joy subscale measures free-flowing positive energy — exuberance, vitality, enthusiasm. High scorers bring high positive charge into emotional experiences, which amplifies their response to uplifting content. Lower scorers tend toward a more restrained or contemplative style.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "KAMF",
+          "label": "Kama Muta",
+          "scale": "1–7",
+          "value": 3.62,
+          "global_avg": 3.9,
+          "direction": "lower",
+          "what_it_measures": "Kama Muta is a specific emotion — the feeling of being suddenly moved by witnessing love, devotion, or deep human connection. A reunion, a sacrifice, someone speaking from the heart. It often comes with warmth in the chest, goosebumps, or tears. It's one of the strongest predictors of chills in this dataset.",
+          "source": {
+            "citation": "Fiske et al. (2019). \"Kama muta: Conceptualizing and measuring the human emotion.\" Frontiers in Psychology.",
+            "url": "https://www.frontiersin.org/articles/10.3389/fpsyg.2019.00521/full"
+          }
+        },
+        {
+          "trait_key": "DPES_awe",
+          "label": "Dispositional Awe",
+          "scale": "1–9",
+          "value": 4.94,
+          "global_avg": 5.2,
+          "direction": "lower",
+          "what_it_measures": "The DPES Awe subscale measures how often you feel a sense of vastness — something larger than you that shifts your perspective. Grand music, a sweeping landscape, a great speech. High scorers are more likely to get chills from beauty and scale, and tend to seek out experiences that produce that feeling.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AV08",
+      "name": "Remember the Titans",
+      "title": "Remember the Titans – Gettysburg Scene",
+      "stats": {
+        "n_participants": 79,
+        "chills_rate_pct": 57.0,
+        "chills_rate_rank_of_40": 9,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 64.7,
+        "most_common_age_group": "35-44",
+        "pct_female": 62.0
+      },
+      "who_matches_paragraph": "57% chills rate. The matched group shows no strongly striking traits — personality scores are close to average across the board. What stands out is that 62% of matched participants are female, the highest female proportion of any stimulus in the top 10. The content centers on racial integration, team unity, and leadership — emotional themes that may resonate through a slightly different demographic pathway than pure personality scores can explain.",
+      "profile_cards": []
+    },
+    {
+      "id": "AV04",
+      "name": "Mr. Rogers Testimony",
+      "title": "Mr. Rogers Senate Testimony (1969)",
+      "stats": {
+        "n_participants": 76,
+        "chills_rate_pct": 56.6,
+        "chills_rate_rank_of_40": 10,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 71.7,
+        "most_common_age_group": "65+",
+        "pct_female": 53.9
+      },
+      "who_matches_paragraph": "57% chills rate, and the highest chills intensity in the dataset among any stimulus above 50% rate — people who get chills from this video report an average intensity of 72/100. The matched group scores above average on Kama Muta and compassion specifically. These are people who feel moved by sincere human connection and by witnessing others' vulnerability — and Mr. Rogers' 1969 Senate testimony is essentially a master class in both. He isn't performing; he's just genuinely himself in front of a skeptical audience. That combination of sincerity and stakes is a precise trigger for the Kama Muta response.",
+      "profile_cards": [
+        {
+          "trait_key": "KAMF",
+          "label": "Kama Muta",
+          "scale": "1–7",
+          "value": 4.12,
+          "global_avg": 3.9,
+          "direction": "higher",
+          "what_it_measures": "Kama Muta is a specific emotion — the feeling of being suddenly moved by witnessing love, devotion, or deep human connection. A reunion, a sacrifice, someone speaking from the heart. It often comes with warmth in the chest, goosebumps, or tears. It's one of the strongest predictors of chills in this dataset.",
+          "source": {
+            "citation": "Fiske et al. (2019). \"Kama muta: Conceptualizing and measuring the human emotion.\" Frontiers in Psychology.",
+            "url": "https://www.frontiersin.org/articles/10.3389/fpsyg.2019.00521/full"
+          }
+        },
+        {
+          "trait_key": "DPES_compassion",
+          "label": "Dispositional Compassion",
+          "scale": "1–9",
+          "value": 6.03,
+          "global_avg": 5.79,
+          "direction": "higher",
+          "what_it_measures": "The DPES Compassion subscale measures how often you feel moved by others' pain or suffering — not pity, but the kind of deep empathic resonance that tightens your chest when someone else is struggling. People high in compassion are strongly wired for chills triggered by witnessing hardship overcome.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion. (DPES scale paper)",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A07",
+      "name": "Jason Silva (Audio)",
+      "title": "Jason Silva – Existential Bummer",
+      "stats": {
+        "n_participants": 73,
+        "chills_rate_pct": 56.2,
+        "chills_rate_rank_of_40": 11,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 60.0,
+        "most_common_age_group": "18-24",
+        "pct_female": 61.6
+      },
+      "who_matches_paragraph": "56% chills rate. Above average on Kama Muta, joy, and absorption. The youngest matched group of any stimulus (most common age: 18-24), with 62% female. Jason Silva's spoken-word meditation on impermanence and consciousness seems to reach a specific demographic: younger, emotionally expressive, absorbed in big ideas. The combination of philosophical content and high positive energy in the listener is probably what makes the match work.",
+      "profile_cards": [
+        {
+          "trait_key": "DPES_joy",
+          "label": "Dispositional Joy",
+          "scale": "1–9",
+          "value": 5.42,
+          "global_avg": 4.98,
+          "direction": "higher",
+          "what_it_measures": "The DPES Joy subscale measures free-flowing positive energy — exuberance, vitality, enthusiasm. High scorers bring high positive charge into emotional experiences, which amplifies their response to uplifting content. Lower scorers tend toward a more restrained or contemplative style.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "MODTAS",
+          "label": "Absorption",
+          "scale": "1–5",
+          "value": 3.33,
+          "global_avg": 3.19,
+          "direction": "higher",
+          "what_it_measures": "Absorption measures how completely you lose yourself in experiences — music, film, a daydream. High scorers forget where they are. They don't just listen; they disappear into it. Across every type of stimulus in this dataset, absorption is one of the most consistent predictors of chills.",
+          "source": {
+            "citation": "Tellegen & Atkinson (1974); updated by Jamieson (2005). \"Modified Tellegen Absorption Scale.\"",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/7288649/"
+          }
+        },
+        {
+          "trait_key": "KAMF",
+          "label": "Kama Muta",
+          "scale": "1–7",
+          "value": 4.1,
+          "global_avg": 3.9,
+          "direction": "higher",
+          "what_it_measures": "Kama Muta is a specific emotion — the feeling of being suddenly moved by witnessing love, devotion, or deep human connection. A reunion, a sacrifice, someone speaking from the heart. It often comes with warmth in the chest, goosebumps, or tears. It's one of the strongest predictors of chills in this dataset.",
+          "source": {
+            "citation": "Fiske et al. (2019). \"Kama muta: Conceptualizing and measuring the human emotion.\" Frontiers in Psychology.",
+            "url": "https://www.frontiersin.org/articles/10.3389/fpsyg.2019.00521/full"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AV07",
+      "name": "A Thing About Life",
+      "title": "A Thing About Life",
+      "stats": {
+        "n_participants": 75,
+        "chills_rate_pct": 56.0,
+        "chills_rate_rank_of_40": 12,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 58.6,
+        "most_common_age_group": "35-44",
+        "pct_female": 53.3
+      },
+      "who_matches_paragraph": "56% chills rate with a below-average KAMF and below-average awe. People matched here are less likely than average to be moved by witnessed love or by grandeur — which makes the high chills rate interesting. The pre-stimulus state shows unusually low arousal and neutral mood, meaning people arrive quieter and flatter than average. The video may work precisely because it activates people from a still baseline rather than building on existing energy.",
+      "profile_cards": [
+        {
+          "trait_key": "KAMF",
+          "label": "Kama Muta",
+          "scale": "1–7",
+          "value": 3.67,
+          "global_avg": 3.9,
+          "direction": "lower",
+          "what_it_measures": "Kama Muta is a specific emotion — the feeling of being suddenly moved by witnessing love, devotion, or deep human connection. A reunion, a sacrifice, someone speaking from the heart. It often comes with warmth in the chest, goosebumps, or tears. It's one of the strongest predictors of chills in this dataset.",
+          "source": {
+            "citation": "Fiske et al. (2019). \"Kama muta: Conceptualizing and measuring the human emotion.\" Frontiers in Psychology.",
+            "url": "https://www.frontiersin.org/articles/10.3389/fpsyg.2019.00521/full"
+          }
+        },
+        {
+          "trait_key": "DPES_awe",
+          "label": "Dispositional Awe",
+          "scale": "1–9",
+          "value": 4.97,
+          "global_avg": 5.2,
+          "direction": "lower",
+          "what_it_measures": "The DPES Awe subscale measures how often you feel a sense of vastness — something larger than you that shifts your perspective. Grand music, a sweeping landscape, a great speech. High scorers are more likely to get chills from beauty and scale, and tend to seek out experiences that produce that feeling.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AV03",
+      "name": "Interstellar",
+      "title": "Interstellar with Hans Zimmer",
+      "stats": {
+        "n_participants": 68,
+        "chills_rate_pct": 55.9,
+        "chills_rate_rank_of_40": 13,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 62.7,
+        "most_common_age_group": "65+",
+        "pct_female": 54.4
+      },
+      "who_matches_paragraph": "56% chills rate with notably below-average compassion, joy, and KAMF — and below-average neuroticism, meaning emotional reactivity is lower than average too. The matched group is emotionally quieter and less moved by social content. This is a space and sacrifice film with a Hans Zimmer score — the chills here appear to be driven by scale and cinema rather than by human warmth. People who match here respond to the magnitude of the thing, not the feelings in it.",
+      "profile_cards": [
+        {
+          "trait_key": "KAMF",
+          "label": "Kama Muta",
+          "scale": "1–7",
+          "value": 3.55,
+          "global_avg": 3.9,
+          "direction": "lower",
+          "what_it_measures": "Kama Muta is a specific emotion — the feeling of being suddenly moved by witnessing love, devotion, or deep human connection. A reunion, a sacrifice, someone speaking from the heart. It often comes with warmth in the chest, goosebumps, or tears. It's one of the strongest predictors of chills in this dataset.",
+          "source": {
+            "citation": "Fiske et al. (2019). \"Kama muta: Conceptualizing and measuring the human emotion.\" Frontiers in Psychology.",
+            "url": "https://www.frontiersin.org/articles/10.3389/fpsyg.2019.00521/full"
+          }
+        },
+        {
+          "trait_key": "DPES_joy",
+          "label": "Dispositional Joy",
+          "scale": "1–9",
+          "value": 4.54,
+          "global_avg": 4.98,
+          "direction": "lower",
+          "what_it_measures": "The DPES Joy subscale measures free-flowing positive energy — exuberance, vitality, enthusiasm. High scorers bring high positive charge into emotional experiences, which amplifies their response to uplifting content. Lower scorers tend toward a more restrained or contemplative style.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "Neuroticism",
+          "label": "Neuroticism (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 33.37,
+          "global_avg": 36.0,
+          "direction": "lower",
+          "what_it_measures": "Neuroticism measures emotional sensitivity and reactivity — how easily you experience anxiety, sadness, or intense feeling. Higher scorers feel things more acutely. In the context of chills, higher neuroticism can correlate with deeper emotional peaks — the same sensitivity that makes life harder also makes certain moments hit harder.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        },
+        {
+          "trait_key": "DPES_compassion",
+          "label": "Dispositional Compassion",
+          "scale": "1–9",
+          "value": 5.41,
+          "global_avg": 5.79,
+          "direction": "lower",
+          "what_it_measures": "The DPES Compassion subscale measures how often you feel moved by others' pain or suffering — not pity, but the kind of deep empathic resonance that tightens your chest when someone else is struggling. People high in compassion are strongly wired for chills triggered by witnessing hardship overcome.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion. (DPES scale paper)",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AV12",
+      "name": "Muhammad Ali",
+      "title": "Muhammad Ali – Motivational Tribute",
+      "stats": {
+        "n_participants": 78,
+        "chills_rate_pct": 55.1,
+        "chills_rate_rank_of_40": 14,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 65.9,
+        "most_common_age_group": "35-44",
+        "pct_female": 50.0
+      },
+      "who_matches_paragraph": "55% chills rate. Joy is slightly above average — the main distinguishing trait. The matched group brings genuine positive energy into the experience. There's something about Muhammad Ali specifically — his charisma, his joy in his own convictions — that activates people who themselves carry high positive energy. The content reflects that back at them.",
+      "profile_cards": [
+        {
+          "trait_key": "DPES_joy",
+          "label": "Dispositional Joy",
+          "scale": "1–9",
+          "value": 5.21,
+          "global_avg": 4.98,
+          "direction": "higher",
+          "what_it_measures": "The DPES Joy subscale measures free-flowing positive energy — exuberance, vitality, enthusiasm. High scorers bring high positive charge into emotional experiences, which amplifies their response to uplifting content. Lower scorers tend toward a more restrained or contemplative style.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AV11",
+      "name": "Unsung Hero (Thai Insurance)",
+      "title": "Unsung Hero – Thai Insurance Commercial",
+      "stats": {
+        "n_participants": 68,
+        "chills_rate_pct": 54.4,
+        "chills_rate_rank_of_40": 15,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 69.9,
+        "most_common_age_group": "65+",
+        "pct_female": 52.9
+      },
+      "who_matches_paragraph": "54% chills rate with below-average KAMF, awe, compassion, and neuroticism — almost entirely below-average profile. This is the same pattern as Thai Medicine: a kindness-centered short film that generates above-average chills despite matching to a less emotionally intense profile. The mechanism here may be simplicity: a clean narrative arc of selfless action, no complexity, no grandeur required.",
+      "profile_cards": [
+        {
+          "trait_key": "Neuroticism",
+          "label": "Neuroticism (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 33.1,
+          "global_avg": 36.0,
+          "direction": "lower",
+          "what_it_measures": "Neuroticism measures emotional sensitivity and reactivity — how easily you experience anxiety, sadness, or intense feeling. Higher scorers feel things more acutely. In the context of chills, higher neuroticism can correlate with deeper emotional peaks — the same sensitivity that makes life harder also makes certain moments hit harder.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        },
+        {
+          "trait_key": "DPES_compassion",
+          "label": "Dispositional Compassion",
+          "scale": "1–9",
+          "value": 5.34,
+          "global_avg": 5.79,
+          "direction": "lower",
+          "what_it_measures": "The DPES Compassion subscale measures how often you feel moved by others' pain or suffering — not pity, but the kind of deep empathic resonance that tightens your chest when someone else is struggling. People high in compassion are strongly wired for chills triggered by witnessing hardship overcome.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion. (DPES scale paper)",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "DPES_awe",
+          "label": "Dispositional Awe",
+          "scale": "1–9",
+          "value": 4.97,
+          "global_avg": 5.2,
+          "direction": "lower",
+          "what_it_measures": "The DPES Awe subscale measures how often you feel a sense of vastness — something larger than you that shifts your perspective. Grand music, a sweeping landscape, a great speech. High scorers are more likely to get chills from beauty and scale, and tend to seek out experiences that produce that feeling.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "KAMF",
+          "label": "Kama Muta",
+          "scale": "1–7",
+          "value": 3.74,
+          "global_avg": 3.9,
+          "direction": "lower",
+          "what_it_measures": "Kama Muta is a specific emotion — the feeling of being suddenly moved by witnessing love, devotion, or deep human connection. A reunion, a sacrifice, someone speaking from the heart. It often comes with warmth in the chest, goosebumps, or tears. It's one of the strongest predictors of chills in this dataset.",
+          "source": {
+            "citation": "Fiske et al. (2019). \"Kama muta: Conceptualizing and measuring the human emotion.\" Frontiers in Psychology.",
+            "url": "https://www.frontiersin.org/articles/10.3389/fpsyg.2019.00521/full"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A01",
+      "name": "Agnus Dei (Audio)",
+      "title": "Agnus Dei",
+      "stats": {
+        "n_participants": 78,
+        "chills_rate_pct": 53.8,
+        "chills_rate_rank_of_40": 16,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 65.4,
+        "most_common_age_group": "35-44",
+        "pct_female": 60.3
+      },
+      "who_matches_paragraph": "54% chills rate. The only striking trait is slightly below-average joy — people who match here tend toward a more serious or contemplative emotional style. 60% female. Samuel Barber's Agnus Dei (the choral setting of his Adagio for Strings) is one of the most documented chills-inducing pieces in Western music. The match here isn't built on personality extremes; the stimulus is simply doing what great sacred choral music does.",
+      "profile_cards": [
+        {
+          "trait_key": "DPES_joy",
+          "label": "Dispositional Joy",
+          "scale": "1–9",
+          "value": 4.71,
+          "global_avg": 4.98,
+          "direction": "lower",
+          "what_it_measures": "The DPES Joy subscale measures free-flowing positive energy — exuberance, vitality, enthusiasm. High scorers bring high positive charge into emotional experiences, which amplifies their response to uplifting content. Lower scorers tend toward a more restrained or contemplative style.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A03",
+      "name": "3rd Grade Drop Out (Audio)",
+      "title": "3rd Grade Dropout Speech",
+      "stats": {
+        "n_participants": 77,
+        "chills_rate_pct": 53.2,
+        "chills_rate_rank_of_40": 17,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 66.4,
+        "most_common_age_group": "25-34",
+        "pct_female": 59.7
+      },
+      "who_matches_paragraph": "53% chills rate. Above-average awe and compassion, slightly elevated neuroticism. The 3rd Grade Dropout Speech (Rick Rigsby) is a commencement address about his father — it's a piece about love, loss, and the lessons of a humble life. People who match here are moved by the suffering and wisdom of others (compassion), feel things intensely (neuroticism), and respond to something bigger than themselves (awe). The speech hits all three.",
+      "profile_cards": [
+        {
+          "trait_key": "Neuroticism",
+          "label": "Neuroticism (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 37.66,
+          "global_avg": 36.0,
+          "direction": "higher",
+          "what_it_measures": "Neuroticism measures emotional sensitivity and reactivity — how easily you experience anxiety, sadness, or intense feeling. Higher scorers feel things more acutely. In the context of chills, higher neuroticism can correlate with deeper emotional peaks — the same sensitivity that makes life harder also makes certain moments hit harder.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        },
+        {
+          "trait_key": "DPES_compassion",
+          "label": "Dispositional Compassion",
+          "scale": "1–9",
+          "value": 6.05,
+          "global_avg": 5.79,
+          "direction": "higher",
+          "what_it_measures": "The DPES Compassion subscale measures how often you feel moved by others' pain or suffering — not pity, but the kind of deep empathic resonance that tightens your chest when someone else is struggling. People high in compassion are strongly wired for chills triggered by witnessing hardship overcome.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion. (DPES scale paper)",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "DPES_awe",
+          "label": "Dispositional Awe",
+          "scale": "1–9",
+          "value": 5.45,
+          "global_avg": 5.2,
+          "direction": "higher",
+          "what_it_measures": "The DPES Awe subscale measures how often you feel a sense of vastness — something larger than you that shifts your perspective. Grand music, a sweeping landscape, a great speech. High scorers are more likely to get chills from beauty and scale, and tend to seek out experiences that produce that feeling.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AV15",
+      "name": "Mr. Rogers Doc",
+      "title": "Won't You Be My Neighbor? (Documentary)",
+      "stats": {
+        "n_participants": 77,
+        "chills_rate_pct": 53.2,
+        "chills_rate_rank_of_40": 18,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 62.1,
+        "most_common_age_group": "65+",
+        "pct_female": 58.4
+      },
+      "who_matches_paragraph": "53% chills rate. No single personality trait stands out — the matched group is remarkably close to the dataset average across every scale. What's distinctive is the pre-stimulus state: the lowest arousal of any matched group (avg 3.1/9), meaning people arrive particularly calm. The documentary trailer for \"Won't You Be My Neighbor?\" may work best from a quiet, contemplative baseline — the gentleness of the content doesn't need to overpower anything.",
+      "profile_cards": []
+    },
+    {
+      "id": "AV19",
+      "name": "Great Dictator",
+      "title": "The Great Dictator Speech – Charlie Chaplin",
+      "stats": {
+        "n_participants": 70,
+        "chills_rate_pct": 52.9,
+        "chills_rate_rank_of_40": 19,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 60.5,
+        "most_common_age_group": "65+",
+        "pct_female": 54.3
+      },
+      "who_matches_paragraph": "53% chills rate for the video version (vs. 62% for audio-only). The matched group shows slightly below-average awe — the chills here aren't coming from grandeur. This is interesting given the speech's iconic status. The audio-only version actually performs better and draws a more emotionally expressive profile; the video version, with its full historical context and imagery, seems to reach a broader but slightly less emotionally engaged audience.",
+      "profile_cards": [
+        {
+          "trait_key": "DPES_awe",
+          "label": "Dispositional Awe",
+          "scale": "1–9",
+          "value": 4.99,
+          "global_avg": 5.2,
+          "direction": "lower",
+          "what_it_measures": "The DPES Awe subscale measures how often you feel a sense of vastness — something larger than you that shifts your perspective. Grand music, a sweeping landscape, a great speech. High scorers are more likely to get chills from beauty and scale, and tend to seek out experiences that produce that feeling.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "MODTAS",
+          "label": "Absorption",
+          "scale": "1–5",
+          "value": 3.09,
+          "global_avg": 3.19,
+          "direction": "lower",
+          "what_it_measures": "Absorption measures how completely you lose yourself in experiences — music, film, a daydream. High scorers forget where they are. They don't just listen; they disappear into it. Across every type of stimulus in this dataset, absorption is one of the most consistent predictors of chills.",
+          "source": {
+            "citation": "Tellegen & Atkinson (1974); updated by Jamieson (2005). \"Modified Tellegen Absorption Scale.\"",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/7288649/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AV13",
+      "name": "Perfect Planet",
+      "title": "A Perfect Planet (BBC)",
+      "stats": {
+        "n_participants": 72,
+        "chills_rate_pct": 52.8,
+        "chills_rate_rank_of_40": 20,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 53.2,
+        "most_common_age_group": "65+",
+        "pct_female": 55.6
+      },
+      "who_matches_paragraph": "53% chills rate. Below-average neuroticism — the matched group is emotionally stable and relatively even-keeled. But above-average love and joy: they're warm and positive, just not volatile. David Attenborough narrating Earth's natural systems seems to reach people who carry a quiet, joyful appreciation of the world rather than people who get overwhelmed by feeling.",
+      "profile_cards": [
+        {
+          "trait_key": "Neuroticism",
+          "label": "Neuroticism (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 33.62,
+          "global_avg": 36.0,
+          "direction": "lower",
+          "what_it_measures": "Neuroticism measures emotional sensitivity and reactivity — how easily you experience anxiety, sadness, or intense feeling. Higher scorers feel things more acutely. In the context of chills, higher neuroticism can correlate with deeper emotional peaks — the same sensitivity that makes life harder also makes certain moments hit harder.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        },
+        {
+          "trait_key": "DPES_joy",
+          "label": "Dispositional Joy",
+          "scale": "1–9",
+          "value": 5.33,
+          "global_avg": 4.98,
+          "direction": "higher",
+          "what_it_measures": "The DPES Joy subscale measures free-flowing positive energy — exuberance, vitality, enthusiasm. High scorers bring high positive charge into emotional experiences, which amplifies their response to uplifting content. Lower scorers tend toward a more restrained or contemplative style.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "DPES_love",
+          "label": "Dispositional Love",
+          "scale": "1–9",
+          "value": 5.12,
+          "global_avg": 4.79,
+          "direction": "higher",
+          "what_it_measures": "The DPES Love subscale measures how often you feel warmth, closeness, and deep affection — for people, places, or ideas. High scorers bond easily and are moved by intimacy and tenderness. They tend to be reliably affected by content centered on human connection.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AV21",
+      "name": "Aramaic Choir",
+      "title": "Musical Aramaic Rendition",
+      "stats": {
+        "n_participants": 78,
+        "chills_rate_pct": 52.6,
+        "chills_rate_rank_of_40": 21,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 71.0,
+        "most_common_age_group": "35-44",
+        "pct_female": 52.6
+      },
+      "who_matches_paragraph": "53% chills rate. Above-average KAMF and absorption — people who lose themselves in music and feel moved by witnessed devotion. The chills intensity is notably high (71/100 among experiencers). Despite the lower chills rate, when this piece lands, it lands hard. An ancient language, a monastic choir, Pope Francis visibly moved — it's a convergence of the sacred and the witnessed that specifically targets absorption-prone, Kama Muta-elevated listeners.",
+      "profile_cards": [
+        {
+          "trait_key": "DPES_compassion",
+          "label": "Dispositional Compassion",
+          "scale": "1–9",
+          "value": 5.43,
+          "global_avg": 5.79,
+          "direction": "lower",
+          "what_it_measures": "The DPES Compassion subscale measures how often you feel moved by others' pain or suffering — not pity, but the kind of deep empathic resonance that tightens your chest when someone else is struggling. People high in compassion are strongly wired for chills triggered by witnessing hardship overcome.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion. (DPES scale paper)",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "MODTAS",
+          "label": "Absorption",
+          "scale": "1–5",
+          "value": 3.37,
+          "global_avg": 3.19,
+          "direction": "higher",
+          "what_it_measures": "Absorption measures how completely you lose yourself in experiences — music, film, a daydream. High scorers forget where they are. They don't just listen; they disappear into it. Across every type of stimulus in this dataset, absorption is one of the most consistent predictors of chills.",
+          "source": {
+            "citation": "Tellegen & Atkinson (1974); updated by Jamieson (2005). \"Modified Tellegen Absorption Scale.\"",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/7288649/"
+          }
+        },
+        {
+          "trait_key": "KAMF",
+          "label": "Kama Muta",
+          "scale": "1–7",
+          "value": 4.09,
+          "global_avg": 3.9,
+          "direction": "higher",
+          "what_it_measures": "Kama Muta is a specific emotion — the feeling of being suddenly moved by witnessing love, devotion, or deep human connection. A reunion, a sacrifice, someone speaking from the heart. It often comes with warmth in the chest, goosebumps, or tears. It's one of the strongest predictors of chills in this dataset.",
+          "source": {
+            "citation": "Fiske et al. (2019). \"Kama muta: Conceptualizing and measuring the human emotion.\" Frontiers in Psychology.",
+            "url": "https://www.frontiersin.org/articles/10.3389/fpsyg.2019.00521/full"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AV22",
+      "name": "Dead Poets",
+      "title": "Dead Poets Society – YAWP Scene",
+      "stats": {
+        "n_participants": 71,
+        "chills_rate_pct": 52.1,
+        "chills_rate_rank_of_40": 22,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 63.1,
+        "most_common_age_group": "65+",
+        "pct_female": 54.9
+      },
+      "who_matches_paragraph": "52% chills rate with below-average absorption and awe. The matched group is less immersive and less awe-prone than average — slightly more detached. This is the video version of the YAWP scene; the audio version (Dead Poets Audio) actually draws a much more emotionally elevated profile. The visual context of the scene (a classroom, a student discovering his voice) may be making it more broadly accessible but less specifically matched to peak-experience profiles.",
+      "profile_cards": [
+        {
+          "trait_key": "MODTAS",
+          "label": "Absorption",
+          "scale": "1–5",
+          "value": 2.97,
+          "global_avg": 3.19,
+          "direction": "lower",
+          "what_it_measures": "Absorption measures how completely you lose yourself in experiences — music, film, a daydream. High scorers forget where they are. They don't just listen; they disappear into it. Across every type of stimulus in this dataset, absorption is one of the most consistent predictors of chills.",
+          "source": {
+            "citation": "Tellegen & Atkinson (1974); updated by Jamieson (2005). \"Modified Tellegen Absorption Scale.\"",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/7288649/"
+          }
+        },
+        {
+          "trait_key": "Extraversion",
+          "label": "Extraversion (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 36.35,
+          "global_avg": 37.91,
+          "direction": "lower",
+          "what_it_measures": "Extraversion in the NEO-FFI captures sociability, positive affect, and outward expressiveness. Higher scorers tend to be energetic and socially engaged. Lower scorers are more inward-facing — they often process experiences quietly and internally, which may actually deepen certain types of emotional response.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI: Revised NEO Personality Inventory.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        },
+        {
+          "trait_key": "DPES_awe",
+          "label": "Dispositional Awe",
+          "scale": "1–9",
+          "value": 4.94,
+          "global_avg": 5.2,
+          "direction": "lower",
+          "what_it_measures": "The DPES Awe subscale measures how often you feel a sense of vastness — something larger than you that shifts your perspective. Grand music, a sweeping landscape, a great speech. High scorers are more likely to get chills from beauty and scale, and tend to seek out experiences that produce that feeling.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AV01",
+      "name": "Air France",
+      "title": "Air France Commercial",
+      "stats": {
+        "n_participants": 69,
+        "chills_rate_pct": 50.7,
+        "chills_rate_rank_of_40": 23,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 69.0,
+        "most_common_age_group": "35-44",
+        "pct_female": 56.5
+      },
+      "who_matches_paragraph": "51% chills rate with above-average awe, love, compassion, and joy — but below-average absorption. The matched group is emotionally open and positive but doesn't necessarily lose themselves in experiences. This is a 59-second commercial featuring dancers in a desert to a Mozart piano concerto. The beauty and economy of it seem to work for people who are emotionally responsive and warm but not necessarily deep immersers.",
+      "profile_cards": [
+        {
+          "trait_key": "MODTAS",
+          "label": "Absorption",
+          "scale": "1–5",
+          "value": 3.01,
+          "global_avg": 3.19,
+          "direction": "lower",
+          "what_it_measures": "Absorption measures how completely you lose yourself in experiences — music, film, a daydream. High scorers forget where they are. They don't just listen; they disappear into it. Across every type of stimulus in this dataset, absorption is one of the most consistent predictors of chills.",
+          "source": {
+            "citation": "Tellegen & Atkinson (1974); updated by Jamieson (2005). \"Modified Tellegen Absorption Scale.\"",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/7288649/"
+          }
+        },
+        {
+          "trait_key": "DPES_awe",
+          "label": "Dispositional Awe",
+          "scale": "1–9",
+          "value": 5.44,
+          "global_avg": 5.2,
+          "direction": "higher",
+          "what_it_measures": "The DPES Awe subscale measures how often you feel a sense of vastness — something larger than you that shifts your perspective. Grand music, a sweeping landscape, a great speech. High scorers are more likely to get chills from beauty and scale, and tend to seek out experiences that produce that feeling.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "DPES_love",
+          "label": "Dispositional Love",
+          "scale": "1–9",
+          "value": 5.03,
+          "global_avg": 4.79,
+          "direction": "higher",
+          "what_it_measures": "The DPES Love subscale measures how often you feel warmth, closeness, and deep affection — for people, places, or ideas. High scorers bond easily and are moved by intimacy and tenderness. They tend to be reliably affected by content centered on human connection.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "DPES_compassion",
+          "label": "Dispositional Compassion",
+          "scale": "1–9",
+          "value": 6.01,
+          "global_avg": 5.79,
+          "direction": "higher",
+          "what_it_measures": "The DPES Compassion subscale measures how often you feel moved by others' pain or suffering — not pity, but the kind of deep empathic resonance that tightens your chest when someone else is struggling. People high in compassion are strongly wired for chills triggered by witnessing hardship overcome.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion. (DPES scale paper)",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A19",
+      "name": "Dead Poets (Audio)",
+      "title": "Dead Poets Society – YAWP Scene (Audio)",
+      "stats": {
+        "n_participants": 71,
+        "chills_rate_pct": 50.7,
+        "chills_rate_rank_of_40": 24,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 58.5,
+        "most_common_age_group": "65+",
+        "pct_female": 46.5
+      },
+      "who_matches_paragraph": "51% chills rate. Above-average awe, love, compassion, and joy — and below-average neuroticism, meaning the matched group is emotionally stable and positive. This is the audio version of the Dead Poets YAWP scene, and it draws a notably warmer, more positive profile than the video version. Stripping out the visuals seems to attract people with a fuller emotional warmth rather than people processing it more intellectually.",
+      "profile_cards": [
+        {
+          "trait_key": "DPES_love",
+          "label": "Dispositional Love",
+          "scale": "1–9",
+          "value": 5.1,
+          "global_avg": 4.79,
+          "direction": "higher",
+          "what_it_measures": "The DPES Love subscale measures how often you feel warmth, closeness, and deep affection — for people, places, or ideas. High scorers bond easily and are moved by intimacy and tenderness. They tend to be reliably affected by content centered on human connection.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "DPES_joy",
+          "label": "Dispositional Joy",
+          "scale": "1–9",
+          "value": 5.26,
+          "global_avg": 4.98,
+          "direction": "higher",
+          "what_it_measures": "The DPES Joy subscale measures free-flowing positive energy — exuberance, vitality, enthusiasm. High scorers bring high positive charge into emotional experiences, which amplifies their response to uplifting content. Lower scorers tend toward a more restrained or contemplative style.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "Neuroticism",
+          "label": "Neuroticism (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 34.46,
+          "global_avg": 36.0,
+          "direction": "lower",
+          "what_it_measures": "Neuroticism measures emotional sensitivity and reactivity — how easily you experience anxiety, sadness, or intense feeling. Higher scorers feel things more acutely. In the context of chills, higher neuroticism can correlate with deeper emotional peaks — the same sensitivity that makes life harder also makes certain moments hit harder.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        },
+        {
+          "trait_key": "DPES_awe",
+          "label": "Dispositional Awe",
+          "scale": "1–9",
+          "value": 5.41,
+          "global_avg": 5.2,
+          "direction": "higher",
+          "what_it_measures": "The DPES Awe subscale measures how often you feel a sense of vastness — something larger than you that shifts your perspective. Grand music, a sweeping landscape, a great speech. High scorers are more likely to get chills from beauty and scale, and tend to seek out experiences that produce that feeling.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AV14",
+      "name": "Italy Balconies",
+      "title": "Italians Making Music on Balconies",
+      "stats": {
+        "n_participants": 73,
+        "chills_rate_pct": 49.3,
+        "chills_rate_rank_of_40": 25,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 62.2,
+        "most_common_age_group": "65+",
+        "pct_female": 60.3
+      },
+      "who_matches_paragraph": "49% chills rate. Slightly above-average absorption and neuroticism. A COVID-19 documentary about Italians playing music on balconies during lockdown — the emotional mechanism here seems to be the resonance of isolation and community simultaneously. People who feel things intensely and can absorb themselves in an experience are slightly more likely to be moved.",
+      "profile_cards": [
+        {
+          "trait_key": "Neuroticism",
+          "label": "Neuroticism (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 37.75,
+          "global_avg": 36.0,
+          "direction": "higher",
+          "what_it_measures": "Neuroticism measures emotional sensitivity and reactivity — how easily you experience anxiety, sadness, or intense feeling. Higher scorers feel things more acutely. In the context of chills, higher neuroticism can correlate with deeper emotional peaks — the same sensitivity that makes life harder also makes certain moments hit harder.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        },
+        {
+          "trait_key": "MODTAS",
+          "label": "Absorption",
+          "scale": "1–5",
+          "value": 3.32,
+          "global_avg": 3.19,
+          "direction": "higher",
+          "what_it_measures": "Absorption measures how completely you lose yourself in experiences — music, film, a daydream. High scorers forget where they are. They don't just listen; they disappear into it. Across every type of stimulus in this dataset, absorption is one of the most consistent predictors of chills.",
+          "source": {
+            "citation": "Tellegen & Atkinson (1974); updated by Jamieson (2005). \"Modified Tellegen Absorption Scale.\"",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/7288649/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A18",
+      "name": "Aramaic (Audio)",
+      "title": "Musical Aramaic Rendition (Audio)",
+      "stats": {
+        "n_participants": 69,
+        "chills_rate_pct": 47.8,
+        "chills_rate_rank_of_40": 26,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 63.5,
+        "most_common_age_group": "25-34",
+        "pct_female": 46.4
+      },
+      "who_matches_paragraph": "48% chills rate — slightly below average, and the personality profile is uniformly below average on awe, compassion, joy, and KAMF. One notable feature: below-average neuroticism (34.0 vs. 36.0 average), meaning the matched group is emotionally stable and not easily moved. The audio-only version of the Aramaic choir appears to reach a calmer, less emotionally reactive audience than the video version — the visual and contextual elements of seeing the Pope moved to tears are apparently doing significant emotional work.",
+      "profile_cards": [
+        {
+          "trait_key": "DPES_compassion",
+          "label": "Dispositional Compassion",
+          "scale": "1–9",
+          "value": 5.31,
+          "global_avg": 5.79,
+          "direction": "lower",
+          "what_it_measures": "The DPES Compassion subscale measures how often you feel moved by others' pain or suffering — not pity, but the kind of deep empathic resonance that tightens your chest when someone else is struggling. People high in compassion are strongly wired for chills triggered by witnessing hardship overcome.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion. (DPES scale paper)",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "Neuroticism",
+          "label": "Neuroticism (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 34.0,
+          "global_avg": 36.0,
+          "direction": "lower",
+          "what_it_measures": "Neuroticism measures emotional sensitivity and reactivity — how easily you experience anxiety, sadness, or intense feeling. Higher scorers feel things more acutely. In the context of chills, higher neuroticism can correlate with deeper emotional peaks — the same sensitivity that makes life harder also makes certain moments hit harder.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        },
+        {
+          "trait_key": "DPES_awe",
+          "label": "Dispositional Awe",
+          "scale": "1–9",
+          "value": 4.93,
+          "global_avg": 5.2,
+          "direction": "lower",
+          "what_it_measures": "The DPES Awe subscale measures how often you feel a sense of vastness — something larger than you that shifts your perspective. Grand music, a sweeping landscape, a great speech. High scorers are more likely to get chills from beauty and scale, and tend to seek out experiences that produce that feeling.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "DPES_joy",
+          "label": "Dispositional Joy",
+          "scale": "1–9",
+          "value": 4.78,
+          "global_avg": 4.98,
+          "direction": "lower",
+          "what_it_measures": "The DPES Joy subscale measures free-flowing positive energy — exuberance, vitality, enthusiasm. High scorers bring high positive charge into emotional experiences, which amplifies their response to uplifting content. Lower scorers tend toward a more restrained or contemplative style.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A15",
+      "name": "Wild Geese (Audio)",
+      "title": "Wild Geese – Mary Oliver",
+      "stats": {
+        "n_participants": 76,
+        "chills_rate_pct": 46.1,
+        "chills_rate_rank_of_40": 27,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 60.8,
+        "most_common_age_group": "65+",
+        "pct_female": 57.9
+      },
+      "who_matches_paragraph": "46% chills rate. Above-average KAMF, absorption, and joy. Mary Oliver's poem 'Wild Geese' (read aloud) draws people who are emotionally open, absorptive, and warm. The poem is an act of radical acceptance — you don't have to be good, you just have to let the soft animal of your body love what it loves. It reaches people who carry genuine warmth for the world and can lose themselves in language.",
+      "profile_cards": [
+        {
+          "trait_key": "MODTAS",
+          "label": "Absorption",
+          "scale": "1–5",
+          "value": 3.31,
+          "global_avg": 3.19,
+          "direction": "higher",
+          "what_it_measures": "Absorption measures how completely you lose yourself in experiences — music, film, a daydream. High scorers forget where they are. They don't just listen; they disappear into it. Across every type of stimulus in this dataset, absorption is one of the most consistent predictors of chills.",
+          "source": {
+            "citation": "Tellegen & Atkinson (1974); updated by Jamieson (2005). \"Modified Tellegen Absorption Scale.\"",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/7288649/"
+          }
+        },
+        {
+          "trait_key": "DPES_joy",
+          "label": "Dispositional Joy",
+          "scale": "1–9",
+          "value": 5.21,
+          "global_avg": 4.98,
+          "direction": "higher",
+          "what_it_measures": "The DPES Joy subscale measures free-flowing positive energy — exuberance, vitality, enthusiasm. High scorers bring high positive charge into emotional experiences, which amplifies their response to uplifting content. Lower scorers tend toward a more restrained or contemplative style.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "KAMF",
+          "label": "Kama Muta",
+          "scale": "1–7",
+          "value": 4.07,
+          "global_avg": 3.9,
+          "direction": "higher",
+          "what_it_measures": "Kama Muta is a specific emotion — the feeling of being suddenly moved by witnessing love, devotion, or deep human connection. A reunion, a sacrifice, someone speaking from the heart. It often comes with warmth in the chest, goosebumps, or tears. It's one of the strongest predictors of chills in this dataset.",
+          "source": {
+            "citation": "Fiske et al. (2019). \"Kama muta: Conceptualizing and measuring the human emotion.\" Frontiers in Psychology.",
+            "url": "https://www.frontiersin.org/articles/10.3389/fpsyg.2019.00521/full"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A12",
+      "name": "Duo Des Fleurs (Audio)",
+      "title": "Duo des Fleurs (Flower Duet)",
+      "stats": {
+        "n_participants": 71,
+        "chills_rate_pct": 45.1,
+        "chills_rate_rank_of_40": 28,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 59.9,
+        "most_common_age_group": "35-44",
+        "pct_female": 64.8
+      },
+      "who_matches_paragraph": "45% chills rate, with the highest awe score of any stimulus in the dataset (5.67/9) and well-above-average joy. The people matched here specifically love beauty — they're not driven by compassion or social resonance, they're driven by the sheer aesthetic beauty of two voices in operatic harmony. 65% female. This is a very specific emotional profile: people who respond to pure musical beauty with something approaching wonder.",
+      "profile_cards": [
+        {
+          "trait_key": "DPES_awe",
+          "label": "Dispositional Awe",
+          "scale": "1–9",
+          "value": 5.67,
+          "global_avg": 5.2,
+          "direction": "higher",
+          "what_it_measures": "The DPES Awe subscale measures how often you feel a sense of vastness — something larger than you that shifts your perspective. Grand music, a sweeping landscape, a great speech. High scorers are more likely to get chills from beauty and scale, and tend to seek out experiences that produce that feeling.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "DPES_joy",
+          "label": "Dispositional Joy",
+          "scale": "1–9",
+          "value": 5.43,
+          "global_avg": 4.98,
+          "direction": "higher",
+          "what_it_measures": "The DPES Joy subscale measures free-flowing positive energy — exuberance, vitality, enthusiasm. High scorers bring high positive charge into emotional experiences, which amplifies their response to uplifting content. Lower scorers tend toward a more restrained or contemplative style.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A14",
+      "name": "Sigur Ros - Hoppipolla (Audio)",
+      "title": "Sigur Rós – Hoppípolla",
+      "stats": {
+        "n_participants": 78,
+        "chills_rate_pct": 44.9,
+        "chills_rate_rank_of_40": 29,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 68.2,
+        "most_common_age_group": "25-34",
+        "pct_female": 39.7
+      },
+      "who_matches_paragraph": "45% chills rate. Absorption is slightly above average. Notably, 60% of matched participants are male — one of the highest male proportions of any stimulus. Hoppípolla, Sigur Rós's most famous track, has a specific emotional profile: childlike wonder, rising intensity, post-rock crescendo. Below-average compassion suggests the chills aren't about human connection — they're about sound and feeling and a specific kind of joyful catharsis.",
+      "profile_cards": [
+        {
+          "trait_key": "MODTAS",
+          "label": "Absorption",
+          "scale": "1–5",
+          "value": 3.3,
+          "global_avg": 3.19,
+          "direction": "higher",
+          "what_it_measures": "Absorption measures how completely you lose yourself in experiences — music, film, a daydream. High scorers forget where they are. They don't just listen; they disappear into it. Across every type of stimulus in this dataset, absorption is one of the most consistent predictors of chills.",
+          "source": {
+            "citation": "Tellegen & Atkinson (1974); updated by Jamieson (2005). \"Modified Tellegen Absorption Scale.\"",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/7288649/"
+          }
+        },
+        {
+          "trait_key": "DPES_compassion",
+          "label": "Dispositional Compassion",
+          "scale": "1–9",
+          "value": 5.58,
+          "global_avg": 5.79,
+          "direction": "lower",
+          "what_it_measures": "The DPES Compassion subscale measures how often you feel moved by others' pain or suffering — not pity, but the kind of deep empathic resonance that tightens your chest when someone else is struggling. People high in compassion are strongly wired for chills triggered by witnessing hardship overcome.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion. (DPES scale paper)",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A02",
+      "name": "Miserere Me (Audio)",
+      "title": "Miserere mei, Deus – Allegri",
+      "stats": {
+        "n_participants": 74,
+        "chills_rate_pct": 44.6,
+        "chills_rate_rank_of_40": 30,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 72.7,
+        "most_common_age_group": "35-44",
+        "pct_female": 56.8
+      },
+      "who_matches_paragraph": "45% chills rate but the highest chills intensity in the entire dataset — 73/100 among those who experience chills. Above-average KAMF and absorption. This is Gregorio Allegri's Miserere, a Renaissance composition historically performed only at the Sistine Chapel. The piece has an almost mythological reputation. People who match here are deeply immersive listeners (absorption) who feel moved by witnessed devotion (KAMF). When they get chills from this, they get them intensely.",
+      "profile_cards": [
+        {
+          "trait_key": "MODTAS",
+          "label": "Absorption",
+          "scale": "1–5",
+          "value": 3.37,
+          "global_avg": 3.19,
+          "direction": "higher",
+          "what_it_measures": "Absorption measures how completely you lose yourself in experiences — music, film, a daydream. High scorers forget where they are. They don't just listen; they disappear into it. Across every type of stimulus in this dataset, absorption is one of the most consistent predictors of chills.",
+          "source": {
+            "citation": "Tellegen & Atkinson (1974); updated by Jamieson (2005). \"Modified Tellegen Absorption Scale.\"",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/7288649/"
+          }
+        },
+        {
+          "trait_key": "KAMF",
+          "label": "Kama Muta",
+          "scale": "1–7",
+          "value": 4.09,
+          "global_avg": 3.9,
+          "direction": "higher",
+          "what_it_measures": "Kama Muta is a specific emotion — the feeling of being suddenly moved by witnessing love, devotion, or deep human connection. A reunion, a sacrifice, someone speaking from the heart. It often comes with warmth in the chest, goosebumps, or tears. It's one of the strongest predictors of chills in this dataset.",
+          "source": {
+            "citation": "Fiske et al. (2019). \"Kama muta: Conceptualizing and measuring the human emotion.\" Frontiers in Psychology.",
+            "url": "https://www.frontiersin.org/articles/10.3389/fpsyg.2019.00521/full"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A08",
+      "name": "Clair de Lune (Audio)",
+      "title": "Clair de Lune",
+      "stats": {
+        "n_participants": 77,
+        "chills_rate_pct": 44.2,
+        "chills_rate_rank_of_40": 31,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 66.4,
+        "most_common_age_group": "35-44",
+        "pct_female": 54.5
+      },
+      "who_matches_paragraph": "44% chills rate. Above-average compassion and slightly elevated neuroticism. Debussy's Clair de Lune draws people who are emotionally sensitive and feel deeply for others. Below-average joy suggests a more melancholic or contemplative style. This is a piece that works on people who carry a certain quiet emotional depth rather than peak expressiveness.",
+      "profile_cards": [
+        {
+          "trait_key": "Neuroticism",
+          "label": "Neuroticism (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 37.74,
+          "global_avg": 36.0,
+          "direction": "higher",
+          "what_it_measures": "Neuroticism measures emotional sensitivity and reactivity — how easily you experience anxiety, sadness, or intense feeling. Higher scorers feel things more acutely. In the context of chills, higher neuroticism can correlate with deeper emotional peaks — the same sensitivity that makes life harder also makes certain moments hit harder.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        },
+        {
+          "trait_key": "DPES_compassion",
+          "label": "Dispositional Compassion",
+          "scale": "1–9",
+          "value": 6.0,
+          "global_avg": 5.79,
+          "direction": "higher",
+          "what_it_measures": "The DPES Compassion subscale measures how often you feel moved by others' pain or suffering — not pity, but the kind of deep empathic resonance that tightens your chest when someone else is struggling. People high in compassion are strongly wired for chills triggered by witnessing hardship overcome.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion. (DPES scale paper)",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A11",
+      "name": "Pema Chodron (Audio)",
+      "title": "Pema Chodron – When You're About to Lose It",
+      "stats": {
+        "n_participants": 71,
+        "chills_rate_pct": 43.7,
+        "chills_rate_rank_of_40": 32,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 61.8,
+        "most_common_age_group": "35-44",
+        "pct_female": 59.2
+      },
+      "who_matches_paragraph": "44% chills rate. Below-average awe and love. A Buddhist nun speaking quietly about what to do when you're about to lose emotional control — this doesn't select for people who seek grandeur or warmth. The profile is relatively neutral, suggesting the content speaks to something more specific: people who are working through something, or who recognize the practical wisdom in it.",
+      "profile_cards": [
+        {
+          "trait_key": "DPES_love",
+          "label": "Dispositional Love",
+          "scale": "1–9",
+          "value": 4.55,
+          "global_avg": 4.79,
+          "direction": "lower",
+          "what_it_measures": "The DPES Love subscale measures how often you feel warmth, closeness, and deep affection — for people, places, or ideas. High scorers bond easily and are moved by intimacy and tenderness. They tend to be reliably affected by content centered on human connection.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "DPES_awe",
+          "label": "Dispositional Awe",
+          "scale": "1–9",
+          "value": 4.99,
+          "global_avg": 5.2,
+          "direction": "lower",
+          "what_it_measures": "The DPES Awe subscale measures how often you feel a sense of vastness — something larger than you that shifts your perspective. Grand music, a sweeping landscape, a great speech. High scorers are more likely to get chills from beauty and scale, and tend to seek out experiences that produce that feeling.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A09",
+      "name": "Pale Blue Dot (Audio)",
+      "title": "Carl Sagan – Pale Blue Dot",
+      "stats": {
+        "n_participants": 69,
+        "chills_rate_pct": 43.5,
+        "chills_rate_rank_of_40": 33,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 61.9,
+        "most_common_age_group": "18-24",
+        "pct_female": 59.4
+      },
+      "who_matches_paragraph": "43% chills rate. Above-average neuroticism and below-average extraversion — emotionally sensitive, more inward-facing, quieter. The youngest matched group alongside Jason Silva (most common: 18-24). Carl Sagan speaking about Earth as a pale blue dot in the vastness of space reaches people who feel things intensely and tend to process the world internally. The existential scale of the content finds people who are already asking those questions.",
+      "profile_cards": [
+        {
+          "trait_key": "Neuroticism",
+          "label": "Neuroticism (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 38.32,
+          "global_avg": 36.0,
+          "direction": "higher",
+          "what_it_measures": "Neuroticism measures emotional sensitivity and reactivity — how easily you experience anxiety, sadness, or intense feeling. Higher scorers feel things more acutely. In the context of chills, higher neuroticism can correlate with deeper emotional peaks — the same sensitivity that makes life harder also makes certain moments hit harder.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        },
+        {
+          "trait_key": "Extraversion",
+          "label": "Extraversion (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 36.61,
+          "global_avg": 37.91,
+          "direction": "lower",
+          "what_it_measures": "Extraversion in the NEO-FFI captures sociability, positive affect, and outward expressiveness. Higher scorers tend to be energetic and socially engaged. Lower scorers are more inward-facing — they often process experiences quietly and internally, which may actually deepen certain types of emotional response.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI: Revised NEO Personality Inventory.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A13",
+      "name": "Radiohead Reckoner (Audio)",
+      "title": "Radiohead – Reckoner",
+      "stats": {
+        "n_participants": 74,
+        "chills_rate_pct": 41.9,
+        "chills_rate_rank_of_40": 34,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 64.3,
+        "most_common_age_group": "35-44",
+        "pct_female": 50.0
+      },
+      "who_matches_paragraph": "42% chills rate. Slightly above-average KAMF. Nothing else stands out dramatically in the data. Reckoner is a beautiful, melancholic track — its chills profile is relatively muted across all measured traits, which might reflect that its emotional register is subtle rather than forceful. The people who match here feel gently moved by human connection, but the effect isn't driven by strong personality extremes.",
+      "profile_cards": [
+        {
+          "trait_key": "KAMF",
+          "label": "Kama Muta",
+          "scale": "1–7",
+          "value": 4.09,
+          "global_avg": 3.9,
+          "direction": "higher",
+          "what_it_measures": "Kama Muta is a specific emotion — the feeling of being suddenly moved by witnessing love, devotion, or deep human connection. A reunion, a sacrifice, someone speaking from the heart. It often comes with warmth in the chest, goosebumps, or tears. It's one of the strongest predictors of chills in this dataset.",
+          "source": {
+            "citation": "Fiske et al. (2019). \"Kama muta: Conceptualizing and measuring the human emotion.\" Frontiers in Psychology.",
+            "url": "https://www.frontiersin.org/articles/10.3389/fpsyg.2019.00521/full"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A05",
+      "name": "Laughing Heart (Audio)",
+      "title": "The Laughing Heart – Bukowski",
+      "stats": {
+        "n_participants": 72,
+        "chills_rate_pct": 41.7,
+        "chills_rate_rank_of_40": 35,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 67.9,
+        "most_common_age_group": "65+",
+        "pct_female": 54.2
+      },
+      "who_matches_paragraph": "42% chills rate. Below-average absorption alongside above-average compassion and agreeableness. Charles Bukowski's poem read aloud reaches people who are prosocially warm and moved by others' experience — but who don't necessarily lose themselves in sensory immersion. The chills here seem to come from the meaning of the words rather than the sound of them.",
+      "profile_cards": [
+        {
+          "trait_key": "MODTAS",
+          "label": "Absorption",
+          "scale": "1–5",
+          "value": 2.95,
+          "global_avg": 3.19,
+          "direction": "lower",
+          "what_it_measures": "Absorption measures how completely you lose yourself in experiences — music, film, a daydream. High scorers forget where they are. They don't just listen; they disappear into it. Across every type of stimulus in this dataset, absorption is one of the most consistent predictors of chills.",
+          "source": {
+            "citation": "Tellegen & Atkinson (1974); updated by Jamieson (2005). \"Modified Tellegen Absorption Scale.\"",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/7288649/"
+          }
+        },
+        {
+          "trait_key": "DPES_compassion",
+          "label": "Dispositional Compassion",
+          "scale": "1–9",
+          "value": 6.04,
+          "global_avg": 5.79,
+          "direction": "higher",
+          "what_it_measures": "The DPES Compassion subscale measures how often you feel moved by others' pain or suffering — not pity, but the kind of deep empathic resonance that tightens your chest when someone else is struggling. People high in compassion are strongly wired for chills triggered by witnessing hardship overcome.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion. (DPES scale paper)",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "Agreeableness",
+          "label": "Agreeableness (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 41.18,
+          "global_avg": 39.84,
+          "direction": "higher",
+          "what_it_measures": "Agreeableness measures prosocial warmth, cooperation, and trust. High scorers tend to be empathic and oriented toward others' wellbeing. It's associated with responsiveness to content involving kindness, generosity, and moral virtue.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AV09",
+      "name": "Amelie",
+      "title": "Amélie – Helping a Blind Man",
+      "stats": {
+        "n_participants": 70,
+        "chills_rate_pct": 41.4,
+        "chills_rate_rank_of_40": 36,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 67.7,
+        "most_common_age_group": "35-44",
+        "pct_female": 50.0
+      },
+      "who_matches_paragraph": "41% chills rate. Above-average absorption and neuroticism, below-average extraversion. This is the most introverted profile in the dataset — quiet, inward-facing people who lose themselves in what they watch. Amélie is a film about someone who lives entirely inside her own emotional world while barely being seen. The match between the content and the profile is almost literal.",
+      "profile_cards": [
+        {
+          "trait_key": "Neuroticism",
+          "label": "Neuroticism (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 38.47,
+          "global_avg": 36.0,
+          "direction": "higher",
+          "what_it_measures": "Neuroticism measures emotional sensitivity and reactivity — how easily you experience anxiety, sadness, or intense feeling. Higher scorers feel things more acutely. In the context of chills, higher neuroticism can correlate with deeper emotional peaks — the same sensitivity that makes life harder also makes certain moments hit harder.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        },
+        {
+          "trait_key": "MODTAS",
+          "label": "Absorption",
+          "scale": "1–5",
+          "value": 3.36,
+          "global_avg": 3.19,
+          "direction": "higher",
+          "what_it_measures": "Absorption measures how completely you lose yourself in experiences — music, film, a daydream. High scorers forget where they are. They don't just listen; they disappear into it. Across every type of stimulus in this dataset, absorption is one of the most consistent predictors of chills.",
+          "source": {
+            "citation": "Tellegen & Atkinson (1974); updated by Jamieson (2005). \"Modified Tellegen Absorption Scale.\"",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/7288649/"
+          }
+        },
+        {
+          "trait_key": "Extraversion",
+          "label": "Extraversion (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 36.19,
+          "global_avg": 37.91,
+          "direction": "lower",
+          "what_it_measures": "Extraversion in the NEO-FFI captures sociability, positive affect, and outward expressiveness. Higher scorers tend to be energetic and socially engaged. Lower scorers are more inward-facing — they often process experiences quietly and internally, which may actually deepen certain types of emotional response.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI: Revised NEO Personality Inventory.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A20",
+      "name": "Feynman (audio)",
+      "title": "The Feynman Series – Beauty",
+      "stats": {
+        "n_participants": 71,
+        "chills_rate_pct": 40.8,
+        "chills_rate_rank_of_40": 37,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 57.9,
+        "most_common_age_group": "65+",
+        "pct_female": 50.7
+      },
+      "who_matches_paragraph": "41% chills rate. Below-average KAMF, below-average absorption, below-average neuroticism, but above-average love, joy, and extraversion. An unusual combination. Richard Feynman talking about beauty in science draws people who are curious, positive, and socially engaged — not the typical introverted deep-feeler profile. The chills here come from intellectual joy, not emotional intensity.",
+      "profile_cards": [
+        {
+          "trait_key": "Neuroticism",
+          "label": "Neuroticism (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 33.75,
+          "global_avg": 36.0,
+          "direction": "lower",
+          "what_it_measures": "Neuroticism measures emotional sensitivity and reactivity — how easily you experience anxiety, sadness, or intense feeling. Higher scorers feel things more acutely. In the context of chills, higher neuroticism can correlate with deeper emotional peaks — the same sensitivity that makes life harder also makes certain moments hit harder.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        },
+        {
+          "trait_key": "MODTAS",
+          "label": "Absorption",
+          "scale": "1–5",
+          "value": 3.02,
+          "global_avg": 3.19,
+          "direction": "lower",
+          "what_it_measures": "Absorption measures how completely you lose yourself in experiences — music, film, a daydream. High scorers forget where they are. They don't just listen; they disappear into it. Across every type of stimulus in this dataset, absorption is one of the most consistent predictors of chills.",
+          "source": {
+            "citation": "Tellegen & Atkinson (1974); updated by Jamieson (2005). \"Modified Tellegen Absorption Scale.\"",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/7288649/"
+          }
+        },
+        {
+          "trait_key": "KAMF",
+          "label": "Kama Muta",
+          "scale": "1–7",
+          "value": 3.68,
+          "global_avg": 3.9,
+          "direction": "lower",
+          "what_it_measures": "Kama Muta is a specific emotion — the feeling of being suddenly moved by witnessing love, devotion, or deep human connection. A reunion, a sacrifice, someone speaking from the heart. It often comes with warmth in the chest, goosebumps, or tears. It's one of the strongest predictors of chills in this dataset.",
+          "source": {
+            "citation": "Fiske et al. (2019). \"Kama muta: Conceptualizing and measuring the human emotion.\" Frontiers in Psychology.",
+            "url": "https://www.frontiersin.org/articles/10.3389/fpsyg.2019.00521/full"
+          }
+        },
+        {
+          "trait_key": "DPES_love",
+          "label": "Dispositional Love",
+          "scale": "1–9",
+          "value": 5.04,
+          "global_avg": 4.79,
+          "direction": "higher",
+          "what_it_measures": "The DPES Love subscale measures how often you feel warmth, closeness, and deep affection — for people, places, or ideas. High scorers bond easily and are moved by intimacy and tenderness. They tend to be reliably affected by content centered on human connection.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AV06",
+      "name": "Cloud Atlas",
+      "title": "Cloud Atlas: Suicide Note",
+      "stats": {
+        "n_participants": 74,
+        "chills_rate_pct": 40.5,
+        "chills_rate_rank_of_40": 38,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 57.8,
+        "most_common_age_group": "65+",
+        "pct_female": 56.8
+      },
+      "who_matches_paragraph": "41% chills rate. Below-average neuroticism, above-average extraversion and awe. The matched group is emotionally stable, outgoing, and open to vastness. This scene involves a narrator writing a farewell letter to his lover before a planned suicide — but the matched group's emotional stability suggests they may be engaging with the literary and philosophical scale of the content rather than its emotional pain.",
+      "profile_cards": [
+        {
+          "trait_key": "Neuroticism",
+          "label": "Neuroticism (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 34.65,
+          "global_avg": 36.0,
+          "direction": "lower",
+          "what_it_measures": "Neuroticism measures emotional sensitivity and reactivity — how easily you experience anxiety, sadness, or intense feeling. Higher scorers feel things more acutely. In the context of chills, higher neuroticism can correlate with deeper emotional peaks — the same sensitivity that makes life harder also makes certain moments hit harder.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        },
+        {
+          "trait_key": "Extraversion",
+          "label": "Extraversion (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 39.16,
+          "global_avg": 37.91,
+          "direction": "higher",
+          "what_it_measures": "Extraversion in the NEO-FFI captures sociability, positive affect, and outward expressiveness. Higher scorers tend to be energetic and socially engaged. Lower scorers are more inward-facing — they often process experiences quietly and internally, which may actually deepen certain types of emotional response.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI: Revised NEO Personality Inventory.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        },
+        {
+          "trait_key": "DPES_awe",
+          "label": "Dispositional Awe",
+          "scale": "1–9",
+          "value": 5.4,
+          "global_avg": 5.2,
+          "direction": "higher",
+          "what_it_measures": "The DPES Awe subscale measures how often you feel a sense of vastness — something larger than you that shifts your perspective. Grand music, a sweeping landscape, a great speech. High scorers are more likely to get chills from beauty and scale, and tend to seek out experiences that produce that feeling.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe: Elicitors, appraisals, and effects on self-concept.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AV02",
+      "name": "Be Kind",
+      "title": "Be Kind – Everything Everywhere All At Once",
+      "stats": {
+        "n_participants": 76,
+        "chills_rate_pct": 38.2,
+        "chills_rate_rank_of_40": 39,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 65.6,
+        "most_common_age_group": "35-44",
+        "pct_female": 65.8
+      },
+      "who_matches_paragraph": "38% chills rate with notably high KAMF (4.17/7, highest of any stimulus) — yet one of the lowest chills rates in the dataset. High KAMF is usually a strong predictor of chills, so why doesn't it land? The profile also shows below-average love and joy alongside elevated neuroticism. This is people who frequently feel moved by witnessed love (KAMF) but don't carry much warmth or positive energy themselves. The 'Be Kind' scene from Everything Everywhere All At Once is earnest and explicit in its plea for connection. It may be too direct for people whose sensitivity to witnessed love coexists with emotional guardedness.",
+      "profile_cards": [
+        {
+          "trait_key": "DPES_love",
+          "label": "Dispositional Love",
+          "scale": "1–9",
+          "value": 4.38,
+          "global_avg": 4.79,
+          "direction": "lower",
+          "what_it_measures": "The DPES Love subscale measures how often you feel warmth, closeness, and deep affection — for people, places, or ideas. High scorers bond easily and are moved by intimacy and tenderness. They tend to be reliably affected by content centered on human connection.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        },
+        {
+          "trait_key": "Neuroticism",
+          "label": "Neuroticism (Big Five)",
+          "scale": "12–60 (sum score)",
+          "value": 38.13,
+          "global_avg": 36.0,
+          "direction": "higher",
+          "what_it_measures": "Neuroticism measures emotional sensitivity and reactivity — how easily you experience anxiety, sadness, or intense feeling. Higher scorers feel things more acutely. In the context of chills, higher neuroticism can correlate with deeper emotional peaks — the same sensitivity that makes life harder also makes certain moments hit harder.",
+          "source": {
+            "citation": "Costa & McCrae (1992). \"NEO-FFI.\" Psychological Assessment Resources.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/1330154/"
+          }
+        },
+        {
+          "trait_key": "KAMF",
+          "label": "Kama Muta",
+          "scale": "1–7",
+          "value": 4.17,
+          "global_avg": 3.9,
+          "direction": "higher",
+          "what_it_measures": "Kama Muta is a specific emotion — the feeling of being suddenly moved by witnessing love, devotion, or deep human connection. A reunion, a sacrifice, someone speaking from the heart. It often comes with warmth in the chest, goosebumps, or tears. It's one of the strongest predictors of chills in this dataset.",
+          "source": {
+            "citation": "Fiske et al. (2019). \"Kama muta: Conceptualizing and measuring the human emotion.\" Frontiers in Psychology.",
+            "url": "https://www.frontiersin.org/articles/10.3389/fpsyg.2019.00521/full"
+          }
+        },
+        {
+          "trait_key": "DPES_joy",
+          "label": "Dispositional Joy",
+          "scale": "1–9",
+          "value": 4.68,
+          "global_avg": 4.98,
+          "direction": "lower",
+          "what_it_measures": "The DPES Joy subscale measures free-flowing positive energy — exuberance, vitality, enthusiasm. High scorers bring high positive charge into emotional experiences, which amplifies their response to uplifting content. Lower scorers tend toward a more restrained or contemplative style.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A10",
+      "name": "Motorcycle Diaries (Audio)",
+      "title": "Motorcycle Diaries – De Ushuaia a la Quiaca",
+      "stats": {
+        "n_participants": 71,
+        "chills_rate_pct": 33.8,
+        "chills_rate_rank_of_40": 40,
+        "dataset_avg_chills_rate_pct": 51.3,
+        "avg_chills_intensity_0to100": 49.3,
+        "most_common_age_group": "35-44",
+        "pct_female": 56.3
+      },
+      "who_matches_paragraph": "34% — the lowest chills rate in the dataset, with the lowest chills intensity (49/100). Below-average absorption and joy. Gustavo Santaolalla's instrumental track is spare, quiet, and unhurried. The people matched here are the least immersive and among the least joyful in the dataset. It's not that the music isn't moving — it's that the stimulus and the profile are both asking for stillness, and stillness doesn't reliably produce the physical arousal spike that chills require.",
+      "profile_cards": [
+        {
+          "trait_key": "MODTAS",
+          "label": "Absorption",
+          "scale": "1–5",
+          "value": 2.96,
+          "global_avg": 3.19,
+          "direction": "lower",
+          "what_it_measures": "Absorption measures how completely you lose yourself in experiences — music, film, a daydream. High scorers forget where they are. They don't just listen; they disappear into it. Across every type of stimulus in this dataset, absorption is one of the most consistent predictors of chills.",
+          "source": {
+            "citation": "Tellegen & Atkinson (1974); updated by Jamieson (2005). \"Modified Tellegen Absorption Scale.\"",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/7288649/"
+          }
+        },
+        {
+          "trait_key": "DPES_joy",
+          "label": "Dispositional Joy",
+          "scale": "1–9",
+          "value": 4.73,
+          "global_avg": 4.98,
+          "direction": "lower",
+          "what_it_measures": "The DPES Joy subscale measures free-flowing positive energy — exuberance, vitality, enthusiasm. High scorers bring high positive charge into emotional experiences, which amplifies their response to uplifting content. Lower scorers tend toward a more restrained or contemplative style.",
+          "source": {
+            "citation": "Shiota et al. (2006). \"The nature of awe.\" Cognition and Emotion.",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/15535780/"
+          }
+        }
+      ]
+    }
+  ]
+}
