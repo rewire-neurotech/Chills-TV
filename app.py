@@ -689,7 +689,7 @@ def _new_session() -> str:
 # ═══════════════════════════════════════════════════
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
-STRIPE_PRICE_ID = "price_1T8VZXLFGVq6dtu2SdgbNnAu"
+STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID", "price_1T8VZXLFGVq6dtu2SdgbNnAu")
 
 
 # ═══════════════════════════════════════════════════
@@ -1038,3 +1038,4 @@ def avoid_debug(threshold: float = 0.5):
             except Exception:
                 continue
     return {"threshold": float(threshold), "count": len(avoid), "avoid": avoid}
+
