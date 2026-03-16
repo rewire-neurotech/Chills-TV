@@ -809,6 +809,7 @@ async def payment_complete(req: Request, session_id: str = ""):
     pid = sess_data.get("pid", "")
     S = build_profile_data(stim.get("stim_name", stim.get("name", "")), stim.get("url", ""), stim.get("desc", ""))
     S["stimulus_id"] = stim.get("stimulus_id", "")
+    S["model_score_pct"] = round(float(stim.get("score", 0.0)) * 100, 1)
 
     share_url = f"https://chillstv.com/p/{sid[:8]}"
 
