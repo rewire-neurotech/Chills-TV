@@ -548,7 +548,7 @@ def topk(v, k=1, pid=""):
         sid = nm(n1)
         o.append({
             "idx": j, "score": float(p[j]), "stimulus_id": sid, "url": u0,
-            "name": n1, "desc": d0, "dur": du, "cap": c0
+            "name": n1, "stim_name": n0, "desc": d0, "dur": du, "cap": c0
         })
     return o
 
@@ -807,7 +807,7 @@ async def payment_complete(req: Request, session_id: str = ""):
 
     stim = sess_data.get("stimulus", {})
     pid = sess_data.get("pid", "")
-    S = build_profile_data(stim.get("name", ""), stim.get("url", ""), stim.get("desc", ""))
+    S = build_profile_data(stim.get("stim_name", stim.get("name", "")), stim.get("url", ""), stim.get("desc", ""))
     S["stimulus_id"] = stim.get("stimulus_id", "")
 
     share_url = f"https://chillstv.com/p/{sid[:8]}"
@@ -1038,4 +1038,3 @@ def avoid_debug(threshold: float = 0.5):
             except Exception:
                 continue
     return {"threshold": float(threshold), "count": len(avoid), "avoid": avoid}
-
