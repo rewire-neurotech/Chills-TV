@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Admin · ChillsTV{% endblock %}
+{% block content %}
+<div class="col">
+  <a class="back" href="/hub">‹ Back</a>
+  <div class="adm-head">
+    <h1 class="pg-title">Admin</h1>
+    <a class="adm-updated" href="/admin/logout" style="text-decoration:none; color:var(--blue);">Log out</a>
+  </div>
+
+  <div class="adm-tabs">
+    <a class="adm-tab {% if tab=='overview' %}on{% endif %}" href="/admin?tab=overview">Overview</a>
+    <a class="adm-tab {% if tab=='users' %}on{% endif %}" href="/admin?tab=users">Users</a>
+  </div>
+
+  {% if tab == 'overview' %}
+  <div class="adm-grid">
+    <div class="adm-card"><b>{{ total_signups }}</b><span>signups</span></div>
+    <div class="adm-card"><b>{{ total_paid }}</b><span>tests completed</span></div>
+    <div class="adm-card"><b>{{ chills_rate }}%</b><span>reported chills</span></div>
+    <div class="adm-card"><b>{{ shared_pct }}%</b><span>shared with someone</span></div>
+  </div>
+  <p style="font-size:12.5px; color:var(--text3); line-height:1.7;">All figures are live, computed from real ChillsTV visitors, not sample data. Growth-over-time charts are a fast-follow once there's enough daily volume to make one meaningful.</p>
+  {% else %}
+  <div class="adm-sect">
+    <h2>All users</h2>
+    <div class="adm-tools">
+      <a class="adm-csv" href="/admin/export.csv">Download CSV</a>
+    </div>
+  </div>
+  <div class="adm-tablewrap">
+    <table class="adm-table">
+      <thead><tr><th>Signed up</th><th>Name</th><th>Matched video</th><th>Score</th><th>Paid</th><th>Sent to</th></tr></thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td>{{ u.created_str }}</td>
+          <td class="em">{{ u.pid or "-" }}</td>
+          <td>{{ u.stimulus_name or "-" }}</td>
+          <td class="em">{{ (u.score * 100) | round(0) | int }}%</td>
+          <td>{% if u.paid %}<span class="pill yes">yes</span>{% else %}<span class="pill no">no</span>{% endif %}</td>
+          <td class="em">{{ u.sent_n if u.sent_n else "-" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="adm-pager">
+    <a class="adm-pg" href="/admin?tab=users&page={{ page_n - 1 }}" {% if page_n == 0 %}disabled{% endif %}>‹ Prev</a>
+    <span class="adm-pginfo">Page {{ page_n + 1 }} of {{ total_pages }}</span>
+    <a class="adm-pg" href="/admin?tab=users&page={{ page_n + 1 }}" {% if page_n + 1 >= total_pages %}disabled{% endif %}>Next ›</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

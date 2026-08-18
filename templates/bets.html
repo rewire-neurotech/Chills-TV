@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Send Chills · ChillsTV{% endblock %}
+{% block content %}
+<div class="col">
+  <a class="back" href="/hub">‹ Profile</a>
+  <h1 class="pg-title">Send Chills</h1>
+
+  <div class="ck-strip">
+    <div class="ck-main">
+      <div class="ck-big">{{ hit_rate }}%</div>
+      <div class="ck-sub">hit rate</div>
+    </div>
+    <div class="ck-dist">
+      <div class="ck-rank">{{ done | length }} revealed so far</div>
+    </div>
+    <a class="ck-cta" href="/send">Send chills</a>
+  </div>
+
+  {% if ready %}
+  <div class="sect">
+    <div class="sect-head"><h2>Ready to reveal <span>{{ ready | length }}</span></h2></div>
+    {% for s in ready %}
+    <a class="betcard newres" href="/reveal/{{ s.token }}">
+      <div class="thumb" style="background-image:url('https://i.ytimg.com/vi/{{ s.stimulus_url.split('/')[-1].split('?')[0] }}/mqdefault.jpg')"></div>
+      <div class="mid">
+        <b class="bc-who">{{ s.recipient_name or "Someone" }} <em>· {{ s.stimulus_name }}</em></b>
+        <span class="bc-line">Watched and answered</span>
+      </div>
+      <div class="bstat reveal">Reveal</div>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if unopened %}
+  <div class="sect">
+    <div class="sect-head"><h2>Not opened yet <span>{{ unopened | length }}</span></h2></div>
+    {% for s in unopened %}
+    <div class="betcard unopened">
+      <div class="thumb" style="background-image:url('https://i.ytimg.com/vi/{{ s.stimulus_url.split('/')[-1].split('?')[0] }}/mqdefault.jpg')"></div>
+      <div class="mid">
+        <b>{{ s.stimulus_name or "Algorithm pick" }}</b>
+        <span>Link sent</span>
+      </div>
+      <button class="resend" onclick="copyText(location.origin + '/b/{{ s.token }}', 'Link copied, send it again')">Resend link</button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if done %}
+  <div class="sect">
+    <div class="sect-head"><h2>Hits and misses <span>{{ done | length }}</span></h2></div>
+    <div class="ck-grid">
+      {% for s in done %}
+      <div class="ck-res {% if s.experienced %}hit{% else %}miss{% endif %}">
+        <div class="ckr-top"><div class="rav" style="background:{{ s.avatar_color }}">{{ s.avatar_letter }}</div><span class="ckr-badge {% if s.experienced %}win{% else %}lose{% endif %}">{% if s.experienced %}Hit{% else %}Miss{% endif %}</span></div>
+        <b>{{ s.recipient_name or "Someone" }}</b>
+        <i>{{ s.stimulus_name }}</i>
+        <div class="ckr-score"><div class="ckr-bar"><em style="width:{{ (s.intensity or 0) * 10 }}%"></em></div><span>{{ s.intensity or 0 }}/10</span></div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if not ready and not unopened and not done %}
+  <p class="pg-lede">You haven't sent anyone chills yet. <a href="/send" style="color:var(--blue); text-decoration:none; font-weight:600;">Send your first video</a>.</p>
+  {% endif %}
+</div>
+{% endblock %}

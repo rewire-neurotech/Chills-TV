@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Admin · ChillsTV</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:#f5f5f7;display:flex;align-items:center;justify-content:center;min-height:100vh;color:#1d1d1f;}
+.card{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:18px;padding:32px 28px;width:100%;max-width:360px;box-shadow:0 4px 20px rgba(0,0,0,.07);}
+h1{font-size:18px;font-weight:700;margin-bottom:6px;letter-spacing:-.02em;}
+p{font-size:13px;color:#6e6e73;margin-bottom:18px;}
+input{width:100%;border:1px solid rgba(0,0,0,.13);border-radius:10px;padding:11px 13px;font-size:14px;font-family:inherit;outline:none;margin-bottom:12px;}
+button{width:100%;background:#1d1d1f;color:#fff;border:none;border-radius:100px;padding:12px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;}
+.err{font-size:12.5px;color:#e8448e;margin-bottom:10px;}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>ChillsTV Admin</h1>
+  <p>Enter the admin password to continue.</p>
+  {% if error %}<div class="err">Incorrect password.</div>{% endif %}
+  <form method="post" action="/admin/login">
+    <input type="email" name="email" placeholder="Email" autofocus>
+    <input type="password" name="password" placeholder="Password">
+    <button type="submit">Sign in</button>
+  </form>
+</div>
+</body>
+</html>

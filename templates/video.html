@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}{{ video.name }} · ChillsTV{% endblock %}
+{% block content %}
+<div class="col">
+  <a class="back" href="/hub">‹ Profile</a>
+  <div class="vhero" style="margin-bottom:20px;">
+    <div class="ytwrap"><iframe id="ytframe" src="{{ embed_url }}?enablejsapi=1" title="{{ video.name }}" allowfullscreen allow="autoplay; encrypted-media"></iframe></div>
+    <div class="vbody">
+      <h3 id="vtitle">{{ video.name }}</h3>
+    </div>
+    <div class="vinfo">
+      <p>{{ video.desc }}</p>
+      <div class="credits">{{ video.dur }} · Stimulus {{ video.stimulus_id }}, ChillsDB</div>
+    </div>
+    <div class="bet-ask">
+      <div>
+        <b>Know someone who would get chills from this?</b>
+        <span>Send them the link and find out whether you were right.</span>
+      </div>
+      <a href="/send" style="text-decoration:none;"><button onclick="event.preventDefault(); location.href='/send';">Send it to them</button></a>
+    </div>
+  </div>
+
+  <div class="sect">
+    <div class="sect-head"><h2>Did this give you chills?</h2></div>
+    <div class="panel">
+      <div class="pred-row">
+        <button onclick="openReport(true)">⚡ Yes</button>
+        <button onclick="openReport(false)">No</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sect">
+    <div class="sect-head"><h2>What gave people chills <span>real comments</span></h2></div>
+    <div class="panel">
+      {% for c in comments %}
+      <div class="comment" style="{% if loop.first %}border-top:none;{% endif %}">
+        <div class="avatar" style="background:{{ c.avatar_color }}">{{ c.author[:1] | upper }}</div>
+        <div>
+          <div class="c-head"><span class="c-name">{{ c.author }}</span>{% if c.experienced %}<span class="c-chill">⚡</span>{% endif %}</div>
+          <div class="c-text">"{{ c.text }}"</div>
+        </div>
+      </div>
+      {% else %}
+      <div class="c-empty">No comments yet. Be the first to say what this gave you.</div>
+      {% endfor %}
+    </div>
+    <p style="font-size:11px; color:var(--text3); padding:8px 4px;">Comments are submitted by real ChillsTV visitors after watching this video.</p>
+  </div>
+</div>
+
+<div class="rmodal-bg" id="rmodal">
+  <div class="rmodal">
+    <form method="post" action="/video/{{ video.stimulus_id }}/report">
+      <input type="hidden" name="experienced" id="rm-experienced" value="yes">
+      <h3 id="rm-title">What gave you chills?</h3>
+      <textarea rows="3" name="text" placeholder="A moment, a memory, anything… (optional)"></textarea>
+      <button class="rm-send" type="submit">Send</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function openReport(experienced){
+  document.getElementById('rm-experienced').value = experienced ? 'yes' : 'no';
+  document.getElementById('rm-title').textContent = experienced ? 'What gave you chills?' : 'Anything you felt?';
+  document.getElementById('rmodal').classList.add('open');
+}
+var ytPlayer = null, ytReady = false;
+var tag = document.createElement('script'); tag.src = 'https://www.youtube.com/iframe_api';
+document.head.appendChild(tag);
+function onYouTubeIframeAPIReady(){
+  ytReady = true;
+  try {
+    ytPlayer = new YT.Player('ytframe', {
+      events: { onStateChange: function(e){ if (e.data === YT.PlayerState.ENDED) openReport(true); } }
+    });
+  } catch (err) {}
+}
+</script>
+{% endblock %}

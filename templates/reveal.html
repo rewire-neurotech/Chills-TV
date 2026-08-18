@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Reveal · ChillsTV{% endblock %}
+{% block content %}
+<div class="col">
+  <a class="back" href="/bets">‹ Send Chills</a>
+
+  {% if send.status == 'watched' %}
+  <h1 class="pg-title">Two quick questions</h1>
+  <p class="pg-lede">{{ send.recipient_name or "They" }} answered. Before you see what happened, tell us a little about them.</p>
+
+  <form method="post" action="/reveal/{{ send.token }}" id="gate-form">
+    <div class="qcard">
+      <div class="qlabel">How close are you to {{ send.recipient_name or "them" }}?</div>
+      <div class="chips" id="q-close">
+        {% for n in range(1,8) %}<button type="button" class="chip" data-val="{{ n }}" onclick="pickCloseness(this)">{{ n }}</button>{% endfor %}
+      </div>
+      <div class="qscale"><span>Distant</span><span>Very close</span></div>
+      <input type="hidden" name="closeness" id="closeness-input" value="">
+    </div>
+
+    <div class="qcard">
+      <div class="qlabel">How do you know {{ send.recipient_name or "them" }}?</div>
+      <div class="chips" id="q3">
+        {% for opt in ["Partner","Family","Close friend","Friend","Colleague","Barely know them"] %}
+        <button type="button" class="chip" onclick="pickChip(this)">{{ opt }}</button>
+        {% endfor %}
+      </div>
+      <input type="hidden" name="relationship" id="relationship-input" value="">
+    </div>
+
+    <p class="qpriv">Only you ever see who you sent this to. We keep these answers without the name, for research on who gives chills to whom.</p>
+    <button class="qgo" id="qgo" disabled type="submit">See what happened</button>
+  </form>
+
+  {% else %}
+  <div class="rev">
+    <div class="rev-top">
+      <div class="rev-eyebrow">{{ send.recipient_name or "They" }} watched {{ send.stimulus_name }}</div>
+      <div class="rev-head">{% if send.experienced %}They got chills.{% else %}It left them cold.{% endif %}</div>
+      {% if send.experienced %}<div class="rev-int"><span>Response</span><b>⚡ Yes</b></div>{% endif %}
+    </div>
+    <div class="rev-foot">Revealed {{ send.revealed_at and "just now" or "" }}.</div>
+  </div>
+  <div class="rev-actions">
+    <button class="qgo" type="button" onclick="shareOrCopy('I sent someone a video and found out what happened. Find yours:', location.origin, 'Copied')">Share this</button>
+    <a class="qghost" href="/bets">Back to my bets</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+var gate = { close:false, rel:false };
+function pickCloseness(el){
+  Array.prototype.forEach.call(document.getElementById('q-close').children, c=>c.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('closeness-input').value = el.dataset.val;
+  gate.close = true; checkGate();
+}
+function pickChip(el){
+  Array.prototype.forEach.call(el.parentNode.children, c=>c.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('relationship-input').value = el.textContent;
+  gate.rel = true; checkGate();
+}
+function checkGate(){
+  var b = document.getElementById('qgo');
+  if (b) b.disabled = !(gate.close && gate.rel);
+}
+</script>
+{% endblock %}

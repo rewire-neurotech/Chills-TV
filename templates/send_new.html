@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Send Chills · ChillsTV{% endblock %}
+{% block content %}
+<div class="col">
+  <a class="back" href="/hub">‹ Profile</a>
+  <h1 class="pg-title">Send chills</h1>
+  <p class="pg-lede">Pick a video you have already watched and send the link to one person. When they watch it, they tell us what happened, and you find out whether it got them.</p>
+
+  <div class="steps">
+    <div class="step active">
+      <div class="sdot">1</div>
+      <div class="stitle">Pick a video</div>
+      <div class="ssub">Choose one you have seen, so you know what is in it.</div>
+      <div class="sbody">
+        {% for v in videos %}
+        <form method="post" action="/send/create" style="margin:0;">
+          <input type="hidden" name="mode" value="picked">
+          <input type="hidden" name="stimulus_id" value="{{ v.sid }}">
+          <button type="submit" class="vpick" style="width:100%; text-align:left; border:1px solid var(--border); font-family:inherit;">
+            <div class="thumb" style="background-image:url('https://i.ytimg.com/vi/{{ v.url.split('/')[-1].split('?')[0] }}/mqdefault.jpg')"></div>
+            <b>{{ v.name }}</b>
+          </button>
+        </form>
+        {% endfor %}
+        <div class="pickor"><span>or</span></div>
+        <form method="post" action="/send/create">
+          <input type="hidden" name="mode" value="algo">
+          <button type="submit" class="vpick algo" style="width:100%; text-align:left; border:1px solid var(--border); font-family:inherit;">
+            <div class="thumb algothumb">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.2"/></svg>
+            </div>
+            <div class="algotxt">
+              <b>I trust the algo</b>
+              <span>They take the test and get matched with their own video.</span>
+            </div>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <p class="bx-foot">Everyone who receives a link can get their own chills score, which is how most people end up here.</p>
+</div>
+{% endblock %}
