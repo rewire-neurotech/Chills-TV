@@ -333,3 +333,10 @@ def admin_session_valid(token: str) -> bool:
             "SELECT expires_at FROM admin_sessions WHERE token=?", (token,)
         ).fetchone()
     return bool(row) and row["expires_at"] > time.time()
+
+
+def revoke_admin_session(token: str):
+    if not token:
+        return
+    with get_conn() as conn:
+        conn.execute("DELETE FROM admin_sessions WHERE token=?", (token,))

@@ -815,7 +815,12 @@ async def start(req: Request):
         SESSIONS[sid]["vector"] = FW.get("built_vector", [])
         SESSIONS[sid]["paid"] = False
 
-        return RedirectResponse(f"/paywall?sid={sid}", status_code=303)
+        if stripe.api_key:
+            return RedirectResponse(f"/paywall?sid={sid}", status_code=303)
+        # No payment step for this version (Felix, 2026-08-14): go straight to
+        # the hub. Automatically reverts to the paywall the moment a real
+        # STRIPE_SECRET_KEY is configured.
+        return _finalize_paid_session(req, sid, session_label="no_payment")
     except Exception as ex:
         E["msg"] = str(ex); E["when"] = datetime.utcnow().isoformat()
         return HTMLResponse(f"<pre>Internal error during /start\n\n{E['msg']}\n\nCheck /_debug/feature_wire and /_debug/stim_match</pre>", status_code=500)
@@ -1319,7 +1324,8 @@ async def admin_login_submit(req: Request):
 
 
 @a.get("/admin/logout")
-def admin_logout():
+def admin_logout(req: Request):
+    chillsdb.revoke_admin_session(req.cookies.get(chillsauth.ADMIN_COOKIE, ""))
     resp = RedirectResponse("/admin/login")
     resp.delete_cookie(chillsauth.ADMIN_COOKIE)
     return resp
