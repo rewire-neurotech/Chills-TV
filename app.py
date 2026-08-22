@@ -729,13 +729,14 @@ STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID", "price_1T8VZXLFGVq6dtu2SdgbNnAu")
 # V38 HELPERS - hub, send chills, duo
 # ═══════════════════════════════════════════════════
 
-def nav_context(user) -> Dict:
+def nav_context(req: Request, user) -> Dict:
+    is_admin = chillsauth.is_admin(req)
     if not user:
-        return {"avatar_letter": "?", "notif_count": 0}
+        return {"avatar_letter": "?", "notif_count": 0, "is_admin": is_admin}
     letter = ((user["pid"] or "").strip()[:1] or "F").upper()
     sends = chillsdb.sends_for_sender(user["id"])
     notif = sum(1 for s in sends if s["status"] == "watched" and not s["sender_seen"])
-    return {"avatar_letter": letter, "notif_count": notif}
+    return {"avatar_letter": letter, "notif_count": notif, "is_admin": is_admin}
 
 
 def cosine_match_pct(v1: List[float], v2: List[float]) -> float:
@@ -1052,7 +1053,7 @@ def hub(req: Request):
         recent.append({**dict(s), "avatar_letter": avatar_of(s["recipient_name"] or "?"),
                         "avatar_color": avatar_color(s["recipient_name"] or str(s["id"]))})
     return t.TemplateResponse("hub.html", {
-        "request": req, "page": "hub", **nav_context(user), "videos": videos,
+        "request": req, "page": "hub", **nav_context(req, user), "videos": videos,
         "recent_sends": recent, "sent_count": sent_count, "hit_count": hit_count,
         "hit_rate": hit_rate,
     })
@@ -1070,8 +1071,9 @@ def video_page(req: Request, sid: str):
         return RedirectResponse("/hub")
     comments = [dict(c, avatar_color=avatar_color(c["author"])) for c in chillsdb.comments_for(sid)]
     return t.TemplateResponse("video.html", {
-        "request": req, "page": "video", **nav_context(user),
+        "request": req, "page": "video", **nav_context(req, user),
         "video": v, "embed_url": _to_embed_url(v["url"]), "comments": comments,
+        "pid": (user["pid"] if user else "") or "Anonymous",
     })
 
 
@@ -1125,7 +1127,7 @@ def bets(req: Request):
     hit_n = sum(1 for s in done if s["experienced"])
     hit_rate = round(100 * hit_n / len(done)) if done else 0
     return t.TemplateResponse("bets.html", {
-        "request": req, "page": "bets", **nav_context(user),
+        "request": req, "page": "bets", **nav_context(req, user),
         "ready": ready, "unopened": unopened, "done": done, "hit_rate": hit_rate,
     })
 
@@ -1140,7 +1142,7 @@ def send_new(req: Request):
     for i, v in enumerate(videos):
         v["sid"] = v.get("stimulus_id") or nm(v.get("name", f"video{i}"))
     return t.TemplateResponse("send_new.html", {
-        "request": req, "page": "bet-intro", **nav_context(user), "videos": videos,
+        "request": req, "page": "bet-intro", **nav_context(req, user), "videos": videos,
     })
 
 
@@ -1167,7 +1169,7 @@ def send_show(req: Request, token: str):
     if not user or not row or row["sender_user_id"] != user["id"]:
         return RedirectResponse("/bets")
     return t.TemplateResponse("send_link.html", {
-        "request": req, "page": "bet-intro", **nav_context(user), "send": row,
+        "request": req, "page": "bet-intro", **nav_context(req, user), "send": row,
     })
 
 
@@ -1179,7 +1181,7 @@ def bet_view(req: Request, token: str):
     sender = chillsdb.get_user_by_id(row["sender_user_id"])
     sender_name = (sender["pid"] if sender and sender["pid"] else "Someone") or "Someone"
     return t.TemplateResponse("bet_view.html", {
-        "request": req, "page": "bet-view", **nav_context(chillsauth.get_current_user(req)),
+        "request": req, "page": "bet-view", **nav_context(req, chillsauth.get_current_user(req)),
         "send": row, "sender_name": sender_name,
     })
 
@@ -1201,7 +1203,7 @@ def reveal_gate(req: Request, token: str):
     if not user or not row or row["sender_user_id"] != user["id"]:
         return RedirectResponse("/bets")
     return t.TemplateResponse("reveal.html", {
-        "request": req, "page": "reveal", **nav_context(user), "send": row,
+        "request": req, "page": "reveal", **nav_context(req, user), "send": row,
     })
 
 
@@ -1232,7 +1234,7 @@ def duo_new(req: Request):
         ).fetchone()
     row = existing or chillsdb.create_duo(user["id"])
     return t.TemplateResponse("duo_new.html", {
-        "request": req, "page": "duo-intro", **nav_context(user), "duo": row,
+        "request": req, "page": "duo-intro", **nav_context(req, user), "duo": row,
     })
 
 
@@ -1244,7 +1246,7 @@ def duo_recipient(req: Request, token: str):
     initiator = chillsdb.get_user_by_id(row["user_id"])
     initiator_name = (initiator["pid"] if initiator and initiator["pid"] else "Someone") or "Someone"
     return t.TemplateResponse("duo_recipient.html", {
-        "request": req, "page": "duo", **nav_context(chillsauth.get_current_user(req)),
+        "request": req, "page": "duo", **nav_context(req, chillsauth.get_current_user(req)),
         "duo": row, "initiator_name": initiator_name,
     })
 
@@ -1257,7 +1259,7 @@ def duo_result(req: Request, token: str):
     initiator = chillsdb.get_user_by_id(row["user_id"])
     a_name = (initiator["pid"] if initiator and initiator["pid"] else "You") or "You"
     return t.TemplateResponse("duo_result.html", {
-        "request": req, "page": "duo", **nav_context(chillsauth.get_current_user(req)),
+        "request": req, "page": "duo", **nav_context(req, chillsauth.get_current_user(req)),
         "duo": row, "a_name": a_name,
         "a_pct": round(float(initiator["score"]) * 100) if initiator else 0,
         "a_percentile": initiator["percentile"] if initiator else 0,
@@ -1272,7 +1274,7 @@ def duo_result(req: Request, token: str):
 def contribute_page(req: Request, sent: int = 0):
     user = chillsauth.get_current_user(req)
     return t.TemplateResponse("contribute.html", {
-        "request": req, "page": "contribute", **nav_context(user), "sent": sent,
+        "request": req, "page": "contribute", **nav_context(req, user), "sent": sent,
     })
 
 
@@ -1294,13 +1296,13 @@ async def contribute_submit(req: Request):
 @a.get("/about", response_class=HTMLResponse)
 def about_page(req: Request):
     user = chillsauth.get_current_user(req)
-    return t.TemplateResponse("about.html", {"request": req, "page": "about", **nav_context(user)})
+    return t.TemplateResponse("about.html", {"request": req, "page": "about", **nav_context(req, user)})
 
 
 @a.get("/method", response_class=HTMLResponse)
 def method_page(req: Request):
     user = chillsauth.get_current_user(req)
-    return t.TemplateResponse("method.html", {"request": req, "page": "method", **nav_context(user)})
+    return t.TemplateResponse("method.html", {"request": req, "page": "method", **nav_context(req, user)})
 
 
 # ═══════════════════════════════════════════════════
@@ -1359,7 +1361,7 @@ def admin_console(req: Request, tab: str = "overview", sort: str = "created_at",
     total_pages = max(1, (total_signups + per_page - 1) // per_page)
 
     return t.TemplateResponse("admin.html", {
-        "request": req, "page": "admin", "avatar_letter": "A", "notif_count": 0,
+        "request": req, "page": "admin", "avatar_letter": "A", "notif_count": 0, "is_admin": True,
         "tab": tab, "sort": sort, "page_n": page, "total_pages": total_pages,
         "total_signups": total_signups, "total_paid": total_paid,
         "chills_rate": chills_rate, "shared_pct": shared_pct,

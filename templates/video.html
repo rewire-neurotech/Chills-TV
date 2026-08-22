@@ -25,8 +25,8 @@
     <div class="sect-head"><h2>Did this give you chills?</h2></div>
     <div class="panel">
       <div class="pred-row">
-        <button onclick="openReport(true)">⚡ Yes</button>
-        <button onclick="openReport(false)">No</button>
+        <a href="/feedback?id={{ pid | urlencode }}&stimulus_id={{ video.stimulus_id }}&url={{ video.url | urlencode }}&stimulus_name={{ video.name | urlencode }}" style="text-decoration:none;"><button type="button">⚡ Yes</button></a>
+        <button type="button" onclick="openReport(false)">No</button>
       </div>
     </div>
   </div>

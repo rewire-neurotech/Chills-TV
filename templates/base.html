@@ -507,8 +507,10 @@ body { font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; backgrou
       <a class="menu-item" href="/bets">Who I got {% if notif_count %}<span class="mbadge">{{ notif_count }}</span>{% endif %}</a>
       <a class="menu-item" href="/hub">My videos</a>
       <a class="menu-item" href="/contribute">Add a chills video</a>
+      {% if is_admin %}
       <div class="menu-sep"></div>
       <a class="menu-item" href="/admin">Admin</a>
+      {% endif %}
     </div>
   </div>
 </div>
