@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Add a chills video · ChillsTV{% endblock %}
+{% block content %}
+<div class="col">
+  <a class="back" href="/hub">‹ Profile</a>
+  <div class="sect">
+    <div class="sect-head"><h2>Add a chills video</h2></div>
+    {% if sent %}
+    <div class="panel">
+      <p style="padding:22px 18px; font-size:14px; color:var(--text2); line-height:1.7;">Thanks, we've logged it. Approved videos are added to the research and shown to new participants.</p>
+    </div>
+    {% else %}
+    <form method="post" action="/contribute" class="panel">
+      <div class="field">
+        <label>Paste the link</label>
+        <input name="url" placeholder="https://youtube.com/…">
+      </div>
+      <div class="field" style="border-top:none; padding-top:0;">
+        <div class="or">or</div>
+      </div>
+      <div class="field" style="border-top:none; padding-top:0;">
+        <label>Describe it and we'll find it</label>
+        <textarea name="description" rows="2" placeholder="e.g. the flash mob playing Ode to Joy in a Spanish square"></textarea>
+      </div>
+      <button class="btn full" type="submit">Send to the lab</button>
+    </form>
+    <p style="font-size:11px; color:var(--text3); padding:8px 4px;">Approved videos are added to the research and shown to new participants.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Chills match · ChillsTV{% endblock %}
+{% block content %}
+<div class="col">
+  <a class="back" href="/hub">‹ Profile</a>
+
+  <div class="duo-hero2">
+    <div class="dh-avs">
+      <div class="dav" style="background:var(--gradient)">{{ a_name[:1] | upper }}</div>
+      <div class="dav dav2" style="background:#e8448e">{{ duo.partner_name[:1] | upper }}</div>
+    </div>
+    <div class="duo-kicker">{{ a_name }} and {{ duo.partner_name }}</div>
+    <div class="duo-big">{{ duo.match_pct | round(0) | int }}%</div>
+    <div class="duo-kind">Chills match</div>
+    <div class="duo-expl">How close your answers are, across the traits the model measures.</div>
+    <div class="simbar"><i style="width:{{ duo.match_pct }}%"></i></div>
+  </div>
+
+  <div class="duo-vid">
+    <div class="dv-th"{% if duo.video_stimulus_id %} style="background-image:url('https://i.ytimg.com/vi/{{ duo.video_stimulus_id }}/mqdefault.jpg')"{% endif %}></div>
+    <div class="dv-b">
+      <b>{{ duo.video_stimulus_name or "Take the test to unlock a video" }}</b>
+      <span>The video the model ranks highest for both of you. Watch it together, then each of you reports what happened.</span>
+      <div class="dv-cta">
+        {% if duo.video_stimulus_id %}<a class="dv-watch" href="/video/{{ duo.video_stimulus_id }}">Watch it together</a>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="duo-pair">
+    <div class="duo-card">
+      <div class="dwho">{{ a_name }}</div>
+      <div class="dnum">Top {{ 100 - a_percentile | round(0) | int }}%</div>
+    </div>
+    <div class="duo-card">
+      <div class="dwho">{{ duo.partner_name }}</div>
+      <div class="dnum">-</div>
+    </div>
+  </div>
+
+  <button class="duo-share" type="button" onclick="shareOrCopy('Our chills match is ' + '{{ duo.match_pct | round(0) | int }}' + '%. Find yours:', location.origin, 'Copied')">Share this result</button>
+  <p class="duo-note">This page belongs to both of you. It keeps this link forever.</p>
+</div>
+{% endblock %}

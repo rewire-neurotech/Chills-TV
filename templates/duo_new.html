@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Chills compatibility · ChillsTV{% endblock %}
+{% block content %}
+<div class="col">
+  <a class="back" href="/hub">‹ Profile</a>
+  <h1 class="pg-title">Chills compatibility</h1>
+  <p class="pg-lede">You already took the test, so your half is done. Here is what happens.</p>
+
+  <div class="steps">
+    <div class="step active">
+      <div class="sdot">1</div>
+      <div class="stitle">Send the link to your partner</div>
+      <div class="ssub">Made for partners, works for any two people.</div>
+      <div class="sbody">
+        <div class="sendcard">
+          <div class="linkfield">
+            <span class="lf-url" id="duolink">{{ request.url.scheme }}://{{ request.url.netloc }}/us/{{ duo.token }}</span>
+            <button class="lf-btn" onclick="copyText(document.getElementById('duolink').textContent, 'Link copied')" title="Copy link">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+            <button class="lf-btn" onclick="shareOrCopy('Take this with me: chills compatibility test', document.getElementById('duolink').textContent, 'Copied')" title="Share">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="step locked">
+      <div class="sdot">2</div>
+      <div class="stitle">They take the test</div>
+      <div class="ssub">About 3 minutes. The result stays locked until they finish, so neither of you sees it first.</div>
+    </div>
+    <div class="step locked">
+      <div class="sdot">3</div>
+      <div class="stitle">Your chills match opens for both of you</div>
+      <div class="ssub">Your match score, and the one video most likely to give you both chills. You watch it together.</div>
+    </div>
+  </div>
+  <p class="bx-foot">This link works once. Check <a href="/hub">your hub</a> after they finish.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}ChillsTV · Your Hub{% endblock %}
+{% block content %}
+<div class="hub">
+  <!-- Chills score / percentile is intentionally left out of this milestone.
+       Felix's formula needs MODTAS/Arousal/full-KAMF inputs the questionnaire
+       does not collect yet; we'll wire this up once that data exists. -->
+  <div class="hub-sect-row first">
+    <div class="hub-sect">My videos</div>
+    <span class="hub-hint">Tap a video to watch it</span>
+  </div>
+  <div class="vgrid">
+    {% for v in videos %}
+    <a class="vcard{% if loop.first %} newv{% endif %}" href="/video/{{ v.sid }}">
+      {% if loop.first %}<span class="newv-badge">Your top match</span>{% endif %}
+      <div class="vc-thumb" style="background-image:url('https://i.ytimg.com/vi/{{ v.url.split('/')[-1].split('?')[0] }}/mqdefault.jpg')"></div>
+      <div class="vc-body">
+        <b>{{ v.name }}</b>
+        <span class="vc-bet" onclick="event.preventDefault(); location.href='/send';">Send</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  <div class="hub-sect-row">
+    <div class="hub-sect">Send Chills</div>
+    <a style="font-size:13px; font-weight:600; color:var(--blue); cursor:pointer;" href="/bets">Who you got</a>
+  </div>
+
+  <div class="sendhero">
+    <div class="sh-l">
+      <h2 class="sh-title">Send chills down someone's spine.</h2>
+      <p class="sh-copy">Send a video to one friend. When they watch it, you find out whether it got them.</p>
+      <div class="sh-row">
+        <a class="sh-cta" href="/send" style="text-decoration:none; display:inline-block;">Send chills</a>
+      </div>
+    </div>
+    <div class="sh-r">
+      <div class="scoreboard">
+        <div class="sb-head">
+          <div class="sb-lbl">People you gave chills to</div>
+          <a class="sb-all" href="/bets">See all</a>
+        </div>
+        {% for s in recent_sends %}
+        <div class="rr"><div class="rav" style="background:{{ s.avatar_color }}">{{ s.avatar_letter }}</div><div class="rmeta"><span class="rn">{{ s.recipient_name or "Pending" }}</span><span class="rvid">{{ s.stimulus_name }}</span></div>
+          {% if s.status == 'revealed' and s.intensity is not none %}<span class="rv">{{ s.intensity }}<em>/10</em></span>
+          {% elif s.status == 'watched' %}<span class="rv none">ready to reveal</span>
+          {% else %}<span class="rv none">not opened yet</span>{% endif %}
+        </div>
+        {% else %}
+        <div class="rr"><div class="rmeta"><span class="rn" style="color:var(--text3);">No one yet. Send your first video</span></div></div>
+        {% endfor %}
+        <div class="sb-stats">
+          <div class="sb-stat"><b>{{ sent_count }}</b><span>sent</span></div>
+          <div class="sb-stat"><b>{{ hit_count }}</b><span>got chills</span></div>
+          <div class="sb-stat"><b>{{ hit_rate }}%</b><span>hit rate</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chills compatibility (duo) is intentionally left out of this milestone.
+       Felix asked to hold this feature until the real matching model is ready. -->
+
+  <footer class="bigfoot">
+    <div class="bf-mark">ChillsTV</div>
+    <div class="bf-grid">
+      <div class="bf-col">
+        <h4>Follow</h4>
+        <a href="https://www.instagram.com/rewire_protocols/" target="_blank" rel="noopener" class="bf-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg><span>Instagram</span></a>
+        <a href="https://www.linkedin.com/company/rewire-neuro/" target="_blank" rel="noopener" class="bf-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><line x1="7.5" y1="10.5" x2="7.5" y2="17"/><circle cx="7.5" cy="7.2" r="1.1" fill="currentColor" stroke="none"/><path d="M11.5 17v-3.6a2.4 2.4 0 0 1 4.8 0V17"/><line x1="11.5" y1="10.5" x2="11.5" y2="17"/></svg><span>LinkedIn</span></a>
+        <a href="https://rewire.bio" target="_blank" rel="noopener" class="bf-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.4 2.6 3.6 5.6 3.6 9S14.4 18.4 12 21c-2.4-2.6-3.6-5.6-3.6-9S9.6 5.6 12 3z"/></svg><span>rewire.bio</span></a>
+        <a href="http://advancedconsciousness.org/" target="_blank" rel="noopener" class="bf-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.4 2.6 3.6 5.6 3.6 9S14.4 18.4 12 21c-2.4-2.6-3.6-5.6-3.6-9S9.6 5.6 12 3z"/></svg><span>IACS</span></a>
+      </div>
+      <div class="bf-col">
+        <h4>Explore</h4>
+        <a href="/about">About</a>
+        <a href="/method">How it works</a>
+        <a href="/research">The research</a>
+        <a href="/contribute">Submit a video</a>
+        <a href="/send">Invite a friend</a>
+      </div>
+    </div>
+    <div class="bf-fine">ChillsTV is for education and research. It provides no medical or psychological advice, diagnosis, or treatment.</div>
+    <div class="bf-bar">
+      <span>© 2026 ReWire Neurotechnologies, Inc. · Los Angeles, CA</span>
+      <div class="bf-legal">
+        <a onclick="toast('Privacy policy, coming soon')">Privacy</a>
+        <a onclick="toast('Terms of use, coming soon')">Terms</a>
+        <a onclick="toast('Data & consent, coming soon')">Data &amp; consent</a>
+      </div>
+    </div>
+  </footer>
+</div>
+{% endblock %}

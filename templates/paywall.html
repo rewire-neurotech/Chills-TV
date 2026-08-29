@@ -265,6 +265,12 @@ footer p { font-size: 12px; color: var(--text3); line-height: 1.8; }
         Secured by Stripe · 256-bit SSL
       </div>
       <p class="pw-fine">By continuing you agree to our <a href="#">Terms of Use</a> and <a href="#">Privacy Policy</a>.</p>
+      {% if dev_mode %}
+      <p class="pw-fine" style="margin-top:14px; padding-top:14px; border-top:1px dashed #ddd;">
+        <a href="/_dev/skip-payment?sid={{ session_id }}" style="color:#e8448e; font-weight:600;">Dev only: skip payment →</a>
+        (hidden automatically once Stripe keys are configured)
+      </p>
+      {% endif %}
     </div>
   </div>
 

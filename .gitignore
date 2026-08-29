@@ -1,4 +1,6 @@
 venv/
+.venv/
+*.db
 __pycache__/
 *.pyc
 *.pyo
@@ -6,5 +8,8 @@ __pycache__/
 *.log
 .env
 .DS_Store
-.vscode/
 .idea/
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ sender_name }} sent you chills · ChillsTV{% endblock %}
+{% block content %}
+<div class="col">
+  <a class="back" href="/hub">‹ Back</a>
+  <div class="sect">
+    <div class="sect-head"><h2>{{ sender_name }} sent you chills</h2></div>
+    <div class="panel">
+      {% if send.mode == 'algo' and not send.stimulus_url %}
+      <div class="vinfo" style="border-top:none;">
+        <p>{{ sender_name }} trusted the algorithm to pick your video. Take the short chills test and we'll match you with one, then send them your answer.</p>
+      </div>
+      <a href="/?send={{ send.token }}"><button class="btn full" style="border-top:1px solid var(--border);">Take the test · 3 min</button></a>
+      {% else %}
+      <a href="/video/{{ send.stimulus_id }}" style="text-decoration:none; color:inherit;">
+        <div class="vthumb"{% if send.stimulus_url %} style="background-image:url('https://i.ytimg.com/vi/{{ send.stimulus_url.split('/')[-1].split('?')[0] }}/hqdefault.jpg'); background-size:cover; background-position:center;"{% endif %}><div class="glow"></div><div class="play-btn">&#9654;</div></div>
+        <div class="vbody"><h3>{{ send.stimulus_name }}</h3></div>
+      </a>
+      {% if send.status == 'sent' %}
+      <div style="border-top:1px solid var(--border);">
+        <div style="padding:14px 16px 8px; font-size:14px; font-weight:600;">Did you get chills?</div>
+        <form method="post" action="/b/{{ send.token }}/respond" class="pred-row">
+          <button type="submit" name="experienced" value="yes">⚡ Yes</button>
+          <button type="submit" name="experienced" value="no">No</button>
+        </form>
+      </div>
+      {% else %}
+      <div style="border-top:1px solid var(--border);">
+        <div class="reveal">
+          <div class="rbig">Thanks, saved.</div>
+          <p>Your answer has been recorded. {{ sender_name }} will see it once they reveal it on their side. This link will not show it again, even to you.</p>
+        </div>
+        <button class="btn full" onclick="location.href='/'">Get your own chills score</button>
+      </div>
+      {% endif %}
+      {% endif %}
+    </div>
+    <p style="font-size:11px; color:var(--text3); padding:8px 4px;">{{ sender_name }} hears your answer once you have given it. They picked this video for you.</p>
+  </div>
+</div>
+{% endblock %}

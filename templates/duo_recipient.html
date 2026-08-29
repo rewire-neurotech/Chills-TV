@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Test your chills compatibility · ChillsTV{% endblock %}
+{% block content %}
+<div class="col">
+  {% if duo.status == 'completed' %}
+  <p class="pg-lede">This link has already been used. <a href="/duo/{{ duo.token }}" style="color:var(--blue); text-decoration:none; font-weight:600;">See the result</a>.</p>
+  {% else %}
+  <div class="duo-hero2" style="margin-top:26px;">
+    <div class="dh-avs">
+      <div class="dav" style="background:var(--gradient)">{{ initiator_name[:1] | upper }}</div>
+      <div class="dav dav2" style="background:#c8ccd4">?</div>
+    </div>
+    <div class="duo-kicker">{{ initiator_name }} sent you this</div>
+    <h1 class="pg-title" style="margin:2px 0 8px;">Test your chills compatibility</h1>
+    <div class="duo-expl" style="max-width:400px; margin:0 auto;">Take the short test. The moment you finish, your chills match opens for the two of you at the same time. {{ initiator_name }} cannot see it before you do.</div>
+    <a class="duo-share" style="max-width:280px; margin:18px auto 0; display:block; text-decoration:none;" href="/?us={{ duo.token }}">Take the test · 3 min</a>
+  </div>
+  <p class="duo-note">Free, no account needed. You get your own chills score too.</p>
+  {% endif %}
+</div>
+{% endblock %}
