@@ -1200,6 +1200,7 @@ def bet_view(req: Request, token: str):
         "request": req, "page": "bet-view", **nav_context(req, recipient),
         "send": row, "sender_name": sender_name,
         "recipient_pid": (recipient["pid"] if recipient else "") or "Anonymous",
+        "embed_url": _to_embed_url(row["stimulus_url"]) if row["stimulus_url"] else "",
     })
 
 
