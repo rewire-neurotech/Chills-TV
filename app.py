@@ -936,12 +936,24 @@ def _finalize_paid_session(req: Request, sid: str, session_label: str = ""):
         user = chillsdb.create_user(pid=pid, session_id=session_label)
         visitor_token = user["token"]
 
+    # `stim` (the tie-broken official match, e.g. preferring video over audio on
+    # a near-tied score) must be the one shown first as "Your top match" on the
+    # hub, otherwise clicking that badged video never matches what Send Chills
+    # ("trust the algo") and Duo are waiting to close the loop on.
     top5 = sess_data.get("top5", [])
-    top5_json = json.dumps([
+    top5_entries = [
         {"stimulus_id": z.get("stimulus_id",""), "name": z.get("name",""),
          "url": z.get("url",""), "score": float(z.get("score",0.0))}
         for z in top5
-    ])
+    ]
+    official_sid = stim.get("stimulus_id", "")
+    top5_entries = [e for e in top5_entries if e["stimulus_id"] != official_sid]
+    if official_sid:
+        top5_entries.insert(0, {
+            "stimulus_id": official_sid, "name": stim.get("stim_name", stim.get("name", "")),
+            "url": stim.get("url", ""), "score": float(stim.get("score", 0.0)),
+        })
+    top5_json = json.dumps(top5_entries)
     vector_json = json.dumps(sess_data.get("vector", []))
     score01 = float(stim.get("score", 0.0))
     chillsdb.update_user_match(
