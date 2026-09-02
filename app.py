@@ -1447,14 +1447,19 @@ async def submit(req: Request,
     # picked-mode Send Chills threads its token explicitly through the form;
     # algo-mode has no send_token here, it closes via the recipient's own
     # pending_send_token instead (set when they finished the questionnaire).
+    clean_description = description.replace("\r\n", "\n").strip()
     if send_token and chillsdb.get_send_by_token(send_token):
         chillsdb.record_send_response(send_token, experienced == "yes",
-                                       intensity=chills_amount, recipient_name=id)
+                                       intensity=chills_amount, recipient_name=id,
+                                       chills_length=chills_length, chills_waves=chills_waves,
+                                       description=clean_description)
     else:
         user = chillsauth.get_current_user(req)
         if user and user["pending_send_token"] and user["stimulus_id"] == stimulus_id:
             chillsdb.record_send_response(user["pending_send_token"], experienced == "yes",
-                                           intensity=chills_amount, recipient_name=id)
+                                           intensity=chills_amount, recipient_name=id,
+                                           chills_length=chills_length, chills_waves=chills_waves,
+                                           description=clean_description)
             chillsdb.set_pending_send_token(user["token"], "")
 
     return t.TemplateResponse("done.html", {"request": req, "id": id, "email": email})

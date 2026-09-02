@@ -42,6 +42,9 @@ CREATE TABLE IF NOT EXISTS sends (
     status TEXT DEFAULT 'sent',
     experienced INTEGER,
     intensity INTEGER,
+    chills_length INTEGER,
+    chills_waves INTEGER,
+    description TEXT DEFAULT '',
     closeness INTEGER,
     relationship TEXT,
     sender_seen INTEGER DEFAULT 0,
@@ -106,6 +109,21 @@ def init_db():
     os.makedirs(DB_DIR, exist_ok=True)
     with get_conn() as conn:
         conn.executescript(SCHEMA)
+        _migrate(conn)
+
+
+def _migrate(conn):
+    """CREATE TABLE IF NOT EXISTS doesn't add new columns to an existing table
+    (e.g. on Render's already-populated database), so new columns are added
+    here, guarded against already existing."""
+    existing = {row["name"] for row in conn.execute("PRAGMA table_info(sends)")}
+    for col, decl in [
+        ("chills_length", "INTEGER"),
+        ("chills_waves", "INTEGER"),
+        ("description", "TEXT DEFAULT ''"),
+    ]:
+        if col not in existing:
+            conn.execute(f"ALTER TABLE sends ADD COLUMN {col} {decl}")
 
 
 def new_token(nbytes: int = 8) -> str:
@@ -231,13 +249,16 @@ def sends_for_sender(sender_user_id: int):
 
 
 def record_send_response(token: str, experienced: bool, intensity: int = 0,
-                          recipient_name: str = ""):
+                          recipient_name: str = "", chills_length: int = None,
+                          chills_waves: int = None, description: str = ""):
     with get_conn() as conn:
         conn.execute(
             """UPDATE sends SET status='watched', experienced=?, intensity=?,
+               chills_length=?, chills_waves=?, description=?,
                recipient_name=COALESCE(NULLIF(?, ''), recipient_name), watched_at=?
                WHERE token=?""",
-            (int(experienced), intensity, recipient_name, time.time(), token),
+            (int(experienced), intensity, chills_length, chills_waves, description,
+             recipient_name, time.time(), token),
         )
 
 
