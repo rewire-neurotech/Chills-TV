@@ -1198,7 +1198,6 @@ def bet_view(req: Request, token: str):
     return t.TemplateResponse("bet_view.html", {
         "request": req, "page": "bet-view", **nav_context(req, chillsauth.get_current_user(req)),
         "send": row, "sender_name": sender_name,
-        "embed_url": _to_embed_url(row["stimulus_url"]) if row["stimulus_url"] else "",
     })
 
 

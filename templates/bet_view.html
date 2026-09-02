@@ -12,12 +12,10 @@
       </div>
       <a href="/?send={{ send.token }}"><button class="btn full" style="border-top:1px solid var(--border);">Take the test · 3 min</button></a>
       {% else %}
-      {% if embed_url %}
-      <div class="ytwrap"><iframe src="{{ embed_url }}" title="{{ send.stimulus_name }}" allowfullscreen allow="autoplay; encrypted-media"></iframe></div>
-      {% else %}
-      <div class="vthumb"{% if send.stimulus_url %} style="background-image:url('https://i.ytimg.com/vi/{{ send.stimulus_url.split('/')[-1].split('?')[0] }}/hqdefault.jpg'); background-size:cover; background-position:center;"{% endif %}><div class="glow"></div><div class="play-btn">&#9654;</div></div>
-      {% endif %}
-      <div class="vbody"><h3>{{ send.stimulus_name }}</h3></div>
+      <a href="/video/{{ send.stimulus_id }}" style="text-decoration:none; color:inherit;">
+        <div class="vthumb"{% if send.stimulus_url %} style="background-image:url('https://i.ytimg.com/vi/{{ send.stimulus_url.split('/')[-1].split('?')[0] }}/hqdefault.jpg'); background-size:cover; background-position:center;"{% endif %}><div class="glow"></div><div class="play-btn">&#9654;</div></div>
+        <div class="vbody"><h3>{{ send.stimulus_name }}</h3></div>
+      </a>
       {% if send.status == 'sent' %}
       <div style="border-top:1px solid var(--border);">
         <div style="padding:14px 16px 8px; font-size:14px; font-weight:600;">Did you get chills?</div>
