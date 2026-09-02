@@ -732,11 +732,12 @@ STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID", "price_1T8VZXLFGVq6dtu2SdgbNnAu")
 def nav_context(req: Request, user) -> Dict:
     is_admin = chillsauth.is_admin(req)
     if not user:
-        return {"avatar_letter": "?", "notif_count": 0, "is_admin": is_admin}
+        avatar_letter = "A" if is_admin else "?"
+        return {"avatar_letter": avatar_letter, "notif_count": 0, "is_admin": is_admin, "has_profile": False}
     letter = ((user["pid"] or "").strip()[:1] or "F").upper()
     sends = chillsdb.sends_for_sender(user["id"])
     notif = sum(1 for s in sends if s["status"] == "watched" and not s["sender_seen"])
-    return {"avatar_letter": letter, "notif_count": notif, "is_admin": is_admin}
+    return {"avatar_letter": letter, "notif_count": notif, "is_admin": is_admin, "has_profile": True}
 
 
 def cosine_match_pct(v1: List[float], v2: List[float]) -> float:
@@ -1375,7 +1376,7 @@ def admin_console(req: Request, tab: str = "overview", sort: str = "created_at",
     total_pages = max(1, (total_signups + per_page - 1) // per_page)
 
     return t.TemplateResponse("admin.html", {
-        "request": req, "page": "admin", "avatar_letter": "A", "notif_count": 0, "is_admin": True,
+        "request": req, "page": "admin", "avatar_letter": "A", "notif_count": 0, "is_admin": True, "has_profile": False,
         "tab": tab, "sort": sort, "page_n": page, "total_pages": total_pages,
         "total_signups": total_signups, "total_paid": total_paid,
         "chills_rate": chills_rate, "shared_pct": shared_pct,
