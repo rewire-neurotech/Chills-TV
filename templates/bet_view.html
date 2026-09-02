@@ -19,10 +19,12 @@
       {% if send.status == 'sent' %}
       <div style="border-top:1px solid var(--border);">
         <div style="padding:14px 16px 8px; font-size:14px; font-weight:600;">Did you get chills?</div>
-        <form method="post" action="/b/{{ send.token }}/respond" class="pred-row">
-          <button type="submit" name="experienced" value="yes">⚡ Yes</button>
-          <button type="submit" name="experienced" value="no">No</button>
-        </form>
+        <div class="pred-row">
+          <a href="/feedback?id={{ recipient_pid | urlencode }}&stimulus_id={{ send.stimulus_id }}&url={{ send.stimulus_url | urlencode }}&stimulus_name={{ send.stimulus_name | urlencode }}&send_token={{ send.token }}" style="text-decoration:none; flex:1;"><button type="button" style="width:100%;">⚡ Yes</button></a>
+          <form method="post" action="/b/{{ send.token }}/respond" style="flex:1;">
+            <button type="submit" name="experienced" value="no" style="width:100%;">No</button>
+          </form>
+        </div>
       </div>
       {% else %}
       <div style="border-top:1px solid var(--border);">

@@ -1195,9 +1195,11 @@ def bet_view(req: Request, token: str):
         return RedirectResponse("/")
     sender = chillsdb.get_user_by_id(row["sender_user_id"])
     sender_name = (sender["pid"] if sender and sender["pid"] else "Someone") or "Someone"
+    recipient = chillsauth.get_current_user(req)
     return t.TemplateResponse("bet_view.html", {
-        "request": req, "page": "bet-view", **nav_context(req, chillsauth.get_current_user(req)),
+        "request": req, "page": "bet-view", **nav_context(req, recipient),
         "send": row, "sender_name": sender_name,
+        "recipient_pid": (recipient["pid"] if recipient else "") or "Anonymous",
     })
 
 
@@ -1405,11 +1407,11 @@ def admin_export_csv(req: Request):
 # ═══════════════════════════════════════════════════
 
 @a.get("/feedback", response_class=HTMLResponse)
-def feedback(req: Request, id: str = "", stimulus_id: str = "", url: str = "", score: float = 0.0, stimulus_name: str = "", session_id: str = ""):
+def feedback(req: Request, id: str = "", stimulus_id: str = "", url: str = "", score: float = 0.0, stimulus_name: str = "", session_id: str = "", send_token: str = ""):
     return t.TemplateResponse("feedback.html", {
         "request": req, "id": id, "stimulus_id": stimulus_id, "url": url,
         "score": score, "stimulus_name": stimulus_name, "class_idx": -1,
-        "session_id": session_id
+        "session_id": session_id, "send_token": send_token,
     })
 
 @a.post("/submit", response_class=HTMLResponse)
@@ -1423,7 +1425,8 @@ async def submit(req: Request,
     chills_waves: int = Form(0),
     description: str = Form(""),
     email: str = Form(""),
-    prolific_id: str = Form("")
+    prolific_id: str = Form(""),
+    send_token: str = Form(""),
 ):
     p = "/data/logs.csv"
     Hh = [
@@ -1441,11 +1444,18 @@ async def submit(req: Request,
             description.replace("\r\n","\n").strip()
         ])
 
-    user = chillsauth.get_current_user(req)
-    if user and user["pending_send_token"] and user["stimulus_id"] == stimulus_id:
-        chillsdb.record_send_response(user["pending_send_token"], experienced == "yes",
+    # picked-mode Send Chills threads its token explicitly through the form;
+    # algo-mode has no send_token here, it closes via the recipient's own
+    # pending_send_token instead (set when they finished the questionnaire).
+    if send_token and chillsdb.get_send_by_token(send_token):
+        chillsdb.record_send_response(send_token, experienced == "yes",
                                        intensity=chills_amount, recipient_name=id)
-        chillsdb.set_pending_send_token(user["token"], "")
+    else:
+        user = chillsauth.get_current_user(req)
+        if user and user["pending_send_token"] and user["stimulus_id"] == stimulus_id:
+            chillsdb.record_send_response(user["pending_send_token"], experienced == "yes",
+                                           intensity=chills_amount, recipient_name=id)
+            chillsdb.set_pending_send_token(user["token"], "")
 
     return t.TemplateResponse("done.html", {"request": req, "id": id, "email": email})
 
