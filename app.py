@@ -1440,6 +1440,13 @@ async def submit(req: Request,
             experienced, chills_amount, chills_length, chills_waves,
             description.replace("\r\n","\n").strip()
         ])
+
+    user = chillsauth.get_current_user(req)
+    if user and user["pending_send_token"] and user["stimulus_id"] == stimulus_id:
+        chillsdb.record_send_response(user["pending_send_token"], experienced == "yes",
+                                       intensity=chills_amount, recipient_name=id)
+        chillsdb.set_pending_send_token(user["token"], "")
+
     return t.TemplateResponse("done.html", {"request": req, "id": id, "email": email})
 
 
