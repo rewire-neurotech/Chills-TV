@@ -768,6 +768,8 @@ def avatar_color(seed: str) -> str:
 
 @a.get("/", response_class=HTMLResponse)
 def index(req: Request, send: str = "", us: str = ""):
+    if chillsauth.is_admin(req) and not send and not us:
+        return RedirectResponse("/admin")
     q2 = [x for x in Q if x["k"] != "Age"]
     resp = t.TemplateResponse("index.html", {"request": req, "DEMO": qdemo(), "QS": q2})
     if send:
@@ -1550,3 +1552,16 @@ def avoid_debug(threshold: float = 0.5):
             except Exception:
                 continue
     return {"threshold": float(threshold), "count": len(avoid), "avoid": avoid}
+
+
+# ═══════════════════════════════════════════════════
+# 404
+# ═══════════════════════════════════════════════════
+@a.exception_handler(404)
+async def not_found(req: Request, exc):
+    if req.url.path.startswith("/_debug") or req.url.path.startswith("/api"):
+        return JSONResponse({"error": "not found"}, status_code=404)
+    user = chillsauth.get_current_user(req)
+    return t.TemplateResponse("404.html", {
+        "request": req, "page": "404", **nav_context(req, user),
+    }, status_code=404)
