@@ -690,6 +690,29 @@ def stim_entry(j: int, score: float) -> Dict:
             "name": n1, "stim_name": n0, "desc": d0, "dur": du, "cap": c0}
 
 
+def bet_outcome(send) -> Optional[str]:
+    """Who won a round, or None if the recipient hasn't answered yet.
+    Sender-picked (the only mode for new sends, Felix ruling Sep 2026):
+    friend gets chills -> sender's point; no chills -> algorithm's point.
+    Legacy algo-mode rows invert: the algorithm picked, so chills -> its point."""
+    exp = send["experienced"]
+    if exp is None:
+        return None
+    if send["mode"] == "algo":
+        return "algorithm" if exp else "you"
+    return "you" if exp else "algorithm"
+
+
+def bets_scoreboard(sends) -> Dict:
+    """Cumulative You-vs-Algorithm score across all answered rounds."""
+    you = 0; algo = 0
+    for s in sends:
+        w = bet_outcome(s)
+        if w == "you": you += 1
+        elif w == "algorithm": algo += 1
+    return {"you_points": you, "algo_points": algo, "rounds_played": you + algo}
+
+
 def cosine_match_pct(v1: List[float], v2: List[float]) -> float:
     if not v1 or not v2 or len(v1) != len(v2):
         return 50.0
@@ -1079,6 +1102,16 @@ def video_page(req: Request, sid: str):
     })
 
 
+@a.post("/video/{sid}/watched")
+def video_watched(req: Request, sid: str):
+    """Called when the player fires ENDED or the person taps I watched it.
+    Feeds admin watched counts and the duo watch chips."""
+    user = chillsauth.get_current_user(req)
+    if user and video_by_sid(sid):
+        chillsdb.record_watch(user["id"], sid)
+    return JSONResponse({"ok": True})
+
+
 @a.post("/video/{sid}/report")
 async def video_report(req: Request, sid: str):
     f = await req.form()
@@ -1086,8 +1119,11 @@ async def video_report(req: Request, sid: str):
     text = (f.get("text") or "").strip()
     user = chillsauth.get_current_user(req)
     author = (user["pid"] if user and user["pid"] else "Anonymous") or "Anonymous"
+    if user:
+        chillsdb.record_watch(user["id"], sid)
     if text:
-        chillsdb.add_video_comment(sid, text, experienced, author=author)
+        chillsdb.add_video_comment(sid, text, experienced, author=author,
+                                    user_id=user["id"] if user else None)
 
     try:
         lp = "/data/logs.csv"
@@ -1123,14 +1159,17 @@ def bets(req: Request):
     for s in sends:
         s["avatar_letter"] = avatar_of(s["recipient_name"] or "?")
         s["avatar_color"] = avatar_color(s["recipient_name"] or str(s["id"]))
+        s["outcome"] = bet_outcome(s)
     ready = [s for s in sends if s["status"] == "watched"]
     unopened = [s for s in sends if s["status"] == "sent"]
     done = [s for s in sends if s["status"] == "revealed"]
     hit_n = sum(1 for s in done if s["experienced"])
     hit_rate = round(100 * hit_n / len(done)) if done else 0
+    board = bets_scoreboard(sends)
     return t.TemplateResponse("bets.html", {
         "request": req, "page": "bets", **nav_context(req, user),
         "ready": ready, "unopened": unopened, "done": done, "hit_rate": hit_rate,
+        **board, "ready_count": len(ready),
     })
 
 
@@ -1154,13 +1193,13 @@ async def send_create(req: Request):
     if not user:
         return RedirectResponse("/")
     f = await req.form()
-    mode = f.get("mode", "picked")
-    if mode == "algo":
-        row = chillsdb.create_send(user["id"], "", "", "", mode="algo")
-    else:
-        sid = f.get("stimulus_id", "")
-        v = video_by_sid(sid) or {}
-        row = chillsdb.create_send(user["id"], sid, v.get("name", ""), v.get("url", ""), mode="picked")
+    # algo-pick removed (Felix, Sep 2026): every send is sender-picked. The
+    # algorithm is only the house you bet against. Legacy algo rows stay readable.
+    sid = f.get("stimulus_id", "")
+    v = video_by_sid(sid)
+    if not v:
+        return RedirectResponse("/send", status_code=303)
+    row = chillsdb.create_send(user["id"], sid, v.get("name", ""), v.get("url", ""), mode="picked")
     return RedirectResponse(f"/send/{row['token']}", status_code=303)
 
 
@@ -1238,8 +1277,25 @@ def duo_new(req: Request):
             (user["id"],),
         ).fetchone()
     row = existing or chillsdb.create_duo(user["id"])
+
+    # v49 duo intro: completed pairs under Results, pending under Waiting with
+    # opened-the-link state. The active pending row is the persistent link.
+    results = []
+    waiting = []
+    for d in chillsdb.duos_for_user(user["id"]):
+        d = dict(d)
+        d["avatar_letter"] = avatar_of(d["partner_name"] or "?")
+        d["avatar_color"] = avatar_color(d["partner_name"] or str(d["id"]))
+        d["date_str"] = datetime.utcfromtimestamp(d["completed_at"] or d["created_at"]).strftime("%b %d")
+        d["opened"] = bool(d.get("opened_at"))
+        if d["status"] == "completed":
+            results.append(d)
+        elif d["status"] == "pending":
+            waiting.append(d)
+
     return t.TemplateResponse("duo_new.html", {
         "request": req, "page": "duo-intro", **nav_context(req, user), "duo": row,
+        "duo_results": results, "duo_waiting": waiting,
     })
 
 
@@ -1248,10 +1304,15 @@ def duo_recipient(req: Request, token: str):
     row = chillsdb.get_duo_by_token(token)
     if not row:
         return RedirectResponse("/")
+    viewer = chillsauth.get_current_user(req)
+    # opened-tracking for the duo intro waiting list. Only the partner's first
+    # visit counts, not the initiator previewing their own link.
+    if row["status"] == "pending" and not (viewer and viewer["id"] == row["user_id"]):
+        chillsdb.mark_duo_opened(token)
     initiator = chillsdb.get_user_by_id(row["user_id"])
     initiator_name = (initiator["pid"] if initiator and initiator["pid"] else "Someone") or "Someone"
     return t.TemplateResponse("duo_recipient.html", {
-        "request": req, "page": "duo", **nav_context(req, chillsauth.get_current_user(req)),
+        "request": req, "page": "duo", **nav_context(req, viewer),
         "duo": row, "initiator_name": initiator_name,
     })
 
@@ -1262,12 +1323,20 @@ def duo_result(req: Request, token: str):
     if not row or row["status"] != "completed":
         return RedirectResponse("/")
     initiator = chillsdb.get_user_by_id(row["user_id"])
+    partner = chillsdb.get_user_by_id(row["partner_user_id"])
     a_name = (initiator["pid"] if initiator and initiator["pid"] else "You") or "You"
+    b_name = (row["partner_name"] or "").strip() or "A friend"
+    vid_sid = row["video_stimulus_id"] or ""
     return t.TemplateResponse("duo_result.html", {
         "request": req, "page": "duo", **nav_context(req, chillsauth.get_current_user(req)),
         "duo": row, "a_name": a_name,
         "a_pct": round(float(initiator["score"]) * 100) if initiator else 0,
         "a_percentile": initiator["percentile"] if initiator else 0,
+        "b_name": b_name,
+        "b_percentile": partner["percentile"] if partner else 0,
+        "a_watched": chillsdb.has_watched(row["user_id"], vid_sid),
+        "b_watched": chillsdb.has_watched(row["partner_user_id"] or 0, vid_sid),
+        "joint_video": video_by_sid(vid_sid) or {},
     })
 
 
@@ -1346,24 +1415,56 @@ def admin_console(req: Request, tab: str = "overview", sort: str = "created_at",
     total_signups = chillsdb.count_users()
     total_paid = chillsdb.count_paid_users()
     scores = chillsdb.all_scores()
-    sends_all = []
     with chillsdb.get_conn() as conn:
         sends_all = conn.execute("SELECT * FROM sends").fetchall()
     responded = [s for s in sends_all if s["status"] in ("watched", "revealed")]
     chills_rate = round(100 * sum(1 for s in responded if s["experienced"]) / len(responded)) if responded else 0
     shared_pct = round(100 * len(sends_all) / total_paid) if total_paid else 0
+    reported_chills = chillsdb.count_sends_experienced()
 
+    # today deltas for the tiles, midnight UTC
+    now = datetime.utcnow()
+    midnight = datetime(now.year, now.month, now.day).timestamp()
+    signups_today = chillsdb.count_since("users", midnight)
+    sends_today = chillsdb.count_since("sends", midnight)
+
+    # cumulative growth series for the two charts, full history; the range
+    # toggle (all time / last 30 days) slices client-side
+    def cumulative_series(table):
+        rows = chillsdb.daily_counts(table)
+        days = []; totals = []; running = 0
+        for r in rows:
+            running += r["n"]
+            days.append(r["day"]); totals.append(running)
+        return {"days": days, "totals": totals}
+    growth_signups = cumulative_series("users")
+    growth_invited = cumulative_series("sends")
+
+    # users table: load all, enrich, sort in python (needed for watched and
+    # sent columns), then paginate
     per_page = 10
-    rows = chillsdb.all_users(order_by=sort, limit=per_page, offset=page * per_page)
-    users_view = []
-    for u in rows:
-        u_sends = chillsdb.sends_for_sender(u["id"])
-        users_view.append({
-            **dict(u),
-            "sent_n": len(u_sends),
-            "created_str": datetime.utcfromtimestamp(u["created_at"]).strftime("%b %d"),
-        })
-    total_pages = max(1, (total_signups + per_page - 1) // per_page)
+    all_rows = chillsdb.all_users(limit=100000)
+    watched_map = chillsdb.watched_counts_map()
+    sent_map = chillsdb.sent_counts_map()
+    users_all = []
+    for u in all_rows:
+        d = dict(u)
+        d["sent_n"] = sent_map.get(u["id"], 0)
+        d["watched_n"] = watched_map.get(u["id"], 0)
+        d["email"] = ""  # accounts land with the signup build; blank until then
+        d["comments"] = [dict(c) for c in chillsdb.comments_by_user(u["id"])]
+        d["created_str"] = datetime.utcfromtimestamp(u["created_at"]).strftime("%b %d")
+        users_all.append(d)
+    keyers = {
+        "created_at": lambda x: x["created_at"],
+        "score": lambda x: x["score"] or 0,
+        "watched": lambda x: x["watched_n"],
+        "sent": lambda x: x["sent_n"],
+    }
+    users_all.sort(key=keyers.get(sort, keyers["created_at"]), reverse=True)
+    total_pages = max(1, (len(users_all) + per_page - 1) // per_page)
+    page = max(0, min(page, total_pages - 1))
+    users_view = users_all[page * per_page:(page + 1) * per_page]
 
     return t.TemplateResponse("admin.html", {
         "request": req, "page": "admin", "avatar_letter": "A", "notif_count": 0, "is_admin": True, "has_profile": False,
@@ -1371,6 +1472,9 @@ def admin_console(req: Request, tab: str = "overview", sort: str = "created_at",
         "total_signups": total_signups, "total_paid": total_paid,
         "chills_rate": chills_rate, "shared_pct": shared_pct,
         "users": users_view, "scores_n": len(scores),
+        "reported_chills": reported_chills, "shared_total": len(sends_all),
+        "signups_today": signups_today, "sends_today": sends_today,
+        "growth_signups": growth_signups, "growth_invited": growth_invited,
     })
 
 
