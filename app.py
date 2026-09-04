@@ -15,7 +15,7 @@ chillsdb.init_db()
 
 # ═══════════════════════════════════════════════════
 # APP SETUP
-# ══════════════════════════════════════════════
+# ═══════════════════════════════════════════════════
 a = FastAPI()
 b = os.path.dirname(__file__)
 t = Jinja2Templates(directory=os.path.join(b, "templates"))
