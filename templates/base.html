@@ -627,11 +627,6 @@ function chillsWhy(yes){
   document.getElementById('rm-step2').style.display='block';
   document.getElementById('rm-why-title').textContent = yes ? 'What gave you chills?' : 'Anything you felt?';
 }
-
-/* ── reveal gate ── */
-var gate = { close:false, rel:false };
-function buildIOS(){
-  var box = document.getElementById('q2'); if (!box || box.children.length) return;
 var navEl = document.getElementById('nav');
 function toggleMenu(e){
   e.stopPropagation();
@@ -649,7 +644,6 @@ document.getElementById('avbtn').addEventListener('click', toggleMenu);
 document.getElementById('navVeil').addEventListener('click', closeMenu);
 document.addEventListener('click', function(e){ if (navEl.classList.contains('open') && !navEl.contains(e.target)) closeMenu(); });
 document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeMenu(); });
-
 function share(kind){
   const p = payloads[kind] || payloads.video;
   if (navigator.share) { navigator.share({ title:'ChillsTV', text:p.text, url:p.url }).catch(()=>{}); }
@@ -662,7 +656,6 @@ function toast(msg){
   t.textContent=msg; t.classList.add('show');
   clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'), 2600);
 }
-
 document.addEventListener('DOMContentLoaded', function(){ paintThumbs(); });
 </script>
 
