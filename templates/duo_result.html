@@ -1,44 +1,41 @@
 {% extends "base.html" %}
-{% block title %}Chills match · ChillsTV{% endblock %}
 {% block content %}
-<div class="col">
-  <a class="back" href="/hub">‹ Profile</a>
+<div class="screen" id="screen-duo">
+  <div class="col">
+    <a class="back" href="/duo/new">‹ Chills compatibility</a>
 
-  <div class="duo-hero2">
-    <div class="dh-avs">
-      <div class="dav" style="background:var(--gradient)">{{ a_name[:1] | upper }}</div>
-      <div class="dav dav2" style="background:#e8448e">{{ duo.partner_name[:1] | upper }}</div>
+    <div class="duo-hero">
+      <div class="pair"><div class="av me">{{ letter_a }}</div><div class="av a1">{{ letter_b }}</div></div>
+      <div class="k">{% if me_side == "a" %}You and {{ b_name }}{% elif me_side == "b" %}You and {{ a_name }}{% else %}{{ a_name }} and {{ b_name }}{% endif %}</div>
+      <div class="n">{{ duo.match_pct|round|int }}%</div>
+      <div class="kind">Chills compatibility</div>
+      <div class="ex">How close your answers are, across everything the model measures.</div>
+      <div class="simbar"><i style="width:{{ duo.match_pct|round|int }}%"></i></div>
     </div>
-    <div class="duo-kicker">{{ a_name }} and {{ duo.partner_name }}</div>
-    <div class="duo-big">{{ duo.match_pct | round(0) | int }}%</div>
-    <div class="duo-kind">Chills match</div>
-    <div class="duo-expl">How close your answers are, across the traits the model measures.</div>
-    <div class="simbar"><i style="width:{{ duo.match_pct }}%"></i></div>
-  </div>
 
-  <div class="duo-vid">
-    <div class="dv-th"{% if duo.video_stimulus_id %} style="background-image:url('https://i.ytimg.com/vi/{{ duo.video_stimulus_id }}/mqdefault.jpg')"{% endif %}></div>
-    <div class="dv-b">
-      <b>{{ duo.video_stimulus_name or "Take the test to unlock a video" }}</b>
-      <span>The video the model ranks highest for both of you. Watch it together, then each of you reports what happened.</span>
-      <div class="dv-cta">
-        {% if duo.video_stimulus_id %}<a class="dv-watch" href="/video/{{ duo.video_stimulus_id }}">Watch it together</a>{% endif %}
+    <div class="duo-vid">
+      <div class="th" data-pl="0"></div>
+      <div>
+        <b>{{ duo.video_stimulus_name }}</b>
+        <p>The video the model ranks highest for both of you. Watch it together, then each of you reports what happened.</p>
+        <div class="dv-status"><span class="dv-chip">{% if me_side == "a" %}You{% else %}{{ a_name }}{% endif %} &middot; {% if a_watched %}watched{% else %}not watched yet{% endif %}</span><span class="dv-chip">{% if me_side == "b" %}You{% else %}{{ b_name }}{% endif %} &middot; {% if b_watched %}watched{% else %}not watched yet{% endif %}</span></div>
+        <button class="btn btn-p" onclick="location.href='/video/{{ duo.video_stimulus_id }}'">Watch it together</button>
       </div>
     </div>
-  </div>
 
-  <div class="duo-pair">
-    <div class="duo-card">
-      <div class="dwho">{{ a_name }}</div>
-      <div class="dnum">Top {{ 100 - a_percentile | round(0) | int }}%</div>
+    <div class="duo-pair">
+      <div class="duo-card"><div class="k">{% if me_side == "a" %}You{% else %}{{ a_name }}{% endif %}</div><div class="n">Top {{ a_top_pct }}%</div><div class="r">1 in {{ a_one_in }} people</div></div>
+      <div class="duo-card"><div class="k">{% if me_side == "b" %}You{% else %}{{ b_name }}{% endif %}</div><div class="n">Top {{ b_top_pct }}%</div><div class="r">1 in {{ b_one_in }} people</div></div>
     </div>
-    <div class="duo-card">
-      <div class="dwho">{{ duo.partner_name }}</div>
-      <div class="dnum">-</div>
-    </div>
-  </div>
 
-  <button class="duo-share" type="button" onclick="shareOrCopy('Our chills match is ' + '{{ duo.match_pct | round(0) | int }}' + '%. Find yours:', location.origin, 'Copied')">Share this result</button>
-  <p class="duo-note">This page belongs to both of you. It keeps this link forever.</p>
+    <div class="actions duo-share"><button class="btn btn-p" onclick="share('duo')">Share this result</button></div>
+    <p class="duo-note">This page belongs to both of you and keeps this link forever.</p>
+  </div>
 </div>
+{% endblock %}
+{% block page_data %}
+<script>
+window.VIDEOS = {{ video_urls|tojson }};
+window.payloads = { duo: { text:'\u26a1 {{ duo.match_pct|round|int }}% chills compatibility on ChillsTV. Do we chill together? Find out:', url:'{{ base_url }}/us/{{ duo.token }}' }, video: { text:'', url:'{{ base_url }}' } };
+</script>
 {% endblock %}
