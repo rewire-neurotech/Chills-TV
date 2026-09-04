@@ -750,7 +750,12 @@ async def start(req: Request):
         f = await req.form()
         pid = f.get("pid","")
         H = {}
-        for x in qall(): H[x["k"]] = f.get(x["n"], "")
+        for x in qall():
+            # template names fields x["n"], but read the raw key too as fallback
+            H[x["k"]] = f.get(x["n"], "") or f.get(x["k"], "")
+        # scales.html hardcodes the KAMF question as name="EasilyMoved"
+        if not H.get("KAMF 4_1"):
+            H["KAMF 4_1"] = f.get("EasilyMoved", "")
         FW["raw_answers"] = H
 
         bad = []
