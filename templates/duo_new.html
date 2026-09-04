@@ -1,41 +1,58 @@
 {% extends "base.html" %}
-{% block title %}Chills compatibility · ChillsTV{% endblock %}
 {% block content %}
-<div class="col">
-  <a class="back" href="/hub">‹ Profile</a>
-  <h1 class="pg-title">Chills compatibility</h1>
-  <p class="pg-lede">You already took the test, so your half is done. Here is what happens.</p>
+<div class="screen" id="screen-duo-intro">
+  <div class="col">
+    <a class="back" href="/hub">‹ Profile</a>
+    <h1 class="pg-title">Chills compatibility</h1>
+    <p class="pg-lede">Find out whether you chill together. Send one link to anyone, a friend, a partner, your sister. They take the short test, and the moment they finish, your result opens for both of you at the same time.</p>
 
-  <div class="steps">
-    <div class="step active">
-      <div class="sdot">1</div>
-      <div class="stitle">Send the link to your partner</div>
-      <div class="ssub">Made for partners, works for any two people.</div>
-      <div class="sbody">
-        <div class="sendcard">
-          <div class="linkfield">
-            <span class="lf-url" id="duolink">{{ request.url.scheme }}://{{ request.url.netloc }}/us/{{ duo.token }}</span>
-            <button class="lf-btn" onclick="copyText(document.getElementById('duolink').textContent, 'Link copied')" title="Copy link">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            </button>
-            <button class="lf-btn" onclick="shareOrCopy('Take this with me: chills compatibility test', document.getElementById('duolink').textContent, 'Copied')" title="Share">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-            </button>
-          </div>
-        </div>
+    <div class="linkcard">
+      <div class="k">Your link</div>
+      <div class="linkfield">
+        <span class="url">chillstv.com/us/{{ duo.token }}</span>
+        <button class="icon-btn" onclick="copyMatchLink()" title="Copy link" aria-label="Copy link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <button class="icon-btn" onclick="shareMatchLink()" title="Share" aria-label="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></button>
       </div>
     </div>
-    <div class="step locked">
-      <div class="sdot">2</div>
-      <div class="stitle">They take the test</div>
-      <div class="ssub">About 3 minutes. The result stays locked until they finish, so neither of you sees it first.</div>
-    </div>
-    <div class="step locked">
-      <div class="sdot">3</div>
-      <div class="stitle">Your chills match opens for both of you</div>
-      <div class="ssub">Your match score, and the one video most likely to give you both chills. You watch it together.</div>
-    </div>
+
+    {% if duo_results %}<div class="sec">
+      <div class="sec-h"><h2>Your results <span>{{ duo_results|length }}</span></h2></div>
+      <div class="doors">
+        {% for r in duo_results %}<div class="door tap" onclick="location.href='/duo/{{ r.token }}'">
+          <div class="pair sm"><div class="av me">{{ avatar_letter }}</div><div class="av a{{ loop.index0 % 3 + 1 }}">{{ r.avatar_letter }}</div></div>
+          <div class="t"><b>{{ r.partner_name or 'A friend' }}</b><span>{{ r.date_str }}{% if r.video_stimulus_name %} &middot; {{ r.video_stimulus_name }}{% endif %}</span></div>
+          <span class="v">{{ r.match_pct|round|int }}%</span>
+        </div>
+        {% endfor %}</div>
+    </div>{% endif %}
+
+    {% if duo_waiting %}<div class="sec">
+      <div class="sec-h"><h2>Waiting <span>{{ duo_waiting|length }}</span></h2></div>
+      <div class="doors">
+        {% for w in duo_waiting %}<div class="door">
+          <div class="pair sm"><div class="av me">{{ avatar_letter }}</div><div class="av unk">?</div></div>
+          <div class="t"><b>{% if w.opened %}Someone{% else %}No one yet{% endif %}</b><span>{% if w.opened %}Opened the link, has not finished the test{% else %}The link has not been opened{% endif %}</span></div>
+          <button class="btn-s" onclick="shareMatchLink()">Send again</button>
+        </div>
+        {% endfor %}</div>
+    </div>{% endif %}
+
+    <p class="foot"><a class="link" href="/us/{{ duo.token }}">See what they receive</a></p>
   </div>
-  <p class="bx-foot">This link works once. Check <a href="/hub">your hub</a> after they finish.</p>
 </div>
+
+{% endblock %}
+{% block page_js %}
+<script>
+var MATCH_URL = 'https://chillstv.com/us/{{ duo.token }}', MATCH_TEXT = 'Do we chill together? Take the test and we find out at the same time';
+function copyMatchLink(){
+  navigator.clipboard.writeText(MATCH_TEXT + ' ' + MATCH_URL)
+    .then(function(){ toast('Link copied — send it to anyone'); })
+    .catch(function(){ toast('Copy failed'); });
+}
+function shareMatchLink(){
+  if (navigator.share) { navigator.share({ text: MATCH_TEXT, url: MATCH_URL }).catch(function(){}); }
+  else { copyMatchLink(); }
+}
+</script>
 {% endblock %}
