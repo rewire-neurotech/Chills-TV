@@ -198,6 +198,52 @@ with open(csr, "r", encoding="utf-8") as f:
 with open(mrf, "r", encoding="utf-8") as f:
     MATCH_REF = sorted(json.load(f)["sorted_scores"])
 
+# v49 hub: the profile histogram is the reference distribution in 25 bins,
+# same geometry as the mockup (x = i*25.04, w 19, bottom 140, max height 118).
+def _build_hist():
+    n_bins = 25
+    lo, hi = SCORE_REF[0], SCORE_REF[-1]
+    width = ((hi - lo) / n_bins) or 1.0
+    counts = [0] * n_bins
+    for v in SCORE_REF:
+        counts[min(n_bins - 1, int((v - lo) / width))] += 1
+    return lo, width, counts
+HIST_LO, HIST_W, HIST_COUNTS = _build_hist()
+
+def hist_bin_of(score: float) -> int:
+    return min(24, max(0, int((float(score or 0) - HIST_LO) / HIST_W)))
+
+def hist_bars_for(score: float):
+    mx = max(HIST_COUNTS) or 1
+    ub = hist_bin_of(score)
+    bars = []
+    for i, cnt in enumerate(HIST_COUNTS):
+        h = round(3 + 115 * cnt / mx, 1)
+        bars.append({"x": round(i * 25.04, 1), "y": round(140 - h, 1), "h": h,
+                     "fill": "#6a3f37" if i == ub else "rgba(106,63,55,.18)"})
+    return bars, round(ub * 25.04 + 9.5, 1)
+
+def one_in_for(score: float) -> int:
+    cnt = HIST_COUNTS[hist_bin_of(score)]
+    return max(1, round(len(SCORE_REF) / cnt)) if cnt else len(SCORE_REF)
+
+def mean_p_of(user) -> float:
+    """users.score holds the TOP-video p; the ChillsScore histogram runs on the
+    MEAN p, which lives in vector_json (40 probs). Legacy rows without a valid
+    vector fall back to the stored percentile's position in the reference."""
+    try:
+        v = json.loads(user["vector_json"] or "[]")
+        if isinstance(v, list) and len(v) == 40:
+            vv = [float(x) for x in v]
+            return sum(vv) / len(vv)
+    except Exception:
+        pass
+    pct = float(user["percentile"] or 0.0)
+    idx = min(len(SCORE_REF) - 1, max(0, round(pct / 100 * (len(SCORE_REF) - 1))))
+    return SCORE_REF[idx]
+
+BASE_URL = "https://chillstv.com"
+
 def percentile_against(ref, value):
     """Share of the reference distribution this value beats, 0 to 100."""
     try:
@@ -1077,10 +1123,28 @@ def hub(req: Request):
     for s in sends[:3]:
         recent.append({**dict(s), "avatar_letter": avatar_of(s["recipient_name"] or "?"),
                         "avatar_color": avatar_color(s["recipient_name"] or str(s["id"]))})
-    return t.TemplateResponse("hub.html", {
+    # v49 hub context: score card, histogram, latest duo, bets scoreboard
+    top_pct = max(1, min(99, round(100 - float(user["percentile"] or 0))))
+    bars, marker_x = hist_bars_for(mean_p_of(user))
+    latest_duo = None
+    for d0 in chillsdb.duos_for_user(user["id"]):
+        if d0["status"] == "completed":
+            latest_duo = {"token": d0["token"], "partner_name": (d0["partner_name"] or "A friend"),
+                          "partner_letter": avatar_of(d0["partner_name"] or "?"),
+                          "match_pct": float(d0["match_pct"] or 0)}
+            break
+    all_sends = [dict(x) for x in chillsdb.sends_for_sender(user["id"])]
+    for x in all_sends:
+        x["outcome"] = bet_outcome(x)
+    board = bets_scoreboard(all_sends)
+    return t.TemplateResponse("profile.html", {
         "request": req, "page": "hub", **nav_context(req, user), "videos": videos,
         "recent_sends": recent, "sent_count": sent_count, "hit_count": hit_count,
         "hit_rate": hit_rate,
+        "top_pct": top_pct, "one_in": one_in_for(mean_p_of(user)),
+        "hist_bars": bars, "marker_x": marker_x, "latest_duo": latest_duo,
+        "you_points": board["you_points"], "algo_points": board["algo_points"],
+        "video_urls": [v.get("url", "") for v in videos], "base_url": BASE_URL,
     })
 
 
@@ -1099,6 +1163,7 @@ def video_page(req: Request, sid: str):
         "request": req, "page": "video", **nav_context(req, user),
         "video": v, "embed_url": _to_embed_url(v["url"]), "comments": comments,
         "pid": (user["pid"] if user else "") or "Anonymous",
+        "video_urls": [v.get("url", "")], "base_url": BASE_URL,
     })
 
 
@@ -1166,10 +1231,22 @@ def bets(req: Request):
     hit_n = sum(1 for s in done if s["experienced"])
     hit_rate = round(100 * hit_n / len(done)) if done else 0
     board = bets_scoreboard(sends)
+    now_ts = time.time()
+    for x in unopened:
+        days = int((now_ts - (x["created_at"] or now_ts)) // 86400)
+        x["sent_ago"] = "today" if days < 1 else ("1 day ago" if days == 1 else f"{days} days ago")
+    rp = len(done)
+    rd = len(ready)
+    if rp == 0 and rd == 0:
+        lead_line = "No rounds played yet."
+    else:
+        played = f"{rp} round played" if rp == 1 else f"{rp} rounds played"
+        lead_line = played + (f", {rd} more ready to reveal." if rd else ".")
     return t.TemplateResponse("bets.html", {
         "request": req, "page": "bets", **nav_context(req, user),
         "ready": ready, "unopened": unopened, "done": done, "hit_rate": hit_rate,
-        **board, "ready_count": len(ready),
+        **board, "ready_count": len(ready), "lead_line": lead_line,
+        "video_urls": [x.get("stimulus_url", "") for x in ready] + [x.get("stimulus_url", "") for x in unopened],
     })
 
 
@@ -1184,6 +1261,7 @@ def send_new(req: Request):
         v["sid"] = v.get("stimulus_id") or nm(v.get("name", f"video{i}"))
     return t.TemplateResponse("send_new.html", {
         "request": req, "page": "bet-intro", **nav_context(req, user), "videos": videos,
+        "video_urls": [v.get("url", "") for v in videos], "send": None,
     })
 
 
@@ -1209,8 +1287,13 @@ def send_show(req: Request, token: str):
     row = chillsdb.get_send_by_token(token)
     if not user or not row or row["sender_user_id"] != user["id"]:
         return RedirectResponse("/bets")
-    return t.TemplateResponse("send_link.html", {
+    top5 = json.loads(user["top5_json"] or "[]")
+    videos = [v for v in top5 if v.get("url")] or hub_video_catalog(6)
+    for i, v in enumerate(videos):
+        v["sid"] = v.get("stimulus_id") or nm(v.get("name", f"video{i}"))
+    return t.TemplateResponse("send_new.html", {
         "request": req, "page": "bet-intro", **nav_context(req, user), "send": row,
+        "videos": videos, "video_urls": [v.get("url", "") for v in videos],
     })
 
 
@@ -1227,6 +1310,7 @@ def bet_view(req: Request, token: str):
         "send": row, "sender_name": sender_name,
         "recipient_pid": (recipient["pid"] if recipient else "") or "Anonymous",
         "embed_url": _to_embed_url(row["stimulus_url"]) if row["stimulus_url"] else "",
+        "guest": True, "video_urls": [row["stimulus_url"] or ""],
     })
 
 
@@ -1246,8 +1330,21 @@ def reveal_gate(req: Request, token: str):
     row = chillsdb.get_send_by_token(token)
     if not user or not row or row["sender_user_id"] != user["id"]:
         return RedirectResponse("/bets")
+    all_sends = [dict(x) for x in chillsdb.sends_for_sender(user["id"])]
+    for x in all_sends:
+        x["outcome"] = bet_outcome(x)
+    board = bets_scoreboard(all_sends)
+    yp, ap = board["you_points"], board["algo_points"]
+    if yp > ap:
+        score_line = f"You lead the algorithm {yp} to {ap}."
+    elif ap > yp:
+        score_line = f"The algorithm leads {ap} to {yp}."
+    else:
+        score_line = f"Level at {yp} to {ap}."
     return t.TemplateResponse("reveal.html", {
         "request": req, "page": "reveal", **nav_context(req, user), "send": row,
+        "rname": (row["recipient_name"] or "").strip() or "They",
+        "outcome": bet_outcome(dict(row)), "score_line": score_line, "base_url": BASE_URL,
     })
 
 
@@ -1314,6 +1411,7 @@ def duo_recipient(req: Request, token: str):
     return t.TemplateResponse("duo_recipient.html", {
         "request": req, "page": "duo", **nav_context(req, viewer),
         "duo": row, "initiator_name": initiator_name,
+        "initiator_letter": avatar_of(initiator_name), "guest": True,
     })
 
 
@@ -1327,8 +1425,17 @@ def duo_result(req: Request, token: str):
     a_name = (initiator["pid"] if initiator and initiator["pid"] else "You") or "You"
     b_name = (row["partner_name"] or "").strip() or "A friend"
     vid_sid = row["video_stimulus_id"] or ""
+    viewer = chillsauth.get_current_user(req)
+    me_side = None
+    if viewer and viewer["id"] == row["user_id"]:
+        me_side = "a"
+    elif viewer and row["partner_user_id"] and viewer["id"] == row["partner_user_id"]:
+        me_side = "b"
+    jv = video_by_sid(vid_sid) or {}
+    def _top(u):
+        return max(1, min(99, round(100 - float((u["percentile"] if u else 0) or 0))))
     return t.TemplateResponse("duo_result.html", {
-        "request": req, "page": "duo", **nav_context(req, chillsauth.get_current_user(req)),
+        "request": req, "page": "duo", **nav_context(req, viewer),
         "duo": row, "a_name": a_name,
         "a_pct": round(float(initiator["score"]) * 100) if initiator else 0,
         "a_percentile": initiator["percentile"] if initiator else 0,
@@ -1336,7 +1443,13 @@ def duo_result(req: Request, token: str):
         "b_percentile": partner["percentile"] if partner else 0,
         "a_watched": chillsdb.has_watched(row["user_id"], vid_sid),
         "b_watched": chillsdb.has_watched(row["partner_user_id"] or 0, vid_sid),
-        "joint_video": video_by_sid(vid_sid) or {},
+        "joint_video": jv,
+        "me_side": me_side,
+        "letter_a": avatar_of(a_name), "letter_b": avatar_of(b_name),
+        "a_top_pct": _top(initiator), "b_top_pct": _top(partner),
+        "a_one_in": one_in_for(mean_p_of(initiator)) if initiator else 8,
+        "b_one_in": one_in_for(mean_p_of(partner)) if partner else 8,
+        "video_urls": [jv.get("url", "")], "base_url": BASE_URL,
     })
 
 
@@ -1454,6 +1567,14 @@ def admin_console(req: Request, tab: str = "overview", sort: str = "created_at",
         d["email"] = ""  # accounts land with the signup build; blank until then
         d["comments"] = [dict(c) for c in chillsdb.comments_by_user(u["id"])]
         d["created_str"] = datetime.utcfromtimestamp(u["created_at"]).strftime("%b %d")
+        d["video_stimulus_name"] = u["stimulus_name"]
+        # chills pill from their own reports: any yes -> yes, any report -> no, none -> dash
+        if any(c.get("experienced") for c in d["comments"]):
+            d["chills"] = 1
+        elif d["comments"]:
+            d["chills"] = 0
+        else:
+            d["chills"] = None
         users_all.append(d)
     keyers = {
         "created_at": lambda x: x["created_at"],
@@ -1475,6 +1596,8 @@ def admin_console(req: Request, tab: str = "overview", sort: str = "created_at",
         "reported_chills": reported_chills, "shared_total": len(sends_all),
         "signups_today": signups_today, "sends_today": sends_today,
         "growth_signups": growth_signups, "growth_invited": growth_invited,
+        "updated_str": datetime.utcnow().strftime("%b %d, %I:%M %p UTC"),
+        "growth_json": json.dumps({"signups": growth_signups, "invited": growth_invited}),
     })
 
 
