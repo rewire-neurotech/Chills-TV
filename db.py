@@ -64,7 +64,16 @@ CREATE TABLE IF NOT EXISTS duo_pairs (
     video_stimulus_id TEXT,
     video_stimulus_name TEXT,
     created_at REAL NOT NULL,
-    completed_at REAL
+    completed_at REAL,
+    opened_at REAL
+);
+
+CREATE TABLE IF NOT EXISTS video_watches (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    stimulus_id TEXT NOT NULL,
+    watched_at REAL NOT NULL,
+    UNIQUE(user_id, stimulus_id)
 );
 
 CREATE TABLE IF NOT EXISTS contributions (
@@ -82,7 +91,8 @@ CREATE TABLE IF NOT EXISTS video_comments (
     author TEXT DEFAULT 'Anonymous',
     text TEXT NOT NULL,
     experienced INTEGER DEFAULT 0,
-    created_at REAL NOT NULL
+    created_at REAL NOT NULL,
+    user_id INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS admin_sessions (
@@ -124,6 +134,14 @@ def _migrate(conn):
     ]:
         if col not in existing:
             conn.execute(f"ALTER TABLE sends ADD COLUMN {col} {decl}")
+
+    existing = {row["name"] for row in conn.execute("PRAGMA table_info(duo_pairs)")}
+    if "opened_at" not in existing:
+        conn.execute("ALTER TABLE duo_pairs ADD COLUMN opened_at REAL")
+
+    existing = {row["name"] for row in conn.execute("PRAGMA table_info(video_comments)")}
+    if "user_id" not in existing:
+        conn.execute("ALTER TABLE video_comments ADD COLUMN user_id INTEGER")
 
 
 def new_token(nbytes: int = 8) -> str:
@@ -287,6 +305,25 @@ def get_duo_by_token(token: str):
         return conn.execute("SELECT * FROM duo_pairs WHERE token=?", (token,)).fetchone()
 
 
+def mark_duo_opened(token: str):
+    """First time the partner opens the duo link. Only stamps once."""
+    with get_conn() as conn:
+        conn.execute(
+            "UPDATE duo_pairs SET opened_at=? WHERE token=? AND opened_at IS NULL",
+            (time.time(), token),
+        )
+
+
+def duos_for_user(user_id: int):
+    """All duo pairs this user initiated, newest first. Feeds the results
+    and waiting lists on the duo intro page."""
+    with get_conn() as conn:
+        return conn.execute(
+            "SELECT * FROM duo_pairs WHERE user_id=? ORDER BY created_at DESC",
+            (user_id,),
+        ).fetchall()
+
+
 def complete_duo(token: str, partner_user_id: int, partner_name: str, match_pct: float,
                   video_stimulus_id: str, video_stimulus_name: str):
     with get_conn() as conn:
@@ -316,12 +353,13 @@ def all_contributions(limit: int = 200):
 
 
 # ── video comments ────────────────────────────────────────────────────
-def add_video_comment(stimulus_id: str, text: str, experienced: bool, author: str = "You"):
+def add_video_comment(stimulus_id: str, text: str, experienced: bool, author: str = "You",
+                       user_id: int = None):
     with get_conn() as conn:
         conn.execute(
-            """INSERT INTO video_comments (stimulus_id, author, text, experienced, created_at)
-               VALUES (?,?,?,?,?)""",
-            (stimulus_id, author, text.strip(), int(experienced), time.time()),
+            """INSERT INTO video_comments (stimulus_id, author, text, experienced, created_at, user_id)
+               VALUES (?,?,?,?,?,?)""",
+            (stimulus_id, author, text.strip(), int(experienced), time.time(), user_id),
         )
 
 
@@ -332,6 +370,88 @@ def comments_for(stimulus_id: str, limit: int = 20):
                ORDER BY created_at DESC LIMIT ?""",
             (stimulus_id, limit),
         ).fetchall()
+
+
+def comments_by_user(user_id: int, limit: int = 50):
+    """A user's comments, newest first. Feeds the expandable rows in admin."""
+    with get_conn() as conn:
+        return conn.execute(
+            """SELECT * FROM video_comments WHERE user_id=?
+               ORDER BY created_at DESC LIMIT ?""",
+            (user_id, limit),
+        ).fetchall()
+
+
+# ── video watches ─────────────────────────────────────────────────────
+def record_watch(user_id: int, stimulus_id: str):
+    """One row per user per video, first watch wins."""
+    if not user_id or not stimulus_id:
+        return
+    with get_conn() as conn:
+        conn.execute(
+            "INSERT OR IGNORE INTO video_watches (user_id, stimulus_id, watched_at) VALUES (?,?,?)",
+            (user_id, stimulus_id, time.time()),
+        )
+
+
+def has_watched(user_id: int, stimulus_id: str) -> bool:
+    if not user_id or not stimulus_id:
+        return False
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT 1 FROM video_watches WHERE user_id=? AND stimulus_id=?",
+            (user_id, stimulus_id),
+        ).fetchone()
+    return bool(row)
+
+
+def watched_counts_map() -> dict:
+    """user_id -> number of distinct videos watched. For the admin table."""
+    with get_conn() as conn:
+        rows = conn.execute(
+            "SELECT user_id, COUNT(*) AS n FROM video_watches GROUP BY user_id"
+        ).fetchall()
+    return {r["user_id"]: r["n"] for r in rows}
+
+
+def sent_counts_map() -> dict:
+    """user_id -> number of sends created. For the admin table."""
+    with get_conn() as conn:
+        rows = conn.execute(
+            "SELECT sender_user_id AS user_id, COUNT(*) AS n FROM sends GROUP BY sender_user_id"
+        ).fetchall()
+    return {r["user_id"]: r["n"] for r in rows}
+
+
+# ── admin series ──────────────────────────────────────────────────────
+def daily_counts(table: str) -> list:
+    """Rows of (day 'YYYY-MM-DD', count) ascending, for the growth charts.
+    Table name is whitelisted, never interpolated from user input."""
+    assert table in ("users", "sends", "duo_pairs")
+    with get_conn() as conn:
+        return conn.execute(
+            f"""SELECT date(created_at, 'unixepoch') AS day, COUNT(*) AS n
+                FROM {table} GROUP BY day ORDER BY day ASC"""
+        ).fetchall()
+
+
+def count_since(table: str, ts: float) -> int:
+    """Rows created at or after ts. For the '+N today' tiles."""
+    assert table in ("users", "sends", "duo_pairs")
+    with get_conn() as conn:
+        row = conn.execute(
+            f"SELECT COUNT(*) AS n FROM {table} WHERE created_at >= ?", (ts,)
+        ).fetchone()
+    return int(row["n"])
+
+
+def count_sends_experienced() -> int:
+    """Sends where the recipient reported chills. For the reported-chills tile."""
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT COUNT(*) AS n FROM sends WHERE experienced = 1"
+        ).fetchone()
+    return int(row["n"])
 
 
 # ── admin sessions ─────────────────────────────────────────────────────
