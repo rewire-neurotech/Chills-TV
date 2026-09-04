@@ -2,7 +2,7 @@ import sitecustomize
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-import csv, hashlib, json, os, re, secrets, time, unicodedata
+import bisect, csv, hashlib, json, os, re, secrets, time, unicodedata
 from datetime import datetime
 import joblib, numpy as np, onnxruntime as rt, pandas as pd
 import sklearn, stripe
@@ -20,9 +20,11 @@ a = FastAPI()
 b = os.path.dirname(__file__)
 t = Jinja2Templates(directory=os.path.join(b, "templates"))
 
-ff = os.path.join(b, "minimal_features.json")
-pf = os.path.join(b, "preprocessor_minimal.joblib")
-mf = os.path.join(b, "final_global_mlp.onnx")
+ff = os.path.join(b, "new_features.json")
+pf = os.path.join(b, "new_preprocessor.joblib")
+mf = os.path.join(b, "new_model.onnx")
+csr = os.path.join(b, "chills_score_reference.json")
+mrf = os.path.join(b, "match_reference.json")
 qfs = [
     "Minimal Questinonaire.csv",
     "Minimal Questionnaire.csv",
@@ -191,6 +193,21 @@ for c, d in [("_name_to_fitted_passthrough", {}), ("_remainder", "drop")]:
 sess = rt.InferenceSession(mf, providers=["CPUExecutionProvider"])
 inn = sess.get_inputs()[0].name
 
+with open(csr, "r", encoding="utf-8") as f:
+    SCORE_REF = sorted(json.load(f)["sorted_scores"])
+with open(mrf, "r", encoding="utf-8") as f:
+    MATCH_REF = sorted(json.load(f)["sorted_scores"])
+
+def percentile_against(ref, value):
+    """Share of the reference distribution this value beats, 0 to 100."""
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return 0.0
+    if not ref or not np.isfinite(v):
+        return 0.0
+    return round(100.0 * bisect.bisect_left(ref, v) / len(ref), 1)
+
 
 # ═══════════════════════════════════════════════════
 # STIMULI CSV LOADING
@@ -357,44 +374,46 @@ for si, sname in enumerate(STIM):
 with open(ff, "r", encoding="utf-8") as f:
     FEATURES = json.load(f)["features"]
 
-def ag(x):
-    x = str(x or "").strip()
-    try: return float(x)
-    except:
-        y = re.sub(r"\s+","",x)
-        m = re.match(r"^(\d+)[\-\u2013](\d+)$", y)
-        if m: return (float(m.group(1)) + float(m.group(2))) / 2.0
-        m = re.match(r"^(\d+)\+$", y)
-        if m: return float(m.group(1)) + 5.0
-        d = {"18-24":21,"25-34":30,"35-44":40,"45-54":50,"55-64":60,"65+":70}
-        return float(d.get(x,0))
+AGE_MID = {"18-24": 21.0, "25-34": 30.0, "35-44": 40.0, "45-54": 50.0, "55-64": 60.0, "65+": 70.0}
 
-def build_answer_maps(H):
-    A = {}
-    for k,v in H.items(): A[nkey(k)] = v
-    return A
+def age_years_from(v):
+    """Bucket -> midpoint used in training. Exact ages clamped to 10..95. Fallback 40."""
+    s = str(v or "").strip().lower().replace(" years old", "")
+    for k, mid in AGE_MID.items():
+        if s.startswith(k):
+            return mid
+    try:
+        return min(max(float(s), 10.0), 95.0)
+    except (TypeError, ValueError):
+        return 40.0
+
+def sexf_from(v):
+    s = str(v or "").strip().lower()
+    if s == "female": return 1.0
+    if s == "male": return 0.0
+    return 0.5
+
+SCALE_ITEMS = [z for z in FEATURES if z not in ("age_years", "sexf") and z.lower() != "stimulus"]
 
 def map_answers_to_features(H):
-    HN = build_answer_maps(H)
+    """Notebook build_p1: 9 scale items as floats (NaN if unparseable),
+    Age -> age_years midpoint, Gender text -> sexf. Order follows FEATURES."""
     m = []; pairs = []; miss = []
     for fk in FEATURES:
-        if fk == "Age":
-            v = ag(H.get("Age",""))
-            m.append(v); pairs.append([fk, v, "Age"])
-        elif fk.lower() == "stimulus":
+        if fk.lower() == "stimulus":
             m.append(0.0); pairs.append([fk, 0.0, "Stimulus"])
+        elif fk == "age_years":
+            v = age_years_from(H.get("Age", ""))
+            m.append(v); pairs.append([fk, v, "Age"])
+        elif fk == "sexf":
+            v = sexf_from(H.get("Gender", ""))
+            m.append(v); pairs.append([fk, v, "Gender"])
         else:
-            vv = None
-            if fk in H: vv = H.get(fk, None)
-            if vv is None: vv = HN.get(nkey(fk), None)
-            if vv is None and "_" in fk: vv = HN.get(nkey(fk.replace("_"," ")), None)
-            if vv is None and "-" in fk: vv = HN.get(nkey(fk.replace("-"," ")), None)
-            if vv is None:
-                miss.append(fk); m.append(0.0); pairs.append([fk, 0.0, "default0"])
-            else:
-                try: v = float(vv)
-                except: v = ag(vv)
-                m.append(v); pairs.append([fk, v, "mapped"])
+            try:
+                v = float(H.get(fk, ""))
+            except (TypeError, ValueError):
+                v = float("nan"); miss.append(fk)
+            m.append(v); pairs.append([fk, v, "item"])
     FW["pairs"] = pairs; FW["missing"] = miss; FW["built_vector"] = m
     return m
 
@@ -424,122 +443,15 @@ def to40X(v):
     return np.asarray(X, dtype=np.float32)
 
 
-CHILLS_HEAD_ENV = os.getenv("REWIRE_CHILLS_HEAD_INDEX")  
-CHILLS_NAME_HINTS = ("chills", "chills_bin", "prob_chills", "head0")
-
-def _choose_chills_head_index(outs: List[str]) -> int:
-    if CHILLS_HEAD_ENV is not None:
-        try:
-            i = int(CHILLS_HEAD_ENV)
-            if 0 <= i < len(outs):
-                return i
-        except Exception:
-            pass
-    ln = [str(x).lower() for x in outs]
-    for hint in CHILLS_NAME_HINTS:
-        for i, n in enumerate(ln):
-            if hint in n:
-                return i
-    return 0
-
-def _extract_from_probabilities_struct(prob_output: Any) -> Optional[np.ndarray]:
-    try:
-        if not hasattr(prob_output, "__len__") or len(prob_output) != len(STIM):
-            return None
-        if isinstance(prob_output[0], dict):
-            chills = []
-            for row in prob_output:
-                found = None
-                for key in ("Chills_bin","chills_bin","chills","0","head0","H0"):
-                    if key in row:
-                        val = row[key]
-                        if isinstance(val, (list, tuple, np.ndarray)) and len(val) >= 2:
-                            found = float(val[1])
-                        elif isinstance(val, (int, float)):
-                            found = float(val)
-                        break
-                if found is None:
-                    if "0" in row and isinstance(row["0"], (list, tuple, np.ndarray)) and len(row["0"]) >= 2:
-                        found = float(row["0"][1])
-                    elif "0" in row and isinstance(row["0"], (int, float)):
-                        found = float(row["0"])
-                    else:
-                        for v in row.values():
-                            if isinstance(v, (list, tuple, np.ndarray)) and len(v) >= 2:
-                                found = float(v[1]); break
-                            if isinstance(v, (int, float)):
-                                found = float(v); break
-                chills.append(found if found is not None else 0.0)
-            return np.asarray(chills, dtype=np.float32)
-        if isinstance(prob_output[0], (list, tuple, np.ndarray)):
-            arr = np.asarray(prob_output)
-            if arr.ndim == 2 and arr.shape[0] == len(STIM):
-                return arr[:, 1].astype(np.float32)
-            if arr.ndim == 3 and arr.shape[:2] == (len(STIM), 2):
-                return arr[:, 1, 0].astype(np.float32)
-        return None
-    except Exception:
-        return None
-
-def topk(v, k=1, pid=""):
+def predict_probs(v):
+    """Run the model once: 40 rows (one per stimulus), return p(chills) per video."""
     X = to40X(v)
-    out_defs = sess.get_outputs()
-    outs = [o.name for o in out_defs]
-    yl = sess.run(outs, {inn: X})
+    y = sess.run(["probabilities"], {inn: X})[0]
+    return np.asarray(y)[:, 1].astype(np.float32)
 
-    p = None
-    used_idx = None
-    used_name = None
-
-    prob_idx = None
-    for i, n in enumerate(outs):
-        if "probabilities" in str(n).lower():
-            prob_idx = i
-            break
-
-    if prob_idx is not None:
-        y = yl[prob_idx]
-        if isinstance(y, (list, tuple)):
-            try:
-                head0 = y[0] 
-            except Exception as ex:
-                raise RuntimeError(f"'probabilities' is a sequence but empty/invalid: type={type(y)}") from ex
-            arr = np.asarray(head0)
-            if arr.ndim == 2 and arr.shape[0] == len(STIM) and arr.shape[1] >= 2:
-                p = arr[:, 1].astype(np.float32)  
-            elif arr.ndim == 1 and arr.shape[0] == len(STIM):
-                p = arr.astype(np.float32)
-            else:
-                raise RuntimeError(f"Unexpected shape for CHILLS head0: {arr.shape}; expected (40,2) or (40,).")
-        else:
-            p = _extract_from_probabilities_struct(y)
-            if p is None:
-                arr = np.asarray(y)
-                if arr.ndim == 2 and arr.shape[0] == len(STIM) and arr.shape[1] >= 2:
-                    p = arr[:, 1].astype(np.float32)
-                elif arr.ndim == 1 and arr.shape[0] == len(STIM):
-                    p = arr.astype(np.float32)
-                else:
-                    raise RuntimeError(f"Could not parse 'probabilities' output. shape={getattr(y,'shape',None)}")
-        used_idx = prob_idx
-        used_name = outs[prob_idx]
-
+def topk(v, k=1, pid="", p=None):
     if p is None:
-        hi = _choose_chills_head_index(outs)
-        y = yl[hi]
-        arr = np.asarray(y)
-        if arr.ndim == 2 and arr.shape[0] == len(STIM) and arr.shape[1] >= 2:
-            p = arr[:, 1].astype(np.float32)
-        elif arr.ndim == 1 and arr.shape[0] == len(STIM):
-            p = arr.astype(np.float32)
-        else:
-            p = _extract_from_probabilities_struct(y)
-            if p is None:
-                raise RuntimeError(
-                    f"Could not resolve CHILLS probabilities. chosen_head_idx={hi}, head_shape={getattr(y,'shape',None)}, outs={outs}"
-                )
-        used_idx = hi
-        used_name = outs[hi]
+        p = predict_probs(v)
 
     eps = (np.arange(len(STIM)) * 1e-9).astype(np.float32)
     p = p + eps
@@ -551,13 +463,13 @@ def topk(v, k=1, pid=""):
 
     try:
         P["onnx_called"] = True
-        P["in_shape"] = tuple(X.shape)
-        P["out_shape"] = [getattr(z, "shape", None) if hasattr(z, "shape") else None for z in yl]
-        P["out_names"] = outs
+        P["in_shape"] = (len(STIM), 51)
+        P["out_shape"] = [(len(STIM), 2)]
+        P["out_names"] = ["probabilities"]
         P["probs"] = [float(z) for z in p.tolist()]
         P["argmax"] = int(idx[0]) if len(idx) else None
-        P["chosen_head_idx"] = used_idx
-        P["chosen_head_name"] = used_name
+        P["chosen_head_idx"] = 0
+        P["chosen_head_name"] = "probabilities"
         is_new = not os.path.exists(LP)
         with open(LP, "a", encoding="utf-8") as fh:
             if is_new: fh.write("ts,pid,argmax,probs\n")
@@ -740,6 +652,44 @@ def nav_context(req: Request, user) -> Dict:
     return {"avatar_letter": letter, "notif_count": notif, "is_admin": is_admin, "has_profile": True}
 
 
+def chills_match(v1: List[float], v2: List[float]):
+    """Felix's formula: per video, product of the two p(chills); rank by product;
+    top 5; raw score = mean of the 5 products. Display value is the percentile of
+    the raw score against random study pairs. Returns (raw, percentile, top5_idx)
+    or None if either vector is not a valid 40-probability vector (legacy users)."""
+    try:
+        x = np.asarray(v1, dtype=np.float64)
+        y = np.asarray(v2, dtype=np.float64)
+    except Exception:
+        return None
+    if x.shape != (len(STIM),) or y.shape != (len(STIM),):
+        return None
+    if not (np.isfinite(x).all() and np.isfinite(y).all()):
+        return None
+    if x.min() < 0 or x.max() > 1 or y.min() < 0 or y.max() > 1:
+        return None
+    prod = x * y
+    order = np.argsort(-prod)[:5]
+    raw = float(np.mean(prod[order]))
+    return raw, percentile_against(MATCH_REF, raw), [int(i) for i in order]
+
+
+def stim_entry(j: int, score: float) -> Dict:
+    """Catalog info for STIM index j, same fields topk emits."""
+    n0 = STIM[j]
+    if j in IDX and 0 <= IDX[j] < len(G):
+        r = G.iloc[IDX[j]]
+        u0 = str(r.get(CSV_URL, "")).strip()
+        n1 = str(r.get(CSV_NAME, n0)).strip()
+        d0 = str(r.get("desc", "")); du = str(r.get("dur", "")); c0 = str(r.get("cap", ""))
+    else:
+        u0 = ""; n1 = n0; d0 = ""; du = ""; c0 = ""
+    if u0 and not u0.lower().startswith(("http://", "https://")):
+        u0 = "https://" + u0
+    return {"idx": j, "score": float(score), "stimulus_id": nm(n1), "url": u0,
+            "name": n1, "stim_name": n0, "desc": d0, "dur": du, "cap": c0}
+
+
 def cosine_match_pct(v1: List[float], v2: List[float]) -> float:
     if not v1 or not v2 or len(v1) != len(v2):
         return 50.0
@@ -802,10 +752,26 @@ async def start(req: Request):
         H = {}
         for x in qall(): H[x["k"]] = f.get(x["n"], "")
         FW["raw_answers"] = H
+
+        bad = []
+        for fk in SCALE_ITEMS:
+            try:
+                float(H.get(fk, ""))
+            except (TypeError, ValueError):
+                bad.append(fk)
+        if bad:
+            return HTMLResponse(
+                "<pre>Answers incomplete or invalid: " + ", ".join(bad) +
+                "\n\nPlease go back and answer every question.</pre>", status_code=400)
+
         m = map_answers_to_features(H)
 
-        best5 = topk(m, 5, pid=pid)
+        p = predict_probs(m)
+        best5 = topk(m, 5, pid=pid, p=p)
         P["last_top5"] = best5[:]
+
+        mean_p = float(np.mean(p))
+        user_chills_score = percentile_against(SCORE_REF, mean_p)
 
         best = _choose_from_ties(best5, pid, built_vec=FW.get("built_vector", [])) if best5 else {
             "score": 0.0, "stimulus_id": "", "url": "", "name": "", "desc": "", "dur": "", "cap": ""
@@ -817,6 +783,8 @@ async def start(req: Request):
         SESSIONS[sid]["stimulus"] = best
         SESSIONS[sid]["top5"] = best5
         SESSIONS[sid]["vector"] = FW.get("built_vector", [])
+        SESSIONS[sid]["probs"] = [float(z) for z in p.tolist()]
+        SESSIONS[sid]["chills_score"] = user_chills_score
         SESSIONS[sid]["paid"] = False
 
         if stripe.api_key:
@@ -957,13 +925,17 @@ def _finalize_paid_session(req: Request, sid: str, session_label: str = ""):
             "url": stim.get("url", ""), "score": float(stim.get("score", 0.0)),
         })
     top5_json = json.dumps(top5_entries)
-    vector_json = json.dumps(sess_data.get("vector", []))
+    # vector_json now stores the 40 p(chills), one per stimulus. Duo matching
+    # consumes it; legacy rows still hold the old feature vector and fall back.
+    vector_json = json.dumps(sess_data.get("probs", []))
     score01 = float(stim.get("score", 0.0))
     chillsdb.update_user_match(
         visitor_token, stim.get("stimulus_id",""), stim.get("stim_name", stim.get("name","")),
         stim.get("url",""), score01, 0.0, paid=True, top5_json=top5_json, vector_json=vector_json,
     )
-    chillsdb.set_percentile(visitor_token, chillsdb.percentile_for_score(score01))
+    # users.percentile now holds the ChillsScore: percentile of the user's mean
+    # p(chills) against the 2,937 study participants. Higher is better.
+    chillsdb.set_percentile(visitor_token, float(sess_data.get("chills_score", 0.0)))
 
     # resolve a pending Send-Chills ("trust the algo") or Duo-compatibility link, if any
     dest = "/hub"
@@ -984,10 +956,20 @@ def _finalize_paid_session(req: Request, sid: str, session_label: str = ""):
             if duo_row and duo_row["status"] == "pending":
                 initiator = chillsdb.get_user_by_id(duo_row["user_id"])
                 init_vec = json.loads(initiator["vector_json"] or "[]") if initiator else []
-                match_pct = cosine_match_pct(init_vec, sess_data.get("vector", []))
+                res = chills_match(init_vec, sess_data.get("probs", []))
+                if res is not None:
+                    raw, match_pct, order = res
+                    joint = stim_entry(order[0], raw)
+                    video_sid = joint["stimulus_id"]
+                    video_name = joint["stim_name"]
+                else:
+                    # legacy initiator row: old-format vector, keep old behavior
+                    match_pct = cosine_match_pct(init_vec, sess_data.get("vector", []))
+                    video_sid = stim.get("stimulus_id","")
+                    video_name = stim.get("stim_name", stim.get("name",""))
                 chillsdb.complete_duo(
                     pending["token"], user["id"] if user else 0, pid or "A friend", match_pct,
-                    stim.get("stimulus_id",""), stim.get("stim_name", stim.get("name","")),
+                    video_sid, video_name,
                 )
                 dest = f"/duo/{pending['token']}"
 
