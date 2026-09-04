@@ -1,83 +1,82 @@
 {% extends "base.html" %}
-{% block title %}{{ video.name }} · ChillsTV{% endblock %}
 {% block content %}
-<div class="col">
-  <a class="back" href="/hub">‹ Profile</a>
-  <div class="vhero" style="margin-bottom:20px;">
-    <div class="ytwrap"><iframe id="ytframe" src="{{ embed_url }}?enablejsapi=1" title="{{ video.name }}" allowfullscreen allow="autoplay; encrypted-media"></iframe></div>
-    <div class="vbody">
-      <h3 id="vtitle">{{ video.name }}</h3>
-    </div>
+<div class="screen" id="screen-video">
+  <div class="col">
+    <a class="back" href="/hub">‹ Profile</a>
+    <div class="player"><div id="ytplayer"></div></div>
+    <h1 class="vtitle" id="vtitle">{{ video.name }}</h1>
     <div class="vinfo">
-      <p>{{ video.desc }}</p>
-      <div class="credits">{{ video.dur }} · Stimulus {{ video.stimulus_id }}, ChillsDB</div>
+      {% if video.desc %}<p>{{ video.desc }}</p>{% endif %}
+      {% if video.cap %}<div class="credits">{{ video.cap }}</div>{% endif %}
     </div>
-    <div class="bet-ask">
-      <div>
-        <b>Know someone who would get chills from this?</b>
-        <span>Send them the link and find out whether you were right.</span>
-      </div>
-      <a href="/send" style="text-decoration:none;"><button onclick="event.preventDefault(); location.href='/send';">Send it to them</button></a>
+    <div class="sendrow">
+      <div><b>Know someone who would get chills from this?</b><span>Send them the link and find out whether you were right.</span></div>
+      <button class="btn btn-p" onclick="location.href='/send'">Send it to them</button>
     </div>
-  </div>
 
-  <div class="sect">
-    <div class="sect-head"><h2>Did this give you chills?</h2></div>
-    <div class="panel">
-      <div class="pred-row">
-        <a href="/feedback?id={{ pid | urlencode }}&stimulus_id={{ video.stimulus_id }}&url={{ video.url | urlencode }}&stimulus_name={{ video.name | urlencode }}" style="text-decoration:none;"><button type="button">⚡ Yes</button></a>
-        <button type="button" onclick="openReport(false)">No</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="sect">
-    <div class="sect-head"><h2>What gave people chills <span>real comments</span></h2></div>
-    <div class="panel">
-      {% for c in comments %}
-      <div class="comment" style="{% if loop.first %}border-top:none;{% endif %}">
-        <div class="avatar" style="background:{{ c.avatar_color }}">{{ c.author[:1] | upper }}</div>
-        <div>
-          <div class="c-head"><span class="c-name">{{ c.author }}</span>{% if c.experienced %}<span class="c-chill">⚡</span>{% endif %}</div>
-          <div class="c-text">"{{ c.text }}"</div>
-        </div>
-      </div>
-      {% else %}
-      <div class="c-empty">No comments yet. Be the first to say what this gave you.</div>
-      {% endfor %}
-    </div>
-    <p style="font-size:11px; color:var(--text3); padding:8px 4px;">Comments are submitted by real ChillsTV visitors after watching this video.</p>
   </div>
 </div>
 
-<div class="rmodal-bg" id="rmodal">
-  <div class="rmodal">
-    <form method="post" action="/video/{{ video.stimulus_id }}/report">
-      <input type="hidden" name="experienced" id="rm-experienced" value="yes">
-      <h3 id="rm-title">What gave you chills?</h3>
-      <textarea rows="3" name="text" placeholder="A moment, a memory, anything… (optional)"></textarea>
-      <button class="rm-send" type="submit">Send</button>
-    </form>
-  </div>
-</div>
 {% endblock %}
-{% block scripts %}
+{% block page_data %}
 <script>
-function openReport(experienced){
-  document.getElementById('rm-experienced').value = experienced ? 'yes' : 'no';
-  document.getElementById('rm-title').textContent = experienced ? 'What gave you chills?' : 'Anything you felt?';
-  document.getElementById('rmodal').classList.add('open');
-}
+window.VIDEOS = {{ video_urls|tojson }};
+window.payloads = { video: { text:'\u26a1 {{ video.name }} gave me chills. I found it on ChillsTV \u2014 @rewire_protocols', url:'{{ base_url }}/video/{{ video.stimulus_id }}' } };
+</script>
+{% endblock %}
+{% block page_js %}
+<script>
+var REPORT_SID = {{ video.stimulus_id|tojson }};
+var repYes = null;
+var _chillsWhy = chillsWhy;
+chillsWhy = function(yes){ repYes = yes; _chillsWhy(yes); };
+closeReport = function(){
+  document.getElementById('rmodal').classList.remove('open');
+  var fd = new FormData();
+  fd.append('experienced', repYes ? 'yes' : 'no');
+  fd.append('text', document.getElementById('rm-text').value || '');
+  fetch('/video/' + REPORT_SID + '/report', {method:'POST', body: fd});
+  document.getElementById('rm-text').value = '';
+  toast('Saved \u2014 added to the research');
+};
+function markWatched(){ fetch('/video/' + REPORT_SID + '/watched', {method:'POST'}); }
+var currentIdx = 0;
 var ytPlayer = null, ytReady = false;
 var tag = document.createElement('script'); tag.src = 'https://www.youtube.com/iframe_api';
 document.head.appendChild(tag);
-function onYouTubeIframeAPIReady(){
-  ytReady = true;
+function onYouTubeIframeAPIReady(){ ytReady = true; mountPlayer(); }
+function mountPlayer(){
+  if (!ytReady || !document.getElementById('ytplayer')) return;
+  var id = vidAt(currentIdx);
+  if (ytPlayer && ytPlayer.loadVideoById) { ytPlayer.loadVideoById(id); return; }
   try {
-    ytPlayer = new YT.Player('ytframe', {
-      events: { onStateChange: function(e){ if (e.data === YT.PlayerState.ENDED) openReport(true); } }
+    ytPlayer = new YT.Player('ytplayer', {
+      videoId: id,
+      host: 'https://www.youtube-nocookie.com',
+      playerVars: { rel:0, modestbranding:1, playsinline:1, origin: location.origin },
+      events: {
+        onStateChange: function(e){ if (e.data === YT.PlayerState.ENDED) { markWatched(); openReport(); } },
+        onError: function(){ playerFallback(id); }
+      }
     });
-  } catch (err) {}
+  } catch (err) { playerFallback(id); }
+}
+
+/* Some videos block embedding, and file:// pages have no valid origin.
+   Either way, fall back to a poster that opens YouTube in a new tab. */
+function playerFallback(id){
+  var wrap = document.querySelector('#screen-video .player');
+  if (!wrap || wrap.dataset.fallback) return;
+  wrap.dataset.fallback = '1';
+  ytPlayer = null;
+  wrap.innerHTML =
+    '<div class="ytfall" style="background-image:url(' + thumbOf(id, true) + ')">' +
+      '<a class="ytfall-play" href="https://www.youtube.com/watch?v=' + id + '" target="_blank" rel="noopener">&#9654;</a>' +
+      '<div class="ytfall-bar">' +
+        '<span>Opens on YouTube</span>' +
+        '<button onclick="markWatched(); openReport()">I watched it</button>' +
+      '</div>' +
+    '</div>';
 }
 </script>
 {% endblock %}
