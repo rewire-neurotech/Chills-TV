@@ -1,71 +1,94 @@
 {% extends "base.html" %}
-{% block title %}Reveal · ChillsTV{% endblock %}
 {% block content %}
-<div class="col">
-  <a class="back" href="/bets">‹ Send Chills</a>
+<div class="screen" id="screen-reveal">
+  <div class="col">
+    <a class="back" href="/bets">‹ Beat the algorithm</a>
 
-  {% if send.status == 'watched' %}
-  <h1 class="pg-title">Two quick questions</h1>
-  <p class="pg-lede">{{ send.recipient_name or "They" }} answered. Before you see what happened, tell us a little about them.</p>
+    {% if send.status == "watched" %}<div id="gate-wrap">
+      <h1 class="pg-title">Two quick questions</h1>
+      <p class="pg-lede">{{ rname }} has answered. Before you see what happened, tell us a little about them.</p>
 
-  <form method="post" action="/reveal/{{ send.token }}" id="gate-form">
-    <div class="qcard">
-      <div class="qlabel">How close are you to {{ send.recipient_name or "them" }}?</div>
-      <div class="chips" id="q-close">
-        {% for n in range(1,8) %}<button type="button" class="chip" data-val="{{ n }}" onclick="pickCloseness(this)">{{ n }}</button>{% endfor %}
+      <div class="qs">
+        <div class="q">
+          <div class="lbl">How close are you to {{ rname }}?</div>
+          <div class="ios" id="q2"></div>
+          <div class="qscale"><span>Distant</span><span>Very close</span></div>
+        </div>
+        <div class="q">
+          <div class="lbl">How do you know {{ rname }}?</div>
+          <div class="chips" id="q3">
+            <button class="chip" onclick="pickChip(this)">Partner</button>
+            <button class="chip" onclick="pickChip(this)">Family</button>
+            <button class="chip" onclick="pickChip(this)">Close friend</button>
+            <button class="chip" onclick="pickChip(this)">Friend</button>
+            <button class="chip" onclick="pickChip(this)">Colleague</button>
+            <button class="chip" onclick="pickChip(this)">Barely know them</button>
+          </div>
+        </div>
       </div>
-      <div class="qscale"><span>Distant</span><span>Very close</span></div>
-      <input type="hidden" name="closeness" id="closeness-input" value="">
-    </div>
 
-    <div class="qcard">
-      <div class="qlabel">How do you know {{ send.recipient_name or "them" }}?</div>
-      <div class="chips" id="q3">
-        {% for opt in ["Partner","Family","Close friend","Friend","Colleague","Barely know them"] %}
-        <button type="button" class="chip" onclick="pickChip(this)">{{ opt }}</button>
-        {% endfor %}
+      <p class="priv">Only you ever see who you sent this to. We keep these answers without the name, for research on who gives chills to whom.</p>
+      <div class="actions" style="margin-top:22px"><button class="btn btn-p" id="qgo" disabled onclick="doReveal()">See what happened</button></div>
+      <form id="gateform" method="POST" action="/reveal/{{ send.token }}" style="display:none">
+        <input type="hidden" name="closeness" id="gf-close" value="0">
+        <input type="hidden" name="relationship" id="gf-rel" value="">
+      </form>
+    </div>{% endif %}
+
+    {% if send.status == "revealed" %}<div id="reveal-wrap">
+      <h1 class="pg-title">{{ rname }} answered</h1>
+      <div class="result">
+        <div class="k">{{ rname }} watched {{ send.stimulus_name }}</div>
+        <div class="h">{% if send.experienced %}They got chills.{% else %}No chills this time.{% endif %}</div>
+        {% if send.experienced %}<div class="int"><span>Intensity</span><b>{{ send.intensity }}</b><em>/10</em></div>{% endif %}
+        <div class="fo"><b>{% if outcome == "you" %}Point to you.{% else %}Point to the algorithm.{% endif %}</b> {{ score_line }}</div>
       </div>
-      <input type="hidden" name="relationship" id="relationship-input" value="">
-    </div>
-
-    <p class="qpriv">Only you ever see who you sent this to. We keep these answers without the name, for research on who gives chills to whom.</p>
-    <button class="qgo" id="qgo" disabled type="submit">See what happened</button>
-  </form>
-
-  {% else %}
-  <div class="rev">
-    <div class="rev-top">
-      <div class="rev-eyebrow">{{ send.recipient_name or "They" }} watched {{ send.stimulus_name }}</div>
-      <div class="rev-head">{% if send.experienced %}They got chills.{% else %}It left them cold.{% endif %}</div>
-      {% if send.experienced %}<div class="rev-int"><span>Response</span><b>⚡ Yes</b></div>{% endif %}
-    </div>
-    <div class="rev-foot">Revealed {{ send.revealed_at and "just now" or "" }}.</div>
+      <div class="rev-actions">
+        <button class="btn btn-p" onclick="nativeShare('result')">Share this</button>
+        <button class="btn btn-o" onclick="location.href='/bets'">Back to Beat the algorithm</button>
+      </div>
+    </div>{% endif %}
   </div>
-  <div class="rev-actions">
-    <button class="qgo" type="button" onclick="shareOrCopy('I sent someone a video and found out what happened. Find yours:', location.origin, 'Copied')">Share this</button>
-    <a class="qghost" href="/bets">Back to my bets</a>
-  </div>
-  {% endif %}
 </div>
+
 {% endblock %}
-{% block scripts %}
+{% block page_data %}
 <script>
+window.payloads = { result: { text:'\u26a1 I sent {{ rname }} a video and {% if send.experienced %}it gave them chills, {{ send.intensity }} out of 10{% else %}the algorithm took the point{% endif %}. Find out what gives you chills:', url:'{{ base_url }}' } };
+</script>
+{% endblock %}
+{% block page_js %}
+<script>
+{% if send.status == "watched" %}
+/* ── reveal gate ── */
 var gate = { close:false, rel:false };
-function pickCloseness(el){
-  Array.prototype.forEach.call(document.getElementById('q-close').children, c=>c.classList.remove('on'));
-  el.classList.add('on');
-  document.getElementById('closeness-input').value = el.dataset.val;
-  gate.close = true; checkGate();
+function buildIOS(){
+  var box = document.getElementById('q2'); if (!box || box.children.length) return;
+  var seps = [27,23,19,15,11,7,3];
+  seps.forEach(function(d,i){
+    var b = document.createElement('button');
+    b.setAttribute('aria-label', 'Closeness ' + (i+1) + ' of 7');
+    b.innerHTML = '<svg viewBox="0 0 62 34"><circle cx="'+(31-d/2)+'" cy="17" r="14"/><circle cx="'+(31+d/2)+'" cy="17" r="14"/></svg>';
+    b.onclick = function(){
+      Array.prototype.forEach.call(box.children, function(c){ c.classList.remove('on'); });
+      b.classList.add('on'); gate.close = true; gate.closeVal = i + 1; checkGate();
+    };
+    box.appendChild(b);
+  });
 }
 function pickChip(el){
-  Array.prototype.forEach.call(el.parentNode.children, c=>c.classList.remove('on'));
-  el.classList.add('on');
-  document.getElementById('relationship-input').value = el.textContent;
-  gate.rel = true; checkGate();
+  Array.prototype.forEach.call(el.parentNode.children, function(c){ c.classList.remove('on'); });
+  el.classList.add('on'); gate.rel = true; gate.relVal = el.textContent.trim(); checkGate();
 }
 function checkGate(){
-  var b = document.getElementById('qgo');
-  if (b) b.disabled = !(gate.close && gate.rel);
+  document.getElementById('qgo').disabled = !(gate.close && gate.rel);
 }
+function doReveal(){
+  document.getElementById('gf-close').value = gate.closeVal || 0;
+  document.getElementById('gf-rel').value = gate.relVal || '';
+  document.getElementById('gateform').submit();
+}
+document.addEventListener('DOMContentLoaded', buildIOS);
+{% endif %}
 </script>
 {% endblock %}
