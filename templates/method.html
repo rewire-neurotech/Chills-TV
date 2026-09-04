@@ -1,50 +1,74 @@
 {% extends "base.html" %}
-{% block title %}Method · ChillsTV{% endblock %}
 {% block content %}
-<div class="doc">
-  <a class="back" href="/hub">‹ Back</a>
-  <div class="eyebrow2">Method</div>
-  <h1>How your chills score is computed</h1>
-  <p class="intro">Your score is a rank. You answered a short set of questionnaires. Those answers go into a model that was fitted on 2,647 people who answered the same questions and watched the same videos in a peer-reviewed study. The model returns a ranked list of videos, and your position among past visitors. Every step is on this page.</p>
+<div class="screen" id="screen-method">
+  <div class="doc">
+    <a class="back" href="/hub">‹ Profile</a>
+    <div class="eyebrow">Method</div>
+    <h1>How your chills score is computed</h1>
+    <p class="intro">Your score is a rank. You answered three short questionnaires. Those answers go into a formula that was fitted on 2,937 people who answered the same questions and watched the same videos in a peer-reviewed study. The formula returns your position on their distribution. Every step is on this page.</p>
 
-  <h2><span class="n">1</span> What we measure</h2>
-  <p>Before you watched, you answered a short set of questions. They come from instruments that decades of research connect to aesthetic chills: the shivers, goosebumps, and waves of cold that some experiences trigger.</p>
-  <div class="measure3">
-    <div class="mcard"><b>Absorption</b><span>How completely you get pulled into sights, sounds, and imagination.</span><i>Modified Tellegen Absorption Scale (MODTAS)</i></div>
-    <div class="mcard"><b>Being moved</b><span>How easily you're touched, by reunions, kindness, music, farewells.</span><i>Kama Muta Frequency scale (KAMF)</i></div>
-    <div class="mcard"><b>Personality &amp; state</b><span>NEO-FFI personality traits plus your age and demographics on the day.</span><i>Self-reported</i></div>
+    <h2><span class="n">1</span>What we measure</h2>
+    <p>Before you watched, you answered a short set of questions. They come from three instruments that decades of research connect to aesthetic chills — the shivers, goosebumps, and waves of cold that some experiences trigger:</p>
+    <div class="measure3">
+      <div class="mcard"><b>Positive emotion</b><span>How strongly everyday moments of awe, beauty, and joy land on you. Three items.</span><i>Dispositional Positive Emotion Scales (DPES)</i></div>
+      <div class="mcard"><b>Personality</b><span>Five short items from the standard five-factor personality inventory. Five items.</span><i>NEO Five-Factor Inventory (NEO-FFI)</i></div>
+      <div class="mcard"><b>Being moved</b><span>How easily you're touched &mdash; by reunions, kindness, music, farewells. One item.</span><i>Kama Muta Frequency scale (KAMF)</i></div>
+    </div>
+
+    <h2><span class="n">2</span>The reference sample</h2>
+    <p>In 2023 our team collected the same measures from <b>3,259 people</b> in Southern California; <b>2,937</b> remained after quality checks. Each watched videos drawn from a validated set of 40 chills-eliciting stimuli, then reported whether chills happened and how intense they were. The dataset — ChillsDB 2.0 — is published open access, so any researcher can rerun what we do here.</p>
+
+    <h2><span class="n">3</span>How the model learned</h2>
+    <p>This is where machine learning comes in, and the idea underneath it is simple arithmetic. Every participant becomes one row of numbers. Eleven of those numbers are <b>features</b> &mdash; the things known before the video played: nine questionnaire answers, age, and sex. One more thing the model sees is <b>which video</b> was playing, because some videos give chills to almost everyone and some to almost no one. And one number is the <b>label</b> &mdash; what actually happened: chills or no chills.</p>
+    <p>The model is a set of <b>weights</b>, one per feature, each saying how much that feature counts. Training runs a loop: read a row, multiply each feature by its current weight, add the results, convert the total to a probability, compare that probability to the real label, and nudge every weight a little in whichever direction would have made the guess closer. Repeat across all 2,937 rows, many times over. The weights drift until the error stops shrinking, and that resting point is the model &mdash; a <b>logistic regression</b>, the most transparent model in the machine learning toolbox: every prediction is a weighted sum you could check by hand. Here is roughly where the weights landed:</p>
+    <div class="mlbars">
+      <div class="mlrow"><span class="mll">KAMF</span><div class="mlt"><div class="mlf" style="width:100%"></div></div><span class="mlv">strongest</span></div>
+      <div class="mlrow"><span class="mll">DPES</span><div class="mlt"><div class="mlf" style="width:82%"></div></div><span class="mlv">strong</span></div>
+      <div class="mlrow"><span class="mll">NEO-FFI</span><div class="mlt"><div class="mlf" style="width:54%"></div></div><span class="mlv">moderate</span></div>
+      <div class="mlrow"><span class="mll">Age</span><div class="mlt"><div class="mlf" style="width:30%"></div></div><span class="mlv">small</span></div>
+      <div class="mlrow"><span class="mll">Sex</span><div class="mlt"><div class="mlf" style="width:22%"></div></div><span class="mlv">small</span></div>
+    </div>
+    <p class="cap">Relative weight each block of features carries in the fitted model. How easily you are moved dominates; age and sex fine-tune.</p>
+
+    <h2><span class="n">4</span>Why we test on strangers</h2>
+    <p>A model with enough freedom can memorise the very people it was fitted on and then fail on anyone new. Researchers call that <b>overfitting</b>, and the standard guard against it is <b>cross-validation</b>. The 2,937 participants get split into ten groups. The model trains on nine of them and is scored on the tenth, which it has never seen. Rotate ten times, so every participant serves once as a stranger, and average the ten scores.</p>
+    <div class="cvwrap">
+      <div class="cvrow"><span class="cvl">Round 1</span><span class="cvb test"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span></div>
+      <div class="cvrow"><span class="cvl">Round 2</span><span class="cvb"></span><span class="cvb test"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span></div>
+      <div class="cvrow"><span class="cvl">Round 3</span><span class="cvb"></span><span class="cvb"></span><span class="cvb test"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span></div>
+      <div class="cvrow"><span class="cvl">…</span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb"></span><span class="cvb test"></span></div>
+      <div class="cvkey"><span><i class="k1"></i> trained on</span><span><i class="k2"></i> scored on</span></div>
+    </div>
+    <p>Every accuracy figure on this page comes from those held-out rounds.</p>
+
+    <h2><span class="n">5</span>From your answers to a percentile</h2>
+    <div class="pipeline">
+      <span class="pnode">Your answers</span><span class="parrow">→</span>
+      <span class="pnode">Scored on each scale</span><span class="parrow">→</span>
+      <span class="pnode">Weighted by the model</span><span class="parrow">→</span>
+      <span class="pnode">Ranked against 2,937</span><span class="parrow">→</span>
+      <span class="pnode">Your percentile</span>
+    </div>
+    <p>Each questionnaire is scored by its own published rules, the eleven numbers go through the weights above for every one of the 40 videos, and your average predicted chills probability lands somewhere on the curve built from the reference sample. <b>"Top 16%"</b> means 84% of those participants sat below you. <b>"1 in 8"</b> counts the share at your level or above — the same fact, said the other way.</p>
+    <svg class="minihist" viewBox="0 0 280 44" width="200" height="auto" aria-hidden="true">
+      <rect x="0" y="34" width="9" height="6" rx="2" fill="#EAE6DD"/><rect x="13" y="31" width="9" height="9" rx="2" fill="#EAE6DD"/><rect x="26" y="26" width="9" height="14" rx="2" fill="#EAE6DD"/><rect x="39" y="20" width="9" height="20" rx="2" fill="#EAE6DD"/><rect x="52" y="13" width="9" height="27" rx="2" fill="#EAE6DD"/><rect x="65" y="7" width="9" height="33" rx="2" fill="#EAE6DD"/><rect x="78" y="3" width="9" height="37" rx="2" fill="#EAE6DD"/><rect x="91" y="2" width="9" height="38" rx="2" fill="#EAE6DD"/><rect x="104" y="5" width="9" height="35" rx="2" fill="#EAE6DD"/><rect x="117" y="10" width="9" height="30" rx="2" fill="#EAE6DD"/><rect x="130" y="16" width="9" height="24" rx="2" fill="#EAE6DD"/><rect x="143" y="21" width="9" height="19" rx="2" fill="#EAE6DD"/><rect x="156" y="24" width="9" height="16" rx="2" fill="#EAE6DD"/><rect x="169" y="26" width="9" height="14" rx="2" fill="#1C1A16"/><rect x="182" y="28" width="9" height="12" rx="2" fill="#EAE6DD"/><rect x="195" y="30" width="9" height="10" rx="2" fill="#EAE6DD"/><rect x="208" y="32" width="9" height="8" rx="2" fill="#EAE6DD"/><rect x="221" y="34" width="9" height="6" rx="2" fill="#EAE6DD"/><rect x="234" y="35" width="9" height="5" rx="2" fill="#EAE6DD"/><rect x="247" y="36" width="9" height="4" rx="2" fill="#EAE6DD"/><rect x="260" y="37" width="9" height="3" rx="2" fill="#EAE6DD"/>
+    </svg>
+    <p class="cap">The chart on your profile is this distribution — every bar is a slice of the 2,937, and the marked bar is where you land.</p>
+
+    <h2><span class="n">6</span>How well it performs</h2>
+    <p>On held-out participants the model reaches an <b>AUC of 0.767</b>. In plain terms: hand it one person who got chills from a video and one who did not, and it ranks the two correctly about 77 times out of 100. A coin flip would manage 50. The probabilities are also <b>calibrated</b> &mdash; when the model says 60%, chills happen roughly 60% of the time &mdash; which is what lets us turn them into an honest score. It carries real signal, and it also leaves plenty on the table.</p>
+    <div class="callout">A higher score means chills are more likely for you, on average, across the kinds of videos in the study. It describes a propensity, not a promise &mdash; the right video on the right day matters as much as the trait.</div>
+
+    <h2><span class="n">7</span>The limits</h2>
+    <p>Read the score as one narrow statement: how your questionnaire answers rank against this particular sample. Its edges are worth knowing. The reference group comes from one region, Southern California, at one moment in time. Chills reports are self-reported. And an AUC of 0.767 means the ranking goes the wrong way roughly one time in four. We show you the arithmetic because the honest version is interesting enough.</p>
+
+    <h2><span class="n">8</span>Sources</h2>
+    <div class="cites">
+      <div class="cite"><b>Predicting individual differences in peak emotional response.</b> Schoeller, Christov-Moore, Lynch, Diot &amp; Reggente. PNAS Nexus, 2024. <a href="https://doi.org/10.1093/pnasnexus/pgae066" target="_blank" rel="noopener">doi.org/10.1093/pnasnexus/pgae066</a></div>
+      <div class="cite"><b>ChillsDB 2.0</b> — the open dataset (CC BY 4.0). Schoeller et al., Scientific Data, 2023. <a href="https://doi.org/10.6084/m9.figshare.23935611.v1" target="_blank" rel="noopener">Download on FigShare</a></div>
+      <div class="cite"><b>ChillsDB: a gold standard for aesthetic chills stimuli.</b> Schoeller et al., Scientific Data, 2023.</div>
+    </div>
+    <p class="cap" style="margin-top:18px">ChillsTV is for education and research purposes only. It provides no medical or psychological advice. Questions: felix@advancedconsciousness.org</p>
   </div>
-
-  <h2><span class="n">2</span> The reference sample</h2>
-  <p>In 2023 the research team collected the same measures from 3,259 people in Southern California; 2,647 remained after quality checks. Each watched videos drawn from a validated set of 40 chills-eliciting stimuli, then reported whether chills happened and how intense they were. The dataset, ChillsDB 2.0, is published open access, so any researcher can rerun what we do here.</p>
-
-  <h2><span class="n">3</span> How the model learned</h2>
-  <p>Every participant becomes one row of numbers. The features are the things known before the video played: age, sex, arousal, KAMF, MODTAS, and which of the 40 stimuli they watched. The label is what actually happened, chills or no chills. A small neural network (exported to ONNX) is trained to predict that label, then used at inference time to score all 40 stimuli for your answers and rank them.</p>
-
-  <h2><span class="n">4</span> Why we test on strangers</h2>
-  <p>A model with enough freedom can memorise the very people it was fitted on and then fail on anyone new. Researchers call that overfitting, and the standard guard against it is cross-validation: training on nine tenths of the sample and scoring on the tenth the model has never seen, rotated ten times so every participant serves once as a stranger.</p>
-
-  <h2><span class="n">5</span> From your answers to a video</h2>
-  <div class="pipeline">
-    <span class="pnode">Your answers</span><span class="parrow">→</span>
-    <span class="pnode">Scored on each scale</span><span class="parrow">→</span>
-    <span class="pnode">Weighed by the model</span><span class="parrow">→</span>
-    <span class="pnode">Ranked against 40 videos</span><span class="parrow">→</span>
-    <span class="pnode">Your match</span>
-  </div>
-  <p>Your "Top X%" on the hub is moving to a direct comparison against the 2,647-person research sample. Until that lands, it compares your matched video's model score against other paid ChillsTV visitors so far.</p>
-
-  <h2><span class="n">6</span> How well it performs</h2>
-  <p>On held-out participants in the published research, the pre-video features predicted whether chills would happen with about 73.5% accuracy. A coin flip would land at 50%, so the model carries real signal, and it also leaves plenty on the table.</p>
-  <div class="callout">A higher score means chills are more likely for you, and tend to run more intense, on average. It describes a propensity measured today. Your arousal shifts by the hour, and your result can shift with it.</div>
-
-  <h2><span class="n">7</span> The limits</h2>
-  <p>Read the score as one narrow statement: how your questionnaire answers rank against this particular model and sample. The reference group comes from one region, Southern California, at one moment in time. Chills reports are self-reported. And ~73.5% accuracy means the prediction misses roughly one time in four.</p>
-
-  <h2><span class="n">8</span> Sources</h2>
-  <div class="cite2"><b>Predicting individual differences in peak emotional response.</b> Schoeller, Christov-Moore, Lynch, Diot &amp; Reggente. PNAS Nexus, 2024. <a href="https://academic.oup.com/pnasnexus/article/3/3/pgae066/7618479" target="_blank">doi.org/10.1093/pnasnexus/pgae066</a></div>
-  <div class="cite2"><b>ChillsDB 2.0</b>, the open dataset (CC BY 4.0). Schoeller et al., Scientific Data, 2023.</div>
-  <div class="cite2"><b>ChillsDB: a gold standard for aesthetic chills stimuli.</b> Schoeller et al., Scientific Data, 2023. <a href="https://www.nature.com/articles/s41597-023-02064-8" target="_blank">nature.com/articles/s41597-023-02064-8</a></div>
-  <p style="font-size:12px; color:var(--text3); margin-top:14px;">ChillsTV is for education and research purposes only. It provides no medical or psychological advice.</p>
 </div>
 {% endblock %}
