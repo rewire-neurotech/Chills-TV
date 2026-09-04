@@ -1,45 +1,47 @@
 {% extends "base.html" %}
-{% block title %}{{ sender_name }} sent you chills · ChillsTV{% endblock %}
 {% block content %}
-<div class="col">
-  <a class="back" href="/hub">‹ Back</a>
-  <div class="sect">
-    <div class="sect-head"><h2>{{ sender_name }} sent you chills</h2></div>
+<div class="screen" id="screen-bet-view">
+  <div class="col">
+    <a class="back" href="/">‹ Back</a>
+    <h1 class="pg-title">{{ sender_name }} sent you chills</h1>
     <div class="panel">
-      {% if send.mode == 'algo' and not send.stimulus_url %}
-      <div class="vinfo" style="border-top:none;">
-        <p>{{ sender_name }} trusted the algorithm to pick your video. Take the short chills test and we'll match you with one, then send them your answer.</p>
-      </div>
-      <a href="/?send={{ send.token }}"><button class="btn full" style="border-top:1px solid var(--border);">Take the test · 3 min</button></a>
-      {% else %}
-      {% if embed_url %}
-      <div class="ytwrap"><iframe src="{{ embed_url }}" title="{{ send.stimulus_name }}" allowfullscreen allow="autoplay; encrypted-media"></iframe></div>
-      {% else %}
-      <div class="vthumb"{% if send.stimulus_url %} style="background-image:url('https://i.ytimg.com/vi/{{ send.stimulus_url.split('/')[-1].split('?')[0] }}/hqdefault.jpg'); background-size:cover; background-position:center;"{% endif %}><div class="glow"></div><div class="play-btn">&#9654;</div></div>
-      {% endif %}
-      <div class="vbody"><h3>{{ send.stimulus_name }}</h3></div>
-      {% if send.status == 'sent' %}
-      <div style="border-top:1px solid var(--border);">
-        <div style="padding:14px 16px 8px; font-size:14px; font-weight:600;">Did you get chills?</div>
-        <div class="pred-row">
-          <a href="/feedback?id={{ recipient_pid | urlencode }}&stimulus_id={{ send.stimulus_id }}&url={{ send.stimulus_url | urlencode }}&stimulus_name={{ send.stimulus_name | urlencode }}&send_token={{ send.token }}" style="text-decoration:none; flex:1;"><button type="button" style="width:100%;">⚡ Yes</button></a>
-          <form method="post" action="/b/{{ send.token }}/respond" style="flex:1;">
-            <button type="submit" name="experienced" value="no" style="width:100%;">No</button>
-          </form>
+      <div class="pth" data-pl="0" onclick="window.open({{ send.stimulus_url|tojson }}, '_blank')" style="cursor:pointer"><div class="play"><svg viewBox="0 0 24 24"><path d="M8 5.5v13a.6.6 0 0 0 .92.5l10-6.5a.6.6 0 0 0 0-1l-10-6.5A.6.6 0 0 0 8 5.5Z"/></svg></div></div>
+      <div class="pb">
+        <h3>{{ send.stimulus_name }}</h3>
+        {% if send.status == "sent" %}<div class="ask" id="bv-q">
+          <div class="lbl">Did you get chills?</div>
+          <div class="yn"><button class="btn btn-p" onclick="answerYes()">Yes</button><button class="btn btn-o" onclick="answerNo()">No</button></div>
+        </div>{% endif %}<div class="ask" id="bv-r"{% if send.status == "sent" %} style="display:none"{% endif %}>
+          <div class="rbig" id="bv-title">{% if send.status != "sent" %}{% if send.experienced %}{{ sender_name }} got you.{% else %}This one left you cold.{% endif %}{% endif %}</div>
+          <p class="rsub" id="bv-sub">{% if send.status != "sent" %}{% if send.experienced %}{{ sender_name }} picked this video for you, and it worked.{% else %}{{ sender_name }} picked this video for you. It happens.{% endif %}{% endif %}</p>
+          <span class="rtag" id="bv-you">{% if send.status != "sent" %}{{ sender_name }} will see this{% endif %}</span>
+          <div style="margin-top:20px"><button class="btn btn-p btn-w" onclick="location.href='/'">Get your chills score</button></div>
         </div>
       </div>
-      {% else %}
-      <div style="border-top:1px solid var(--border);">
-        <div class="reveal">
-          <div class="rbig">Thanks, saved.</div>
-          <p>Your answer has been recorded. {{ sender_name }} will see it once they reveal it on their side. This link will not show it again, even to you.</p>
-        </div>
-        <button class="btn full" onclick="location.href='/'">Get your own chills score</button>
-      </div>
-      {% endif %}
-      {% endif %}
     </div>
-    <p style="font-size:11px; color:var(--text3); padding:8px 4px;">{{ sender_name }} hears your answer once you have given it. They picked this video for you.</p>
+    <p class="note">{{ sender_name }} hears your answer once you have given it. They picked this video for you.</p>
   </div>
 </div>
+
+{% endblock %}
+{% block page_data %}
+<script>window.VIDEOS = {{ video_urls|tojson }};</script>
+{% endblock %}
+{% block page_js %}
+<script>
+{% if send.status == "sent" %}
+function answerYes(){
+  location.href = '/feedback?stimulus_id={{ send.stimulus_id }}&stimulus_name={{ send.stimulus_name|urlencode }}&url={{ send.stimulus_url|urlencode }}&send_token={{ send.token }}';
+}
+function answerNo(){
+  var fd = new FormData(); fd.append('experienced', 'no');
+  fetch('/b/{{ send.token }}/respond', {method:'POST', body: fd});
+  document.getElementById('bv-q').style.display='none';
+  var r = document.getElementById('bv-r'); r.style.display='block';
+  document.getElementById('bv-title').textContent = 'This one left you cold.';
+  document.getElementById('bv-sub').textContent = {{ sender_name|tojson }} + ' picked this video for you. It happens.';
+  document.getElementById('bv-you').textContent = {{ sender_name|tojson }} + ' will see this';
+}
+{% endif %}
+</script>
 {% endblock %}
