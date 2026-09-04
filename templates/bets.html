@@ -1,71 +1,63 @@
 {% extends "base.html" %}
-{% block title %}Send Chills · ChillsTV{% endblock %}
 {% block content %}
-<div class="col">
-  <a class="back" href="/hub">‹ Profile</a>
-  <h1 class="pg-title">Send Chills</h1>
+<div class="screen" id="screen-bets">
+  <div class="col">
+    <a class="back" href="/hub">‹ Profile</a>
+    <h1 class="pg-title">Beat the algorithm</h1>
+    <p class="pg-lede">Pick a video for a friend. If it gives them chills, the point is yours. If the algorithm's pick does better, the point goes to the machine.</p>
 
-  <div class="ck-strip">
-    <div class="ck-main">
-      <div class="ck-big">{{ hit_rate }}%</div>
-      <div class="ck-sub">hit rate</div>
-    </div>
-    <div class="ck-dist">
-      <div class="ck-rank">{{ done | length }} revealed so far</div>
-    </div>
-    <a class="ck-cta" href="/send">Send chills</a>
-  </div>
-
-  {% if ready %}
-  <div class="sect">
-    <div class="sect-head"><h2>Ready to reveal <span>{{ ready | length }}</span></h2></div>
-    {% for s in ready %}
-    <a class="betcard newres" href="/reveal/{{ s.token }}">
-      <div class="thumb" style="background-image:url('https://i.ytimg.com/vi/{{ s.stimulus_url.split('/')[-1].split('?')[0] }}/mqdefault.jpg')"></div>
-      <div class="mid">
-        <b class="bc-who">{{ s.recipient_name or "Someone" }} <em>· {{ s.stimulus_name }}</em></b>
-        <span class="bc-line">Watched and answered</span>
-      </div>
-      <div class="bstat reveal">Reveal</div>
-    </a>
-    {% endfor %}
-  </div>
-  {% endif %}
-
-  {% if unopened %}
-  <div class="sect">
-    <div class="sect-head"><h2>Not opened yet <span>{{ unopened | length }}</span></h2></div>
-    {% for s in unopened %}
-    <div class="betcard unopened">
-      <div class="thumb" style="background-image:url('https://i.ytimg.com/vi/{{ s.stimulus_url.split('/')[-1].split('?')[0] }}/mqdefault.jpg')"></div>
-      <div class="mid">
-        <b>{{ s.stimulus_name or "Algorithm pick" }}</b>
-        <span>Link sent</span>
-      </div>
-      <button class="resend" onclick="copyText(location.origin + '/b/{{ s.token }}', 'Link copied, send it again')">Resend link</button>
-    </div>
-    {% endfor %}
-  </div>
-  {% endif %}
-
-  {% if done %}
-  <div class="sect">
-    <div class="sect-head"><h2>Hits and misses <span>{{ done | length }}</span></h2></div>
-    <div class="ck-grid">
-      {% for s in done %}
-      <div class="ck-res {% if s.experienced %}hit{% else %}miss{% endif %}">
-        <div class="ckr-top"><div class="rav" style="background:{{ s.avatar_color }}">{{ s.avatar_letter }}</div><span class="ckr-badge {% if s.experienced %}win{% else %}lose{% endif %}">{% if s.experienced %}Hit{% else %}Miss{% endif %}</span></div>
-        <b>{{ s.recipient_name or "Someone" }}</b>
-        <i>{{ s.stimulus_name }}</i>
-        <div class="ckr-score"><div class="ckr-bar"><em style="width:{{ (s.intensity or 0) * 10 }}%"></em></div><span>{{ s.intensity or 0 }}/10</span></div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-
-  {% if not ready and not unopened and not done %}
-  <p class="pg-lede">You haven't sent anyone chills yet. <a href="/send" style="color:var(--blue); text-decoration:none; font-weight:600;">Send your first video</a>.</p>
-  {% endif %}
+    <div class="boardcard">
+<div class="board">
+  <div class="tile2{% if you_points > algo_points %} win{% endif %}"><div class="av me">{{ avatar_letter }}</div><span>You</span><b>{{ you_points }}</b></div>
+  <div class="tile2{% if algo_points > you_points %} win{% endif %}"><div class="av bot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.2"/></svg></div><span>Algorithm</span><b>{{ algo_points }}</b></div>
 </div>
+      <div class="lead">{{ lead_line }}</div>
+      <button class="btn btn-p" onclick="location.href='/send'">Pick a video</button>
+    </div>
+
+    {% if ready %}<div class="sec">
+      <div class="sec-h"><h2>Ready to reveal <span>{{ ready|length }}</span></h2></div>
+      <div class="doors">
+        {% for s in ready %}<div class="door tap" onclick="location.href='/reveal/{{ s.token }}'">
+          <div class="th" data-pl="{{ loop.index0 }}"></div>
+          <div class="t"><b>{{ s.recipient_name or 'Someone' }} <em>&middot; {{ s.stimulus_name }}</em></b><span>Watched and answered</span></div>
+          <button class="btn btn-p" style="height:38px;padding:0 18px;font-size:14px">Reveal</button>
+        </div>
+        {% endfor %}</div>
+    </div>{% endif %}
+
+    {% if unopened %}<div class="sec">
+      <div class="sec-h"><h2>Not opened yet <span>{{ unopened|length }}</span></h2></div>
+      <div class="doors">
+        {% for s in unopened %}<div class="door">
+          <div class="th" data-pl="{{ ready|length + loop.index0 }}"></div>
+          <div class="t"><b>{{ s.stimulus_name }}</b><span>Link sent {{ s.sent_ago }}</span></div>
+          <button class="btn-s" onclick="resendLink('{{ s.token }}')">Resend link</button>
+        </div>
+        {% endfor %}</div>
+    </div>{% endif %}
+
+    {% if done %}<div class="sec">
+      <div class="sec-h"><h2>Rounds played <span>{{ done|length }}</span></h2></div>
+      <div class="doors">
+        {% for s in done %}<div class="door"><div class="av a{{ loop.index0 % 3 + 1 }}">{{ s.avatar_letter }}</div><div class="t"><b>{{ s.recipient_name or 'Someone' }}</b><span>{{ s.stimulus_name }} &middot; {% if s.experienced %}{{ s.intensity }}/10{% else %}no chills{% endif %}</span></div><span class="won{% if s.outcome == 'you' %} you{% endif %}">{% if s.outcome == 'you' %}You won{% else %}Algorithm won{% endif %}</span></div>
+        {% endfor %}</div>
+    </div>{% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block page_data %}
+<script>window.VIDEOS = {{ video_urls|tojson }};</script>
+{% endblock %}
+{% block page_js %}
+<script>
+var INVITE_TEXT2 = 'I bet this gives you chills \u2014 try it';
+function resendLink(token){
+  var u = 'https://chillstv.com/b/' + token;
+  if (navigator.share) { navigator.share({ text: INVITE_TEXT2, url: u }).catch(function(){}); }
+  else { navigator.clipboard.writeText(INVITE_TEXT2 + ' ' + u)
+           .then(function(){ toast('Message copied \u2014 send it again'); })
+           .catch(function(){ toast('Copy failed'); }); }
+}
+</script>
 {% endblock %}
