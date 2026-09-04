@@ -1,0 +1,18 @@
+{
+ "features": [
+  "DPES_1",
+  "DPES_4",
+  "DPES_29",
+  "NEO-FFI_10",
+  "NEO-FFI_14",
+  "NEO-FFI_16",
+  "NEO-FFI_45",
+  "NEO-FFI_46",
+  "KAMF 4_1",
+  "age_years",
+  "sexf",
+  "Stimulus"
+ ],
+ "age_feature": "age_years, bucket midpoints or exact years",
+ "sex_feature": "sexf, female 1, male 0, other 0.5"
+}
