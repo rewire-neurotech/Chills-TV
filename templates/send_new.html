@@ -1,43 +1,81 @@
 {% extends "base.html" %}
-{% block title %}Send Chills · ChillsTV{% endblock %}
 {% block content %}
-<div class="col">
-  <a class="back" href="/hub">‹ Profile</a>
-  <h1 class="pg-title">Send chills</h1>
-  <p class="pg-lede">Pick a video you have already watched and send the link to one person. When they watch it, they tell us what happened, and you find out whether it got them.</p>
+<div class="screen" id="screen-bet-intro">
+  <div class="col">
+    <a class="back" href="/bets">‹ Beat the algorithm</a>
+    <h1 class="pg-title">Send a video</h1>
+    <p class="pg-lede">Pick a video you have already watched and send the link to one person. When they watch it, they tell us what happened, and you find out whether it got them.</p>
 
-  <div class="steps">
-    <div class="step active">
-      <div class="sdot">1</div>
-      <div class="stitle">Pick a video</div>
-      <div class="ssub">Choose one you have seen, so you know what is in it.</div>
-      <div class="sbody">
-        {% for v in videos %}
-        <form method="post" action="/send/create" style="margin:0;">
-          <input type="hidden" name="mode" value="picked">
-          <input type="hidden" name="stimulus_id" value="{{ v.sid }}">
-          <button type="submit" class="vpick" style="width:100%; text-align:left; border:1px solid var(--border); font-family:inherit;">
-            <div class="thumb" style="background-image:url('https://i.ytimg.com/vi/{{ v.url.split('/')[-1].split('?')[0] }}/mqdefault.jpg')"></div>
-            <b>{{ v.name }}</b>
-          </button>
-        </form>
-        {% endfor %}
-        <div class="pickor"><span>or</span></div>
-        <form method="post" action="/send/create">
-          <input type="hidden" name="mode" value="algo">
-          <button type="submit" class="vpick algo" style="width:100%; text-align:left; border:1px solid var(--border); font-family:inherit;">
-            <div class="thumb algothumb">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.2"/></svg>
-            </div>
-            <div class="algotxt">
-              <b>I trust the algo</b>
-              <span>They take the test and get matched with their own video.</span>
-            </div>
-          </button>
-        </form>
+    <div class="steps">
+
+      <div class="step {% if send %}done{% else %}active{% endif %}" id="step1">
+        <div class="sdot" id="dot1">{% if send %}&#10003;{% else %}1{% endif %}</div>
+        <div>
+          <div class="stitle">Pick a video</div>
+          <div class="ssub" id="sub1">{% if send %}You picked:{% else %}Choose one you have seen, so you know what is in it.{% endif %}</div>
+          <div class="sbody" id="body1"{% if send %} style="display:none"{% endif %}>
+            {% for v in videos %}<div class="vpick" onclick="pickVideo('{{ v.sid }}')"><div class="th" data-pl="{{ loop.index0 }}"></div><b>{{ v.name }}</b></div>
+            {% endfor %}          </div>
+          {% if send %}<div class="picked" id="picked1">
+            <div class="th" id="picked-thumb"></div>
+            <b id="picked-title">{{ send.stimulus_name }}</b>
+            <a class="swap" href="/send">Change</a>
+          </div>{% endif %}<div style="display:none">
+          </div>
+        </div>
       </div>
+
+      <div class="step {% if send %}active{% else %}locked{% endif %}" id="step2">
+        <div class="sdot" id="dot2">2</div>
+        <div>
+          <div class="stitle">Send the link</div>
+          <div class="ssub" id="sub2">The first person who opens it is the one you will hear back about.</div>
+          <div class="sbody">
+            <div class="sendcard">
+              <div class="linkfield">
+                <span class="url" id="betlink">chillstv.com/b/{{ send.token if send else "" }}</span>
+                <button class="icon-btn" onclick="copyInvite()" title="Copy link" aria-label="Copy link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+                <button class="icon-btn" onclick="shareInvite()" title="Share" aria-label="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></button>
+              </div>
+              <button class="btn btn-p" onclick="confirmSent()">I sent it</button>
+            </div>
+          </div>
+          <div class="sdone" id="sent1" style="display:none">Sent. Their answer will show up here once they have watched it.</div>
+        </div>
+      </div>
+
     </div>
+
+    <p class="foot">Everyone who receives a link can get their own chills score, which is how most people end up here.</p>
   </div>
-  <p class="bx-foot">Everyone who receives a link can get their own chills score, which is how most people end up here.</p>
 </div>
+
+{% endblock %}
+{% block page_data %}
+<script>
+window.VIDEOS = {{ video_urls|tojson }};
+</script>
+{% endblock %}
+{% block page_js %}
+<script>
+function pickVideo(sid){
+  var f = document.createElement('form'); f.method = 'POST'; f.action = '/send/create';
+  var i = document.createElement('input'); i.type = 'hidden'; i.name = 'stimulus_id'; i.value = sid;
+  f.appendChild(i); document.body.appendChild(f); f.submit();
+}
+function confirmSent(){
+  var s2 = document.getElementById('step2');
+  s2.classList.remove('active'); s2.classList.add('done');
+  document.getElementById('dot2').innerHTML = '&#10003;';
+  document.querySelector('#step2 .sbody').style.display = 'none';
+  document.getElementById('sent1').style.display = 'block';
+  toast('Sent');
+}
+{% if send and send.stimulus_url %}
+document.addEventListener('DOMContentLoaded', function(){
+  var t = document.getElementById('picked-thumb');
+  if (t) { t.style.backgroundImage = 'url(' + thumbOf(ytId({{ send.stimulus_url|tojson }})) + ')'; t.style.backgroundSize='cover'; t.style.backgroundPosition='center'; }
+});
+{% endif %}
+</script>
 {% endblock %}
