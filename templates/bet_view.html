@@ -5,7 +5,7 @@
     <a class="back" href="/">‹ Back</a>
     <h1 class="pg-title">{{ sender_name }} sent you chills</h1>
     <div class="panel">
-      <div class="pth" data-pl="0" onclick="window.open({{ send.stimulus_url|tojson }}, '_blank')" style="cursor:pointer"><div class="play"><svg viewBox="0 0 24 24"><path d="M8 5.5v13a.6.6 0 0 0 .92.5l10-6.5a.6.6 0 0 0 0-1l-10-6.5A.6.6 0 0 0 8 5.5Z"/></svg></div></div>
+      <div class="player"><div id="ytplayer"></div></div>
       <div class="pb">
         <h3>{{ send.stimulus_name }}</h3>
         {% if send.status == "sent" %}<div class="ask" id="bv-q">
@@ -29,8 +29,39 @@
 {% endblock %}
 {% block page_js %}
 <script>
+var ytPlayer = null, ytReady = false;
+var tag = document.createElement('script'); tag.src = 'https://www.youtube.com/iframe_api';
+document.head.appendChild(tag);
+function onYouTubeIframeAPIReady(){ ytReady = true; mountPlayer(); }
+function mountPlayer(){
+  if (!ytReady || !document.getElementById('ytplayer')) return;
+  var id = vidAt(0);
+  try {
+    ytPlayer = new YT.Player('ytplayer', {
+      videoId: id,
+      host: 'https://www.youtube-nocookie.com',
+      playerVars: { rel:0, modestbranding:1, playsinline:1, origin: location.origin },
+      events: { onError: function(){ playerFallback(id); } }
+    });
+  } catch (err) { playerFallback(id); }
+}
+function playerFallback(id){
+  var wrap = document.querySelector('#screen-bet-view .player');
+  if (!wrap || wrap.dataset.fallback) return;
+  wrap.dataset.fallback = '1';
+  ytPlayer = null;
+  wrap.innerHTML =
+    '<div class="ytfall" style="background-image:url(' + thumbOf(id, true) + ')">' +
+      '<a class="ytfall-play" href="https://www.youtube.com/watch?v=' + id + '" target="_blank" rel="noopener">&#9654;</a>' +
+      '<div class="ytfall-bar"><span>Opens on YouTube</span></div>' +
+    '</div>';
+}
 {% if send.status == "sent" %}
 function answerYes(){
+  /* record the yes immediately so an abandoned detail form cannot lose it */
+  var fd = new FormData(); fd.append('experienced', 'yes');
+  try { navigator.sendBeacon('/b/{{ send.token }}/respond', fd); }
+  catch (e) { fetch('/b/{{ send.token }}/respond', {method:'POST', body: fd, keepalive: true}); }
   location.href = '/feedback?stimulus_id={{ send.stimulus_id }}&stimulus_name={{ send.stimulus_name|urlencode }}&url={{ send.stimulus_url|urlencode }}&send_token={{ send.token }}';
 }
 function answerNo(){
