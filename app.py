@@ -249,6 +249,16 @@ def req_base(req: Request) -> str:
     scheme = req.headers.get("x-forwarded-proto", "https")
     return f"{scheme}://{host}"
 
+
+def log_ev(event: str, user=None, detail: dict = None, pid: str = ""):
+    """Every user action lands in the events table. detail is a plain dict."""
+    chillsdb.log_event(
+        event,
+        user_id=user["id"] if user else None,
+        pid=(user["pid"] if user else pid) or "",
+        detail=json.dumps(detail or {}),
+    )
+
 def percentile_against(ref, value):
     """Share of the reference distribution this value beats, 0 to 100."""
     try:
@@ -867,6 +877,12 @@ async def start(req: Request):
         SESSIONS[sid]["answers"] = H
         SESSIONS[sid]["paid"] = False
 
+        log_ev("questionnaire_completed", pid=pid, detail={
+            "answers": H, "probs": [round(float(z), 4) for z in p.tolist()],
+            "mean_p": round(mean_p, 4), "chills_score": user_chills_score,
+            "top5": [{"name": z.get("name", ""), "p": round(float(z.get("score", 0)), 4)} for z in best5],
+        })
+
         if stripe.api_key:
             return RedirectResponse(f"/paywall?sid={sid}", status_code=303)
         # No payment step for this version (Felix, 2026-08-14): go straight to
@@ -936,6 +952,8 @@ async def payment_complete(req: Request, session_id: str = ""):
         return RedirectResponse("/")
 
     sid = (stripe_sess.metadata or {}).get("session_id", "")
+    log_ev("payment_completed", pid=SESSIONS.get(sid, {}).get("pid", ""),
+           detail={"stripe_session": session_id})
     return _finalize_paid_session(req, sid, session_label=session_id)
 
 
@@ -1015,6 +1033,11 @@ def _finalize_paid_session(req: Request, sid: str, session_label: str = ""):
     # users.percentile now holds the ChillsScore: percentile of the user's mean
     # p(chills) against the 2,937 study participants. Higher is better.
     chillsdb.set_percentile(visitor_token, float(sess_data.get("chills_score", 0.0)))
+    log_ev("profile_created", user=chillsdb.get_user_by_token(visitor_token), detail={
+        "chills_score": float(sess_data.get("chills_score", 0.0)),
+        "top_match": stim.get("stim_name", stim.get("name", "")),
+        "top5": [e["name"] for e in top5_entries],
+    })
 
     # resolve a pending Send-Chills ("trust the algo") or Duo-compatibility link, if any
     dest = "/hub"
@@ -1050,6 +1073,10 @@ def _finalize_paid_session(req: Request, sid: str, session_label: str = ""):
                     pending["token"], user["id"] if user else 0, pid or "A friend", match_pct,
                     video_sid, video_name,
                 )
+                log_ev("duo_completed", user=user, detail={
+                    "token": pending["token"], "match_pct": float(match_pct),
+                    "joint_video": video_name, "initiator_id": duo_row["user_id"],
+                })
                 dest = f"/duo/{pending['token']}"
 
     resp = RedirectResponse(dest, status_code=303)
@@ -1142,6 +1169,7 @@ def hub(req: Request):
     for x in all_sends:
         x["outcome"] = bet_outcome(x)
     board = bets_scoreboard(all_sends)
+    log_ev("hub_viewed", user=user, detail={"top_pct": top_pct})
     return t.TemplateResponse("profile.html", {
         "request": req, "page": "hub", **nav_context(req, user), "videos": videos,
         "recent_sends": recent, "sent_count": sent_count, "hit_count": hit_count,
@@ -1164,6 +1192,7 @@ def video_page(req: Request, sid: str):
     if not v:
         return RedirectResponse("/hub")
     comments = [dict(c, avatar_color=avatar_color(c["author"])) for c in chillsdb.comments_for(sid)]
+    log_ev("video_viewed", user=user, detail={"stimulus_id": sid, "name": v["name"]})
     return t.TemplateResponse("video.html", {
         "request": req, "page": "video", **nav_context(req, user),
         "video": v, "embed_url": _to_embed_url(v["url"]), "comments": comments,
@@ -1179,6 +1208,7 @@ def video_watched(req: Request, sid: str):
     user = chillsauth.get_current_user(req)
     if user and video_by_sid(sid):
         chillsdb.record_watch(user["id"], sid)
+    log_ev("video_watched", user=user, detail={"stimulus_id": sid})
     return JSONResponse({"ok": True})
 
 
@@ -1194,6 +1224,9 @@ async def video_report(req: Request, sid: str):
     if text:
         chillsdb.add_video_comment(sid, text, experienced, author=author,
                                     user_id=user["id"] if user else None)
+    log_ev("chills_report", user=user, pid=author, detail={
+        "stimulus_id": sid, "experienced": experienced, "text": text,
+    })
 
     try:
         lp = "/data/logs.csv"
@@ -1283,6 +1316,7 @@ async def send_create(req: Request):
     if not v:
         return RedirectResponse("/send", status_code=303)
     row = chillsdb.create_send(user["id"], sid, v.get("name", ""), v.get("url", ""), mode="picked")
+    log_ev("send_created", user=user, detail={"token": row["token"], "stimulus_id": sid, "name": v.get("name", "")})
     return RedirectResponse(f"/send/{row['token']}", status_code=303)
 
 
@@ -1310,6 +1344,8 @@ def bet_view(req: Request, token: str):
     sender = chillsdb.get_user_by_id(row["sender_user_id"])
     sender_name = (sender["pid"] if sender and sender["pid"] else "Someone") or "Someone"
     recipient = chillsauth.get_current_user(req)
+    log_ev("bet_link_opened", user=recipient, detail={"token": token, "sender": sender_name,
+                                                       "stimulus": row["stimulus_name"]})
     return t.TemplateResponse("bet_view.html", {
         "request": req, "page": "bet-view", **nav_context(req, recipient),
         "send": row, "sender_name": sender_name,
@@ -1326,6 +1362,7 @@ async def bet_respond(req: Request, token: str):
     row = chillsdb.get_send_by_token(token)
     if row and row["status"] == "sent":
         chillsdb.record_send_response(token, experienced)
+        log_ev("bet_answered", detail={"token": token, "experienced": experienced})
     return RedirectResponse(f"/b/{token}", status_code=303)
 
 
@@ -1361,6 +1398,10 @@ async def reveal_submit(req: Request, token: str):
     row = chillsdb.get_send_by_token(token)
     if row and row["status"] == "watched":
         chillsdb.record_reveal_gate(token, closeness, relationship)
+        log_ev("revealed", user=chillsauth.get_current_user(req), detail={
+            "token": token, "closeness": closeness, "relationship": relationship,
+            "experienced": bool(row["experienced"]), "outcome": bet_outcome(dict(row)) or "",
+        })
     return RedirectResponse(f"/reveal/{token}", status_code=303)
 
 
@@ -1379,6 +1420,8 @@ def duo_new(req: Request):
             (user["id"],),
         ).fetchone()
     row = existing or chillsdb.create_duo(user["id"])
+    if not existing:
+        log_ev("duo_created", user=user, detail={"token": row["token"]})
 
     # v49 duo intro: completed pairs under Results, pending under Waiting with
     # opened-the-link state. The active pending row is the persistent link.
@@ -1411,6 +1454,7 @@ def duo_recipient(req: Request, token: str):
     # visit counts, not the initiator previewing their own link.
     if row["status"] == "pending" and not (viewer and viewer["id"] == row["user_id"]):
         chillsdb.mark_duo_opened(token)
+        log_ev("duo_link_opened", user=viewer, detail={"token": token})
     initiator = chillsdb.get_user_by_id(row["user_id"])
     initiator_name = (initiator["pid"] if initiator and initiator["pid"] else "Someone") or "Someone"
     return t.TemplateResponse("duo_recipient.html", {
@@ -1478,6 +1522,7 @@ async def contribute_submit(req: Request):
     user = chillsauth.get_current_user(req)
     if url or description:
         chillsdb.create_contribution(url, description, submitted_by=user["id"] if user else None)
+        log_ev("contribution", user=user, detail={"url": url, "description": description})
         return RedirectResponse("/contribute?sent=1", status_code=303)
     return RedirectResponse("/contribute", status_code=303)
 
@@ -1623,6 +1668,23 @@ def admin_export_csv(req: Request):
     return HTMLResponse(csv_text, media_type="text/csv", headers=headers)
 
 
+@a.get("/admin/events.csv")
+def admin_events_csv(req: Request):
+    if not chillsauth.is_admin(req):
+        return RedirectResponse("/admin/login")
+    rows = chillsdb.all_events()
+    out = [["time", "user_id", "pid", "event", "detail"]]
+    for e in rows:
+        out.append([
+            datetime.utcfromtimestamp(e["created_at"]).isoformat(),
+            e["user_id"] if e["user_id"] is not None else "",
+            e["pid"], e["event"], e["detail"],
+        ])
+    csv_text = "\n".join(",".join('"' + str(c).replace('"', '""') + '"' for c in row) for row in out)
+    headers = {"Content-Disposition": "attachment; filename=chillstv_events.csv"}
+    return HTMLResponse(csv_text, media_type="text/csv", headers=headers)
+
+
 # ═══════════════════════════════════════════════════
 # FEEDBACK ROUTES (original detailed questionnaire)
 # ═══════════════════════════════════════════════════
@@ -1656,19 +1718,25 @@ async def submit(req: Request,
         "description"
     ]
     is_new = not os.path.exists(p)
+    clean_description = description.replace("\r\n", "\n").strip()
     with open(p, "a", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
         if is_new: w.writerow(Hh)
         w.writerow([
             datetime.utcnow().isoformat(), id, email, prolific_id, stimulus_id, url,
             experienced, chills_amount, chills_length, chills_waves,
-            description.replace("\r\n","\n").strip()
+            clean_description
         ])
+
+    log_ev("chills_feedback", user=chillsauth.get_current_user(req), pid=id, detail={
+        "stimulus_id": stimulus_id, "experienced": experienced, "intensity": chills_amount,
+        "length": chills_length, "waves": chills_waves, "description": clean_description,
+        "send_token": send_token,
+    })
 
     # picked-mode Send Chills threads its token explicitly through the form;
     # algo-mode has no send_token here, it closes via the recipient's own
     # pending_send_token instead (set when they finished the questionnaire).
-    clean_description = description.replace("\r\n", "\n").strip()
     if send_token and chillsdb.get_send_by_token(send_token):
         chillsdb.record_send_response(send_token, experienced == "yes",
                                        intensity=chills_amount, recipient_name=id,
