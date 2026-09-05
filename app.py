@@ -242,7 +242,12 @@ def mean_p_of(user) -> float:
     idx = min(len(SCORE_REF) - 1, max(0, round(pct / 100 * (len(SCORE_REF) - 1))))
     return SCORE_REF[idx]
 
-BASE_URL = "https://chillstv.com"
+def req_base(req: Request) -> str:
+    """Link base from the live request, so share links work on the onrender
+    URL today and on chillstv.com automatically once DNS points at Render."""
+    host = req.headers.get("host", "chillstv.com")
+    scheme = req.headers.get("x-forwarded-proto", "https")
+    return f"{scheme}://{host}"
 
 def percentile_against(ref, value):
     """Share of the reference distribution this value beats, 0 to 100."""
@@ -859,6 +864,7 @@ async def start(req: Request):
         SESSIONS[sid]["vector"] = FW.get("built_vector", [])
         SESSIONS[sid]["probs"] = [float(z) for z in p.tolist()]
         SESSIONS[sid]["chills_score"] = user_chills_score
+        SESSIONS[sid]["answers"] = H
         SESSIONS[sid]["paid"] = False
 
         if stripe.api_key:
@@ -956,8 +962,6 @@ def _finalize_paid_session(req: Request, sid: str, session_label: str = ""):
     S["stimulus_id"] = stim.get("stimulus_id", "")
     S["model_score_pct"] = round(float(stim.get("score", 0.0)) * 100, 1)
 
-    share_url = f"https://chillstv.com/p/{sid[:8]}"
-
     # log the unlock
     try:
         lp = "/data/logs.csv"
@@ -1006,6 +1010,7 @@ def _finalize_paid_session(req: Request, sid: str, session_label: str = ""):
     chillsdb.update_user_match(
         visitor_token, stim.get("stimulus_id",""), stim.get("stim_name", stim.get("name","")),
         stim.get("url",""), score01, 0.0, paid=True, top5_json=top5_json, vector_json=vector_json,
+        answers_json=json.dumps(sess_data.get("answers") or {}),
     )
     # users.percentile now holds the ChillsScore: percentile of the user's mean
     # p(chills) against the 2,937 study participants. Higher is better.
@@ -1144,7 +1149,7 @@ def hub(req: Request):
         "top_pct": top_pct, "one_in": one_in_for(mean_p_of(user)),
         "hist_bars": bars, "marker_x": marker_x, "latest_duo": latest_duo,
         "you_points": board["you_points"], "algo_points": board["algo_points"],
-        "video_urls": [v.get("url", "") for v in videos], "base_url": BASE_URL,
+        "video_urls": [v.get("url", "") for v in videos], "base_url": req_base(req),
     })
 
 
@@ -1163,7 +1168,7 @@ def video_page(req: Request, sid: str):
         "request": req, "page": "video", **nav_context(req, user),
         "video": v, "embed_url": _to_embed_url(v["url"]), "comments": comments,
         "pid": (user["pid"] if user else "") or "Anonymous",
-        "video_urls": [v.get("url", "")], "base_url": BASE_URL,
+        "video_urls": [v.get("url", "")], "base_url": req_base(req),
     })
 
 
@@ -1344,7 +1349,7 @@ def reveal_gate(req: Request, token: str):
     return t.TemplateResponse("reveal.html", {
         "request": req, "page": "reveal", **nav_context(req, user), "send": row,
         "rname": (row["recipient_name"] or "").strip() or "They",
-        "outcome": bet_outcome(dict(row)), "score_line": score_line, "base_url": BASE_URL,
+        "outcome": bet_outcome(dict(row)), "score_line": score_line, "base_url": req_base(req),
     })
 
 
@@ -1449,7 +1454,7 @@ def duo_result(req: Request, token: str):
         "a_top_pct": _top(initiator), "b_top_pct": _top(partner),
         "a_one_in": one_in_for(mean_p_of(initiator)) if initiator else 8,
         "b_one_in": one_in_for(mean_p_of(partner)) if partner else 8,
-        "video_urls": [jv.get("url", "")], "base_url": BASE_URL,
+        "video_urls": [jv.get("url", "")], "base_url": req_base(req),
     })
 
 
@@ -1473,7 +1478,8 @@ async def contribute_submit(req: Request):
     user = chillsauth.get_current_user(req)
     if url or description:
         chillsdb.create_contribution(url, description, submitted_by=user["id"] if user else None)
-    return RedirectResponse("/contribute?sent=1", status_code=303)
+        return RedirectResponse("/contribute?sent=1", status_code=303)
+    return RedirectResponse("/contribute", status_code=303)
 
 
 # ═══════════════════════════════════════════════════
