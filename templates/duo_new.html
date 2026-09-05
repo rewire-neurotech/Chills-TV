@@ -9,7 +9,7 @@
     <div class="linkcard">
       <div class="k">Your link</div>
       <div class="linkfield">
-        <span class="url">chillstv.com/us/{{ duo.token }}</span>
+        <span class="url">{{ request.url.netloc }}/us/{{ duo.token }}</span>
         <button class="icon-btn" onclick="copyMatchLink()" title="Copy link" aria-label="Copy link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
         <button class="icon-btn" onclick="shareMatchLink()" title="Share" aria-label="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></button>
       </div>
@@ -44,7 +44,7 @@
 {% endblock %}
 {% block page_js %}
 <script>
-var MATCH_URL = 'https://chillstv.com/us/{{ duo.token }}', MATCH_TEXT = 'Do we chill together? Take the test and we find out at the same time';
+var MATCH_URL = location.origin + '/us/{{ duo.token }}', MATCH_TEXT = 'Do we chill together? Take the test and we find out at the same time';
 function copyMatchLink(){
   navigator.clipboard.writeText(MATCH_TEXT + ' ' + MATCH_URL)
     .then(function(){ toast('Link copied — send it to anyone'); })
