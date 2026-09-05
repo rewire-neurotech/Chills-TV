@@ -5,7 +5,7 @@
     <a class="back" href="/hub">‹ Profile</a>
     <h1 class="pg-title">Add a chills video</h1>
     <p class="pg-lede">Know a video that reliably gives people chills? Send it to the lab. Approved videos join the research and are shown to new participants.</p>
-    <form method="POST" action="/contribute">
+    <form method="POST" action="/contribute" id="cform">
     <div class="field" style="margin-top:28px">
       <label>Paste the link</label>
       <input name="url" placeholder="https://youtube.com/…">
@@ -22,5 +22,16 @@
 
 {% endblock %}
 {% block page_js %}
+<script>
+document.getElementById('cform').addEventListener('submit', function(e){
+  var f = e.target;
+  var url = (f.elements.url.value || '').trim();
+  var desc = (f.elements.description.value || '').trim();
+  if (!url && !desc) {
+    e.preventDefault();
+    toast('Paste a link or describe the video first');
+  }
+});
+</script>
 {% if sent %}<script>document.addEventListener('DOMContentLoaded', function(){ toast('Sent \u2014 approved videos join the study'); });</script>{% endif %}
 {% endblock %}
