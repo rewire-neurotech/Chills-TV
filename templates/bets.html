@@ -53,7 +53,7 @@
 <script>
 var INVITE_TEXT2 = 'I bet this gives you chills \u2014 try it';
 function resendLink(token){
-  var u = 'https://chillstv.com/b/' + token;
+  var u = location.origin + '/b/' + token;
   if (navigator.share) { navigator.share({ text: INVITE_TEXT2, url: u }).catch(function(){}); }
   else { navigator.clipboard.writeText(INVITE_TEXT2 + ' ' + u)
            .then(function(){ toast('Message copied \u2014 send it again'); })
