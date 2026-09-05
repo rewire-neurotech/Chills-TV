@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS users (
     session_id TEXT DEFAULT '',
     top5_json TEXT DEFAULT '[]',
     vector_json TEXT DEFAULT '[]',
+    answers_json TEXT DEFAULT '{}',
     pending_send_token TEXT DEFAULT '',
     created_at REAL NOT NULL
 );
@@ -135,6 +136,10 @@ def _migrate(conn):
         if col not in existing:
             conn.execute(f"ALTER TABLE sends ADD COLUMN {col} {decl}")
 
+    existing = {row["name"] for row in conn.execute("PRAGMA table_info(users)")}
+    if "answers_json" not in existing:
+        conn.execute("ALTER TABLE users ADD COLUMN answers_json TEXT DEFAULT '{}'")
+
     existing = {row["name"] for row in conn.execute("PRAGMA table_info(duo_pairs)")}
     if "opened_at" not in existing:
         conn.execute("ALTER TABLE duo_pairs ADD COLUMN opened_at REAL")
@@ -175,15 +180,17 @@ def get_user_by_id(user_id: int):
 
 def update_user_match(token: str, stimulus_id: str, stimulus_name: str, stimulus_url: str,
                        score: float, percentile: float, paid: bool = True,
-                       top5_json: str = None, vector_json: str = None):
+                       top5_json: str = None, vector_json: str = None,
+                       answers_json: str = None):
     with get_conn() as conn:
         conn.execute(
             """UPDATE users SET stimulus_id=?, stimulus_name=?, stimulus_url=?,
                score=?, percentile=?, paid=?,
-               top5_json=COALESCE(?, top5_json), vector_json=COALESCE(?, vector_json)
+               top5_json=COALESCE(?, top5_json), vector_json=COALESCE(?, vector_json),
+               answers_json=COALESCE(?, answers_json)
                WHERE token=?""",
             (stimulus_id, stimulus_name, stimulus_url, score, percentile, int(paid),
-             top5_json, vector_json, token),
+             top5_json, vector_json, answers_json, token),
         )
 
 
