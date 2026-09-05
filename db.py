@@ -96,6 +96,15 @@ CREATE TABLE IF NOT EXISTS video_comments (
     user_id INTEGER
 );
 
+CREATE TABLE IF NOT EXISTS events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    pid TEXT DEFAULT '',
+    event TEXT NOT NULL,
+    detail TEXT DEFAULT '{}',
+    created_at REAL NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS admin_sessions (
     token TEXT PRIMARY KEY,
     created_at REAL NOT NULL,
@@ -459,6 +468,27 @@ def count_sends_experienced() -> int:
             "SELECT COUNT(*) AS n FROM sends WHERE experienced = 1"
         ).fetchone()
     return int(row["n"])
+
+
+# ── events (full action log) ──────────────────────────────────────────
+def log_event(event: str, user_id: int = None, pid: str = "", detail: str = "{}"):
+    """One row per user action. Never raises, a logging failure must not
+    break the request it rides on."""
+    try:
+        with get_conn() as conn:
+            conn.execute(
+                "INSERT INTO events (user_id, pid, event, detail, created_at) VALUES (?,?,?,?,?)",
+                (user_id, pid or "", event, detail or "{}", time.time()),
+            )
+    except Exception:
+        pass
+
+
+def all_events(limit: int = 200000):
+    with get_conn() as conn:
+        return conn.execute(
+            "SELECT * FROM events ORDER BY created_at ASC LIMIT ?", (limit,)
+        ).fetchall()
 
 
 # ── admin sessions ─────────────────────────────────────────────────────
