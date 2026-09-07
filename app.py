@@ -1157,6 +1157,21 @@ async def stripe_webhook(req: Request):
 # V38 - PROFILE HUB
 # ═══════════════════════════════════════════════════
 
+@a.get("/me/{token}", response_class=HTMLResponse)
+def resume_profile(req: Request, token: str):
+    # permanent personal link. opening it points this browser at that
+    # profile again, any device, same bearer token pattern as send and
+    # duo links. bridges the one cookie per browser limit until login.
+    user = chillsdb.get_user_by_token(token)
+    if not user:
+        return RedirectResponse("/")
+    log_ev("profile_resumed", user=user)
+    resp = RedirectResponse("/hub", status_code=303)
+    resp.set_cookie(chillsauth.VISITOR_COOKIE, token, max_age=60*60*24*365,
+                     httponly=True, samesite="lax")
+    return resp
+
+
 @a.get("/hub", response_class=HTMLResponse)
 def hub(req: Request):
     user = chillsauth.get_current_user(req)
