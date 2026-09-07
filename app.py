@@ -996,10 +996,24 @@ def _finalize_paid_session(req: Request, sid: str, session_label: str = ""):
     except Exception:
         pass
 
-    # persist a hub profile for this visitor (cookie-based, no signup required)
+    # persist a hub profile for this visitor (cookie-based, no signup required).
+    # the cookie row is reused only when the submitted name matches the name
+    # stored on it. a different name on the same browser is a different person,
+    # so they get a fresh row and a rotated cookie instead of inheriting the
+    # previous person's results (the old-results and score-overwrite bugs).
     visitor_token = req.cookies.get(chillsauth.VISITOR_COOKIE, "")
     user = chillsdb.get_user_by_token(visitor_token)
-    if not user:
+    if user:
+        stored_pid = (user["pid"] or "").strip().lower()
+        submitted_pid = (pid or "").strip().lower()
+        if stored_pid and submitted_pid and stored_pid != submitted_pid:
+            user = None
+    if user:
+        if pid and (user["pid"] or "") != pid:
+            with chillsdb.get_conn() as _conn:
+                _conn.execute("UPDATE users SET pid=? WHERE token=?", (pid, user["token"]))
+            user = chillsdb.get_user_by_token(visitor_token)
+    else:
         user = chillsdb.create_user(pid=pid, session_id=session_label)
         visitor_token = user["token"]
 
@@ -1055,6 +1069,11 @@ def _finalize_paid_session(req: Request, sid: str, session_label: str = ""):
                 chillsdb.set_pending_send_token(visitor_token, pending["token"])
         elif pending.get("type") == "duo" and pending.get("token"):
             duo_row = chillsdb.get_duo_by_token(pending["token"])
+            if duo_row and duo_row["status"] == "pending" and user and duo_row["user_id"] == user["id"]:
+                # the link's creator opened their own duo link on the same
+                # browser. pairing a person with themselves is meaningless,
+                # so leave the duo pending for the real friend.
+                duo_row = None
             if duo_row and duo_row["status"] == "pending":
                 initiator = chillsdb.get_user_by_id(duo_row["user_id"])
                 init_vec = json.loads(initiator["vector_json"] or "[]") if initiator else []
