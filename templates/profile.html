@@ -10,8 +10,9 @@
       </div>
       <div class="score">
         <div>
-          <div class="n">Top {{ top_pct }}%</div>
-          <div class="s"><b>1 in {{ one_in }} people</b> score in this range.</div>
+          <div class="n">{{ likely_pct }}%</div>
+          <div class="s"><b>You're more likely to get chills</b> than {{ likely_pct }}% of people.</div>
+          <div class="s" style="margin-top:4px;opacity:.7">1 in {{ one_in }} people score in this range.</div>
           <a class="how" href="/method">How it's computed</a>
           <div class="act"><button class="btn btn-c" onclick="share('score')">Share my score</button></div>
         </div>
@@ -119,6 +120,6 @@
 {% block page_data %}
 <script>
 window.VIDEOS = {{ video_urls|tojson }};
-window.payloads = { score: { text:'\u26a1 Top {{ top_pct }}% chills sensitivity. I found it on ChillsTV \u2014 @rewire_protocols', url:'{{ base_url }}' } };
+window.payloads = { score: { text:'\u26a1 More likely to get chills than {{ likely_pct }}% of people. I found it on ChillsTV \u2014 @rewire_protocols', url:'{{ base_url }}' } };
 </script>
 {% endblock %}
