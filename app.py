@@ -2,7 +2,9 @@ import sitecustomize
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 import bisect, csv, hashlib, json, os, re, secrets, time, unicodedata
+import requests
 from datetime import datetime
 import joblib, numpy as np, onnxruntime as rt, pandas as pd
 import sklearn, stripe
@@ -19,6 +21,8 @@ chillsdb.init_db()
 a = FastAPI()
 b = os.path.dirname(__file__)
 t = Jinja2Templates(directory=os.path.join(b, "templates"))
+if os.path.isdir(os.path.join(b, "images")):
+    a.mount("/images", StaticFiles(directory=os.path.join(b, "images")), name="images")
 
 ff = os.path.join(b, "new_features.json")
 pf = os.path.join(b, "new_preprocessor.joblib")
@@ -798,6 +802,180 @@ def avatar_color(seed: str) -> str:
 
 
 # ═══════════════════════════════════════════════════
+# V50 UNIFICATION HELPERS (rewire.bio site + account flow)
+# ═══════════════════════════════════════════════════
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
+
+FLOW_GRADIENTS = [
+    "radial-gradient(120% 90% at 30% 20%,#2a2438 0%,#141320 55%,#0c0b12 100%)",
+    "linear-gradient(135deg,#1a1a2e,#0f3460)",
+    "linear-gradient(135deg,#1c2a4a,#3a1c4a)",
+    "linear-gradient(135deg,#301a2e,#1e2a66)",
+    "linear-gradient(135deg,#233048,#3a2c5a)",
+    "linear-gradient(135deg,#101c2e,#0c4a5e)",
+]
+
+def ytid(url: str) -> str:
+    m = re.search(r"(?:v=|youtu\.be/|embed/|shorts/)([A-Za-z0-9_-]{6,})", url or "")
+    return m.group(1) if m else ""
+
+def _user_initial(user) -> str:
+    if not user:
+        return ""
+    src0 = (user["pid"] or "").strip() or (user["email"] or "").strip()
+    return (src0[:1] or "?").upper()
+
+def _user_has_profile(user) -> bool:
+    return bool(user and (user["stimulus_id"] or ""))
+
+def flow_videos_for(user) -> list:
+    """The top 5 as the unified template consumes them: sid, title, desc,
+    length, kind, poster gradient, url, youtube id."""
+    if not user:
+        return []
+    try:
+        top5 = json.loads(user["top5_json"] or "[]")
+    except Exception:
+        top5 = []
+    out = []
+    for i, e in enumerate(top5[:5]):
+        sid = e.get("stimulus_id", "")
+        cat = video_by_sid(sid) or {}
+        url = e.get("url", "") or cat.get("url", "")
+        out.append({
+            "sid": sid,
+            "t": e.get("name", "") or cat.get("name", ""),
+            "d": cat.get("desc", ""),
+            "len": cat.get("dur", ""),
+            "kind": "Picked for you",
+            "bg": FLOW_GRADIENTS[i % len(FLOW_GRADIENTS)],
+            "url": url,
+            "yt": ytid(url),
+        })
+    return out
+
+def unified_context(req: Request, user) -> dict:
+    """Everything unified.html needs, for both jinja and the CTX json."""
+    has_profile = _user_has_profile(user)
+    likely = 0
+    one_in = 8
+    bars, marker_x = [], 0.0
+    videos = []
+    latest_duo = None
+    you_points, algo_points = 0, 0
+    if user and has_profile:
+        likely = max(1, min(99, round(float(user["percentile"] or 0))))
+        one_in = one_in_for(mean_p_of(user))
+        bars, marker_x = hist_bars_for(mean_p_of(user))
+        videos = flow_videos_for(user)
+        for d0 in chillsdb.duos_for_user(user["id"]):
+            if d0["status"] == "completed":
+                latest_duo = {"token": d0["token"], "partner_name": (d0["partner_name"] or "A friend"),
+                              "partner_letter": avatar_of(d0["partner_name"] or "?"),
+                              "match_pct": float(d0["match_pct"] or 0)}
+                break
+        all_sends = [dict(x) for x in chillsdb.sends_for_sender(user["id"])]
+        for x in all_sends:
+            x["outcome"] = bet_outcome(x)
+        board = bets_scoreboard(all_sends)
+        you_points, algo_points = board["you_points"], board["algo_points"]
+    pending_sid = (user["pending_after_sid"] or "") if user else ""
+    ctx = {
+        "logged_in": chillsauth.is_logged_in(req),
+        "has_profile": has_profile,
+        "email": (user["email"] or "") if user else "",
+        "initial": _user_initial(user),
+        "app_access": (user["beta_status"] or "none") if user else "none",
+        "pending_after": bool(pending_sid),
+        "pending_sid": pending_sid,
+        "likely_pct": likely,
+        "videos": videos,
+    }
+    return {
+        "request": req, "ctx": ctx, "initial": _user_initial(user) or "?",
+        "likely_pct": likely, "one_in": one_in,
+        "hist_bars": bars, "marker_x": marker_x, "videos": videos,
+        "latest_duo": latest_duo, "you_points": you_points, "algo_points": algo_points,
+    }
+
+def _persist_flow(req: Request, user, sess_data):
+    """New-funnel version of _finalize_paid_session: writes the questionnaire
+    result to the signed-in account's own users row (no row rotation, the
+    account is the identity), then resolves a pending send or duo link."""
+    stim = sess_data.get("stimulus", {})
+    pid = sess_data.get("pid", "")
+    if pid and (user["pid"] or "") != pid:
+        with chillsdb.get_conn() as _conn:
+            _conn.execute("UPDATE users SET pid=? WHERE token=?", (pid, user["token"]))
+    top5 = sess_data.get("top5", [])
+    top5_entries = [
+        {"stimulus_id": z.get("stimulus_id",""), "name": z.get("name",""),
+         "url": z.get("url",""), "score": float(z.get("score",0.0))}
+        for z in top5
+    ]
+    official_sid = stim.get("stimulus_id", "")
+    top5_entries = [e for e in top5_entries if e["stimulus_id"] != official_sid]
+    if official_sid:
+        top5_entries.insert(0, {
+            "stimulus_id": official_sid, "name": stim.get("stim_name", stim.get("name", "")),
+            "url": stim.get("url", ""), "score": float(stim.get("score", 0.0)),
+        })
+    chillsdb.update_user_match(
+        user["token"], stim.get("stimulus_id",""), stim.get("stim_name", stim.get("name","")),
+        stim.get("url",""), float(stim.get("score", 0.0)), 0.0, paid=True,
+        top5_json=json.dumps(top5_entries),
+        vector_json=json.dumps(sess_data.get("probs", [])),
+        answers_json=json.dumps(sess_data.get("answers") or {}),
+    )
+    chillsdb.set_percentile(user["token"], float(sess_data.get("chills_score", 0.0)))
+    user = chillsdb.get_user_by_token(user["token"])
+    log_ev("profile_created", user=user, detail={
+        "chills_score": float(sess_data.get("chills_score", 0.0)),
+        "top_match": stim.get("stim_name", stim.get("name", "")),
+        "top5": [e["name"] for e in top5_entries], "funnel": "unified",
+    })
+    pending_raw = req.cookies.get("pending_link", "")
+    if pending_raw:
+        try:
+            pending = json.loads(pending_raw)
+        except Exception:
+            pending = {}
+        if pending.get("type") == "send" and pending.get("token"):
+            send_row = chillsdb.get_send_by_token(pending["token"])
+            if send_row:
+                chillsdb.set_send_stimulus(pending["token"], stim.get("stimulus_id",""),
+                                            stim.get("stim_name", stim.get("name","")), stim.get("url",""))
+                chillsdb.set_pending_send_token(user["token"], pending["token"])
+        elif pending.get("type") == "duo" and pending.get("token"):
+            duo_row = chillsdb.get_duo_by_token(pending["token"])
+            if duo_row and duo_row["status"] == "pending" and duo_row["user_id"] == user["id"]:
+                duo_row = None
+            if duo_row and duo_row["status"] == "pending":
+                initiator = chillsdb.get_user_by_id(duo_row["user_id"])
+                init_vec = json.loads(initiator["vector_json"] or "[]") if initiator else []
+                res = chills_match(init_vec, sess_data.get("probs", []))
+                if res is not None:
+                    raw, match_pct, order = res
+                    joint = stim_entry(order[0], raw)
+                    video_sid = joint["stimulus_id"]
+                    video_name = joint["stim_name"]
+                else:
+                    match_pct = cosine_match_pct(init_vec, sess_data.get("vector", []))
+                    video_sid = stim.get("stimulus_id","")
+                    video_name = stim.get("stim_name", stim.get("name",""))
+                chillsdb.complete_duo(
+                    pending["token"], user["id"], pid or "A friend", match_pct,
+                    video_sid, video_name,
+                )
+                log_ev("duo_completed", user=user, detail={
+                    "token": pending["token"], "match_pct": float(match_pct),
+                    "joint_video": video_name, "initiator_id": duo_row["user_id"],
+                })
+
+
+# ═══════════════════════════════════════════════════
 # ROUTES
 # ═══════════════════════════════════════════════════
 
@@ -805,8 +983,8 @@ def avatar_color(seed: str) -> str:
 def index(req: Request, send: str = "", us: str = ""):
     if chillsauth.is_admin(req) and not send and not us:
         return RedirectResponse("/admin")
-    q2 = [x for x in Q if x["k"] != "Age"]
-    resp = t.TemplateResponse("index.html", {"request": req, "DEMO": qdemo(), "QS": q2})
+    user = chillsauth.get_current_user(req)
+    resp = t.TemplateResponse("unified.html", unified_context(req, user))
     if send:
         resp.set_cookie("pending_link", json.dumps({"type": "send", "token": send}),
                          max_age=3600, httponly=True, samesite="lax")
@@ -814,6 +992,253 @@ def index(req: Request, send: str = "", us: str = ""):
         resp.set_cookie("pending_link", json.dumps({"type": "duo", "token": us}),
                          max_age=3600, httponly=True, samesite="lax")
     return resp
+
+@a.get("/chillstv")
+def chillstv_page():
+    return RedirectResponse("/#/chills")
+
+@a.get("/legacy-start", response_class=HTMLResponse)
+def legacy_start(req: Request):
+    """The pre-unification questionnaire funnel, kept reachable for debugging."""
+    q2 = [x for x in Q if x["k"] != "Age"]
+    return t.TemplateResponse("index.html", {"request": req, "DEMO": qdemo(), "QS": q2})
+
+
+# ── account auth ──────────────────────────────────────────────────
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+@a.post("/auth/signup")
+async def auth_signup(req: Request):
+    try:
+        body = await req.json()
+    except Exception:
+        body = {}
+    email = (body.get("email") or "").strip().lower()
+    password = body.get("password") or ""
+    if not EMAIL_RE.match(email):
+        return JSONResponse({"ok": False, "error": "That email does not look right."})
+    if len(password) < 6:
+        return JSONResponse({"ok": False, "error": "Password needs at least 6 characters."})
+    if chillsdb.get_user_by_email(email):
+        return JSONResponse({"ok": False, "error": "That email already has an account. Sign in instead."})
+    ph = chillsauth.hash_password(password)
+    visitor_token = req.cookies.get(chillsauth.VISITOR_COOKIE, "")
+    existing = chillsdb.get_user_by_token(visitor_token)
+    if existing and not (existing["email"] or ""):
+        user = chillsdb.attach_account(visitor_token, email, ph)
+    else:
+        user = chillsdb.create_account_user(email, ph)
+    resp = JSONResponse({"ok": True, "has_profile": _user_has_profile(user)})
+    chillsauth.start_session(resp, req, user["id"])
+    log_ev("account_created", user=user, detail={"method": "password"})
+    return resp
+
+@a.post("/auth/signin")
+async def auth_signin(req: Request):
+    try:
+        body = await req.json()
+    except Exception:
+        body = {}
+    email = (body.get("email") or "").strip().lower()
+    password = body.get("password") or ""
+    user = chillsdb.get_user_by_email(email)
+    if not user or not chillsauth.verify_password(password, user["password_hash"] or ""):
+        return JSONResponse({"ok": False, "error": "Wrong email or password."})
+    resp = JSONResponse({
+        "ok": True,
+        "has_profile": _user_has_profile(user),
+        "pending_after": bool(user["pending_after_sid"] or ""),
+        "pending_sid": user["pending_after_sid"] or "",
+    })
+    chillsauth.start_session(resp, req, user["id"])
+    log_ev("signed_in", user=user, detail={"method": "password"})
+    return resp
+
+@a.post("/auth/logout")
+async def auth_logout(req: Request):
+    resp = JSONResponse({"ok": True})
+    chillsauth.end_session(resp, req)
+    return resp
+
+@a.get("/auth/google/start")
+def google_start(req: Request):
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+        return RedirectResponse("/?gerr=1#/account")
+    state = secrets.token_urlsafe(16)
+    from urllib.parse import urlencode
+    params = urlencode({
+        "client_id": GOOGLE_CLIENT_ID,
+        "redirect_uri": req_base(req) + "/auth/google/callback",
+        "response_type": "code",
+        "scope": "openid email profile",
+        "state": state,
+        "prompt": "select_account",
+    })
+    resp = RedirectResponse("https://accounts.google.com/o/oauth2/v2/auth?" + params)
+    resp.set_cookie("g_state", state, max_age=600, httponly=True, samesite="lax")
+    return resp
+
+@a.get("/auth/google/callback")
+def google_callback(req: Request, code: str = "", state: str = ""):
+    if not code or not state or state != req.cookies.get("g_state", ""):
+        return RedirectResponse("/?gerr=1#/account")
+    try:
+        tok = requests.post("https://oauth2.googleapis.com/token", data={
+            "code": code,
+            "client_id": GOOGLE_CLIENT_ID,
+            "client_secret": GOOGLE_CLIENT_SECRET,
+            "redirect_uri": req_base(req) + "/auth/google/callback",
+            "grant_type": "authorization_code",
+        }, timeout=15).json()
+        info = requests.get("https://openidconnect.googleapis.com/v1/userinfo",
+                             headers={"Authorization": "Bearer " + tok.get("access_token", "")},
+                             timeout=15).json()
+    except Exception as ex:
+        E["msg"] = f"google oauth: {ex}"; E["when"] = datetime.utcnow().isoformat()
+        return RedirectResponse("/?gerr=1#/account")
+    sub = str(info.get("sub") or "")
+    email = (info.get("email") or "").strip().lower()
+    if not sub or not email:
+        return RedirectResponse("/?gerr=1#/account")
+    user = chillsdb.get_user_by_google_sub(sub)
+    created = False
+    if not user:
+        user = chillsdb.get_user_by_email(email)
+        if user:
+            chillsdb.attach_account(user["token"], email, "", sub)
+            user = chillsdb.get_user_by_token(user["token"])
+        else:
+            visitor_token = req.cookies.get(chillsauth.VISITOR_COOKIE, "")
+            existing = chillsdb.get_user_by_token(visitor_token)
+            if existing and not (existing["email"] or ""):
+                user = chillsdb.attach_account(visitor_token, email, "", sub)
+            else:
+                user = chillsdb.create_account_user(email, "", sub)
+            created = True
+    dest = "/#/profile" if _user_has_profile(user) else "/#/consent"
+    resp = RedirectResponse(dest)
+    resp.delete_cookie("g_state")
+    chillsauth.start_session(resp, req, user["id"])
+    log_ev("account_created" if created else "signed_in", user=user, detail={"method": "google"})
+    return resp
+
+
+# ── the unified account flow ─────────────────────────────────────
+@a.post("/flow/consent")
+async def flow_consent(req: Request):
+    user = chillsauth.get_session_user(req)
+    if not user:
+        return JSONResponse({"ok": False, "error": "Please sign in first."})
+    chillsdb.set_consented(user["id"])
+    log_ev("consent_given", user=user)
+    return JSONResponse({"ok": True})
+
+@a.post("/flow/submit")
+async def flow_submit(req: Request):
+    try:
+        user = chillsauth.get_session_user(req)
+        if not user:
+            return JSONResponse({"ok": False, "error": "Please sign in first."})
+        try:
+            body = await req.json()
+        except Exception:
+            body = {}
+        name = (body.get("name") or "").strip()
+        answers = body.get("answers") or {}
+        if not name:
+            return JSONResponse({"ok": False, "error": "Please tell us your name."})
+        H = {}
+        for x in qall():
+            H[x["k"]] = str(answers.get(x["k"], "") or "")
+        bad = []
+        for fk in SCALE_ITEMS:
+            try:
+                float(H.get(fk, ""))
+            except (TypeError, ValueError):
+                bad.append(fk)
+        if bad:
+            return JSONResponse({"ok": False, "error": "Answers incomplete: " + ", ".join(bad)})
+        FW["raw_answers"] = H
+        if body.get("consent"):
+            chillsdb.set_consented(user["id"])
+        m = map_answers_to_features(H)
+        p = predict_probs(m)
+        best5 = topk(m, 5, pid=name, p=p)
+        P["last_top5"] = best5[:]
+        mean_p = float(np.mean(p))
+        user_chills_score = percentile_against(SCORE_REF, mean_p)
+        best = _choose_from_ties(best5, name, built_vec=FW.get("built_vector", [])) if best5 else {
+            "score": 0.0, "stimulus_id": "", "url": "", "name": "", "desc": "", "dur": "", "cap": ""
+        }
+        sess_data = {
+            "pid": name, "stimulus": best, "top5": best5,
+            "vector": FW.get("built_vector", []),
+            "probs": [float(z) for z in p.tolist()],
+            "chills_score": user_chills_score,
+            "answers": H,
+        }
+        log_ev("questionnaire_completed", user=user, detail={
+            "answers": H, "probs": [round(float(z), 4) for z in p.tolist()],
+            "mean_p": round(mean_p, 4), "chills_score": user_chills_score,
+            "top5": [{"name": z.get("name", ""), "p": round(float(z.get("score", 0)), 4)} for z in best5],
+            "funnel": "unified",
+        })
+        _persist_flow(req, user, sess_data)
+        user = chillsdb.get_user_by_id(user["id"])
+        resp = JSONResponse({
+            "ok": True,
+            "videos": flow_videos_for(user),
+            "likely_pct": max(1, min(99, round(float(user["percentile"] or 0)))),
+        })
+        resp.delete_cookie("pending_link")
+        return resp
+    except Exception as ex:
+        E["msg"] = f"/flow/submit: {ex}"; E["when"] = datetime.utcnow().isoformat()
+        return JSONResponse({"ok": False, "error": "Something went wrong on our side."})
+
+@a.post("/flow/pending")
+async def flow_pending(req: Request):
+    user = chillsauth.get_current_user(req)
+    if not user:
+        return JSONResponse({"ok": False})
+    try:
+        body = await req.json()
+    except Exception:
+        body = {}
+    chillsdb.set_pending_after(user["id"], (body.get("sid") or "").strip())
+    return JSONResponse({"ok": True})
+
+@a.post("/flow/after")
+async def flow_after(req: Request):
+    user = chillsauth.get_current_user(req)
+    if not user:
+        return JSONResponse({"ok": False, "error": "Please sign in first."})
+    try:
+        body = await req.json()
+    except Exception:
+        body = {}
+    sid = (body.get("sid") or "").strip() or (user["pending_after_sid"] or "")
+    chills = bool(body.get("chills"))
+    what = (body.get("what") or "").strip()
+    why = (body.get("why") or "").strip()
+    if sid:
+        chillsdb.record_after_answers(user["id"], sid, chills, what, why)
+        chillsdb.record_watch(user["id"], sid)
+    chillsdb.clear_pending_after(user["id"])
+    log_ev("after_answers", user=user, detail={
+        "stimulus_id": sid, "chills": chills, "what": what, "why": why,
+    })
+    return JSONResponse({"ok": True})
+
+@a.post("/flow/beta")
+async def flow_beta(req: Request):
+    user = chillsauth.get_current_user(req)
+    if not user:
+        return JSONResponse({"ok": False, "error": "Please sign in first."})
+    if (user["beta_status"] or "none") != "granted":
+        chillsdb.set_beta_status(user["id"], "listed")
+        log_ev("beta_joined", user=user)
+    return JSONResponse({"ok": True})
 
 @a.post("/intake", response_class=HTMLResponse)
 async def intake(req: Request):
@@ -1172,7 +1597,13 @@ def resume_profile(req: Request, token: str):
     return resp
 
 
-@a.get("/hub", response_class=HTMLResponse)
+@a.get("/hub")
+def hub_redirect(req: Request):
+    """The v49 hub is replaced by the unified profile. Games pages still
+    link here, so redirect instead of removing."""
+    return RedirectResponse("/#/profile")
+
+@a.get("/hub-v49", response_class=HTMLResponse)
 def hub(req: Request):
     user = chillsauth.get_current_user(req)
     if not user:
