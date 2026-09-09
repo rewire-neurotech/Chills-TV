@@ -24,8 +24,8 @@
     </div>
 
     <div class="duo-pair">
-      <div class="duo-card"><div class="k">{% if me_side == "a" %}You{% else %}{{ a_name }}{% endif %}</div><div class="n">Top {{ a_top_pct }}%</div><div class="r">1 in {{ a_one_in }} people</div></div>
-      <div class="duo-card"><div class="k">{% if me_side == "b" %}You{% else %}{{ b_name }}{% endif %}</div><div class="n">Top {{ b_top_pct }}%</div><div class="r">1 in {{ b_one_in }} people</div></div>
+      <div class="duo-card"><div class="k">{% if me_side == "a" %}You{% else %}{{ a_name }}{% endif %}</div><div class="n">{{ a_likely_pct }}%</div><div class="r">more likely to get chills than {{ a_likely_pct }}% of people</div></div>
+      <div class="duo-card"><div class="k">{% if me_side == "b" %}You{% else %}{{ b_name }}{% endif %}</div><div class="n">{{ b_likely_pct }}%</div><div class="r">more likely to get chills than {{ b_likely_pct }}% of people</div></div>
     </div>
 
     <div class="actions duo-share"><button class="btn btn-p" onclick="share('duo')">Share this result</button></div>
