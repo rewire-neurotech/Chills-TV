@@ -28,6 +28,12 @@ CREATE TABLE IF NOT EXISTS users (
     vector_json TEXT DEFAULT '[]',
     answers_json TEXT DEFAULT '{}',
     pending_send_token TEXT DEFAULT '',
+    email TEXT DEFAULT '',
+    password_hash TEXT DEFAULT '',
+    google_sub TEXT DEFAULT '',
+    consented_at REAL,
+    beta_status TEXT DEFAULT 'none',
+    pending_after_sid TEXT DEFAULT '',
     created_at REAL NOT NULL
 );
 
@@ -110,6 +116,23 @@ CREATE TABLE IF NOT EXISTS admin_sessions (
     created_at REAL NOT NULL,
     expires_at REAL NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS after_answers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    stimulus_id TEXT NOT NULL,
+    chills INTEGER NOT NULL,
+    what_text TEXT DEFAULT '',
+    why_text TEXT DEFAULT '',
+    created_at REAL NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS auth_sessions (
+    token TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    created_at REAL NOT NULL,
+    expires_at REAL NOT NULL
+);
 """
 
 
@@ -130,6 +153,9 @@ def init_db():
     with get_conn() as conn:
         conn.executescript(SCHEMA)
         _migrate(conn)
+        conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email) WHERE email != ''"
+        )
 
 
 def _migrate(conn):
@@ -148,6 +174,16 @@ def _migrate(conn):
     existing = {row["name"] for row in conn.execute("PRAGMA table_info(users)")}
     if "answers_json" not in existing:
         conn.execute("ALTER TABLE users ADD COLUMN answers_json TEXT DEFAULT '{}'")
+    for col, decl in [
+        ("email", "TEXT DEFAULT ''"),
+        ("password_hash", "TEXT DEFAULT ''"),
+        ("google_sub", "TEXT DEFAULT ''"),
+        ("consented_at", "REAL"),
+        ("beta_status", "TEXT DEFAULT 'none'"),
+        ("pending_after_sid", "TEXT DEFAULT ''"),
+    ]:
+        if col not in existing:
+            conn.execute(f"ALTER TABLE users ADD COLUMN {col} {decl}")
 
     existing = {row["name"] for row in conn.execute("PRAGMA table_info(duo_pairs)")}
     if "opened_at" not in existing:
@@ -489,6 +525,129 @@ def all_events(limit: int = 200000):
         return conn.execute(
             "SELECT * FROM events ORDER BY created_at ASC LIMIT ?", (limit,)
         ).fetchall()
+
+
+# ── accounts (v50 unification) ───────────────────────────────────────
+def get_user_by_email(email: str):
+    email = (email or "").strip().lower()
+    if not email:
+        return None
+    with get_conn() as conn:
+        return conn.execute("SELECT * FROM users WHERE email=?", (email,)).fetchone()
+
+
+def get_user_by_google_sub(sub: str):
+    if not sub:
+        return None
+    with get_conn() as conn:
+        return conn.execute("SELECT * FROM users WHERE google_sub=?", (sub,)).fetchone()
+
+
+def attach_account(user_token: str, email: str, password_hash: str = "", google_sub: str = ""):
+    """Bind an email account to an existing cookie user row, so a visitor who
+    already took the test keeps their profile when they sign up."""
+    with get_conn() as conn:
+        conn.execute(
+            """UPDATE users SET email=?, password_hash=COALESCE(NULLIF(?, ''), password_hash),
+               google_sub=COALESCE(NULLIF(?, ''), google_sub) WHERE token=?""",
+            ((email or "").strip().lower(), password_hash, google_sub, user_token),
+        )
+        return conn.execute("SELECT * FROM users WHERE token=?", (user_token,)).fetchone()
+
+
+def create_account_user(email: str, password_hash: str = "", google_sub: str = "") -> sqlite3.Row:
+    """A fresh users row that starts life with an account attached. The row
+    still gets a token so every legacy flow (hub, sends, duo) works on it."""
+    token = new_token(16)
+    with get_conn() as conn:
+        conn.execute(
+            "INSERT INTO users (token, email, password_hash, google_sub, created_at) VALUES (?,?,?,?,?)",
+            (token, (email or "").strip().lower(), password_hash, google_sub, time.time()),
+        )
+        return conn.execute("SELECT * FROM users WHERE token=?", (token,)).fetchone()
+
+
+def set_password(user_id: int, password_hash: str):
+    with get_conn() as conn:
+        conn.execute("UPDATE users SET password_hash=? WHERE id=?", (password_hash, user_id))
+
+
+def set_consented(user_id: int):
+    with get_conn() as conn:
+        conn.execute(
+            "UPDATE users SET consented_at=? WHERE id=? AND consented_at IS NULL",
+            (time.time(), user_id),
+        )
+
+
+def set_beta_status(user_id: int, status: str):
+    assert status in ("none", "listed", "granted")
+    with get_conn() as conn:
+        conn.execute("UPDATE users SET beta_status=? WHERE id=?", (status, user_id))
+
+
+def set_pending_after(user_id: int, stimulus_id: str):
+    with get_conn() as conn:
+        conn.execute("UPDATE users SET pending_after_sid=? WHERE id=?", (stimulus_id or "", user_id))
+
+
+def clear_pending_after(user_id: int):
+    with get_conn() as conn:
+        conn.execute("UPDATE users SET pending_after_sid='' WHERE id=?", (user_id,))
+
+
+# ── after the video answers ──────────────────────────────────
+def record_after_answers(user_id: int, stimulus_id: str, chills: bool,
+                          what_text: str = "", why_text: str = ""):
+    if not user_id or not stimulus_id:
+        return
+    with get_conn() as conn:
+        conn.execute(
+            """INSERT INTO after_answers (user_id, stimulus_id, chills, what_text, why_text, created_at)
+               VALUES (?,?,?,?,?,?)""",
+            (user_id, stimulus_id, int(bool(chills)), (what_text or "").strip(),
+             (why_text or "").strip(), time.time()),
+        )
+
+
+def after_answers_for_user(user_id: int, limit: int = 100):
+    with get_conn() as conn:
+        return conn.execute(
+            "SELECT * FROM after_answers WHERE user_id=? ORDER BY created_at DESC LIMIT ?",
+            (user_id, limit),
+        ).fetchall()
+
+
+# ── auth sessions (account sign in) ───────────────────────────
+def create_auth_session(user_id: int, ttl_seconds: int = 60 * 60 * 24 * 365) -> str:
+    token = new_token(24)
+    now = time.time()
+    with get_conn() as conn:
+        conn.execute(
+            "INSERT INTO auth_sessions (token, user_id, created_at, expires_at) VALUES (?,?,?,?)",
+            (token, user_id, now, now + ttl_seconds),
+        )
+    return token
+
+
+def get_auth_session(token: str):
+    """The session row if the token is valid and unexpired, else None."""
+    if not token:
+        return None
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT * FROM auth_sessions WHERE token=?", (token,)
+        ).fetchone()
+    if row and row["expires_at"] > time.time():
+        return row
+    return None
+
+
+def revoke_auth_session(token: str):
+    if not token:
+        return
+    with get_conn() as conn:
+        conn.execute("DELETE FROM auth_sessions WHERE token=?", (token,))
 
 
 # ── admin sessions ─────────────────────────────────────────────────────
