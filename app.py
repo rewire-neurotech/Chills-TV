@@ -259,6 +259,18 @@ def log_ev(event: str, user=None, detail: dict = None, pid: str = ""):
         detail=json.dumps(detail or {}),
     )
 
+def score_label_for(percentile):
+    """Display text for the ChillsScore. Same stored percentile, two phrasings.
+    Upper half keeps the badge, "Top 8%". Lower half says what the number
+    means instead, "More chills sensitive than 10% of people", because the
+    flipped badge reads as praise for low scorers and misleads."""
+    pct = float(percentile or 0.0)
+    if pct >= 50.0:
+        top = max(1, min(99, round(100 - pct)))
+        return "Top %d%%" % top
+    return "More chills sensitive than %d%% of people" % max(1, round(pct))
+
+
 def percentile_against(ref, value):
     """Share of the reference distribution this value beats, 0 to 100."""
     try:
@@ -1191,6 +1203,7 @@ def hub(req: Request):
                         "avatar_color": avatar_color(s["recipient_name"] or str(s["id"]))})
     # v49 hub context: score card, histogram, latest duo, bets scoreboard
     top_pct = max(1, min(99, round(100 - float(user["percentile"] or 0))))
+    score_label = score_label_for(user["percentile"])
     bars, marker_x = hist_bars_for(mean_p_of(user))
     latest_duo = None
     for d0 in chillsdb.duos_for_user(user["id"]):
@@ -1209,6 +1222,7 @@ def hub(req: Request):
         "recent_sends": recent, "sent_count": sent_count, "hit_count": hit_count,
         "hit_rate": hit_rate,
         "top_pct": top_pct, "one_in": one_in_for(mean_p_of(user)),
+        "score_label": score_label, "score_is_top": float(user["percentile"] or 0) >= 50.0,
         "hist_bars": bars, "marker_x": marker_x, "latest_duo": latest_duo,
         "you_points": board["you_points"], "algo_points": board["algo_points"],
         "video_urls": [v.get("url", "") for v in videos], "base_url": req_base(req),
@@ -1517,6 +1531,8 @@ def duo_result(req: Request, token: str):
     jv = video_by_sid(vid_sid) or {}
     def _top(u):
         return max(1, min(99, round(100 - float((u["percentile"] if u else 0) or 0))))
+    def _label(u):
+        return score_label_for(u["percentile"] if u else 0)
     return t.TemplateResponse("duo_result.html", {
         "request": req, "page": "duo", **nav_context(req, viewer),
         "duo": row, "a_name": a_name,
@@ -1530,6 +1546,7 @@ def duo_result(req: Request, token: str):
         "me_side": me_side,
         "letter_a": avatar_of(a_name), "letter_b": avatar_of(b_name),
         "a_top_pct": _top(initiator), "b_top_pct": _top(partner),
+        "a_score_label": _label(initiator), "b_score_label": _label(partner),
         "a_one_in": one_in_for(mean_p_of(initiator)) if initiator else 8,
         "b_one_in": one_in_for(mean_p_of(partner)) if partner else 8,
         "video_urls": [jv.get("url", "")], "base_url": req_base(req),
