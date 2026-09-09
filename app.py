@@ -1190,7 +1190,7 @@ def hub(req: Request):
         recent.append({**dict(s), "avatar_letter": avatar_of(s["recipient_name"] or "?"),
                         "avatar_color": avatar_color(s["recipient_name"] or str(s["id"]))})
     # v49 hub context: score card, histogram, latest duo, bets scoreboard
-    top_pct = max(1, min(99, round(100 - float(user["percentile"] or 0))))
+    likely_pct = max(1, min(99, round(float(user["percentile"] or 0))))
     bars, marker_x = hist_bars_for(mean_p_of(user))
     latest_duo = None
     for d0 in chillsdb.duos_for_user(user["id"]):
@@ -1203,12 +1203,12 @@ def hub(req: Request):
     for x in all_sends:
         x["outcome"] = bet_outcome(x)
     board = bets_scoreboard(all_sends)
-    log_ev("hub_viewed", user=user, detail={"top_pct": top_pct})
+    log_ev("hub_viewed", user=user, detail={"likely_pct": likely_pct})
     return t.TemplateResponse("profile.html", {
         "request": req, "page": "hub", **nav_context(req, user), "videos": videos,
         "recent_sends": recent, "sent_count": sent_count, "hit_count": hit_count,
         "hit_rate": hit_rate,
-        "top_pct": top_pct, "one_in": one_in_for(mean_p_of(user)),
+        "likely_pct": likely_pct, "one_in": one_in_for(mean_p_of(user)),
         "hist_bars": bars, "marker_x": marker_x, "latest_duo": latest_duo,
         "you_points": board["you_points"], "algo_points": board["algo_points"],
         "video_urls": [v.get("url", "") for v in videos], "base_url": req_base(req),
@@ -1515,8 +1515,8 @@ def duo_result(req: Request, token: str):
     elif viewer and row["partner_user_id"] and viewer["id"] == row["partner_user_id"]:
         me_side = "b"
     jv = video_by_sid(vid_sid) or {}
-    def _top(u):
-        return max(1, min(99, round(100 - float((u["percentile"] if u else 0) or 0))))
+    def _likely(u):
+        return max(1, min(99, round(float((u["percentile"] if u else 0) or 0))))
     return t.TemplateResponse("duo_result.html", {
         "request": req, "page": "duo", **nav_context(req, viewer),
         "duo": row, "a_name": a_name,
@@ -1529,7 +1529,7 @@ def duo_result(req: Request, token: str):
         "joint_video": jv,
         "me_side": me_side,
         "letter_a": avatar_of(a_name), "letter_b": avatar_of(b_name),
-        "a_top_pct": _top(initiator), "b_top_pct": _top(partner),
+        "a_likely_pct": _likely(initiator), "b_likely_pct": _likely(partner),
         "a_one_in": one_in_for(mean_p_of(initiator)) if initiator else 8,
         "b_one_in": one_in_for(mean_p_of(partner)) if partner else 8,
         "video_urls": [jv.get("url", "")], "base_url": req_base(req),
