@@ -870,10 +870,15 @@ def unified_context(req: Request, user) -> dict:
         one_in = one_in_for(mean_p_of(user))
         bars, marker_x = hist_bars_for(mean_p_of(user))
         videos = flow_videos_for(user)
-        for d0 in chillsdb.duos_for_user(user["id"]):
+        for d0 in chillsdb.duos_involving_user(user["id"]):
             if d0["status"] == "completed":
-                latest_duo = {"token": d0["token"], "partner_name": (d0["partner_name"] or "A friend"),
-                              "partner_letter": avatar_of(d0["partner_name"] or "?"),
+                if d0["user_id"] == user["id"]:
+                    other = d0["partner_name"] or "A friend"
+                else:
+                    initiator0 = chillsdb.get_user_by_id(d0["user_id"])
+                    other = (initiator0["pid"] if initiator0 else "") or "A friend"
+                latest_duo = {"token": d0["token"], "partner_name": other,
+                              "partner_letter": avatar_of(other or "?"),
                               "match_pct": float(d0["match_pct"] or 0)}
                 break
         all_sends = [dict(x) for x in chillsdb.sends_for_sender(user["id"])]
@@ -983,15 +988,14 @@ def _persist_flow(req: Request, user, sess_data):
 def index(req: Request, send: str = "", us: str = ""):
     if chillsauth.is_admin(req) and not send and not us:
         return RedirectResponse("/admin")
+    if send or us:
+        resp = RedirectResponse("/#/account")
+        kind = "send" if send else "duo"
+        resp.set_cookie("pending_link", json.dumps({"type": kind, "token": send or us}),
+                         max_age=3600, httponly=True, samesite="lax")
+        return resp
     user = chillsauth.get_current_user(req)
-    resp = t.TemplateResponse("unified.html", unified_context(req, user))
-    if send:
-        resp.set_cookie("pending_link", json.dumps({"type": "send", "token": send}),
-                         max_age=3600, httponly=True, samesite="lax")
-    elif us:
-        resp.set_cookie("pending_link", json.dumps({"type": "duo", "token": us}),
-                         max_age=3600, httponly=True, samesite="lax")
-    return resp
+    return t.TemplateResponse("unified.html", unified_context(req, user))
 
 @a.get("/chillstv")
 def chillstv_page():
