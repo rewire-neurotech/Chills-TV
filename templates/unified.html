@@ -1648,6 +1648,8 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
 </style>
 </head>
 <body>
+<script>(function(){var h=(location.hash||'').replace('#/','');var R={account:1,signin:1,consent:1,test:1,finding:1,video:1,play:1,after:1,profile:1,beta:1};if(R[h]){document.documentElement.classList.add('bootctv');}})();</script>
+<style>html.bootctv nav.top,html.bootctv .nav-veil,html.bootctv .page,html.bootctv footer{display:none!important}</style>
 
 <nav class="top">
   <div class="nav-inner">
@@ -2986,7 +2988,7 @@ function route(){
   if(h.charAt(0)!=='/')return;
   setMenu(false);
   var key=h.slice(1);
-  if(CTV_ROUTES[key]){ document.body.classList.remove('home','dk'); go(CTV_ROUTES[key], key==='signin'?'in':undefined, true); return; }
+  if(CTV_ROUTES[key]){ document.body.classList.remove('home','dk'); go(CTV_ROUTES[key], key==='signin'?'in':undefined, true); document.documentElement.classList.remove('bootctv'); return; }
   document.body.classList.remove('ctv-on');
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on')});
   var el=document.getElementById('p-'+h)||document.getElementById('p-/');
@@ -2996,6 +2998,7 @@ function route(){
   document.querySelectorAll('[data-r]').forEach(function(a){a.classList.toggle('on',a.dataset.r===h)});
   if(prodBtn)prodBtn.classList.toggle('on',['/app','/chills','/chillsdb','/clinical'].indexOf(h)>-1);
   window.scrollTo(0,0);bindReveal();
+  document.documentElement.classList.remove('bootctv');
 }
 window.addEventListener('hashchange',route);
 var noMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
