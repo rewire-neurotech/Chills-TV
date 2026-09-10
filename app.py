@@ -2161,14 +2161,52 @@ def admin_export_csv(req: Request):
     if not chillsauth.is_admin(req):
         return RedirectResponse("/admin/login")
     rows = chillsdb.all_users(limit=100000)
-    out = [["signed_up","name","stimulus","score_pct","paid"]]
+    akeys = [x["k"] for x in qall()]
+    out = [["signed_up","name","email","google","consented","beta_status","chills_score",
+            "match_video","match_p","top5","paid"] + akeys]
     for u in rows:
+        try:
+            aj = json.loads(u["answers_json"] or "{}")
+        except Exception:
+            aj = {}
+        try:
+            t5 = "; ".join(e.get("name","") for e in json.loads(u["top5_json"] or "[]"))
+        except Exception:
+            t5 = ""
         out.append([
             datetime.utcfromtimestamp(u["created_at"]).isoformat(),
-            u["pid"], u["stimulus_name"], round(float(u["score"]) * 100, 1), bool(u["paid"]),
-        ])
-    csv_text = "\n".join(",".join(f'"{c}"' for c in row) for row in out)
+            u["pid"], u["email"] or "", "yes" if (u["google_sub"] or "") else "",
+            datetime.utcfromtimestamp(u["consented_at"]).isoformat() if u["consented_at"] else "",
+            u["beta_status"] or "none",
+            round(float(u["percentile"] or 0), 1),
+            u["stimulus_name"], round(float(u["score"] or 0) * 100, 1), t5, bool(u["paid"]),
+        ] + [aj.get(k, "") for k in akeys])
+    csv_text = "\n".join(",".join('"' + str(c).replace('"', '""') + '"' for c in row) for row in out)
     headers = {"Content-Disposition": "attachment; filename=chillstv_users.csv"}
+    return HTMLResponse(csv_text, media_type="text/csv", headers=headers)
+
+
+@a.get("/admin/after.csv")
+def admin_after_csv(req: Request):
+    if not chillsauth.is_admin(req):
+        return RedirectResponse("/admin/login")
+    with chillsdb.get_conn() as conn:
+        rows = conn.execute(
+            """SELECT a.created_at, u.pid, u.email, a.stimulus_id, a.chills,
+                      a.what_text, a.why_text
+               FROM after_answers a LEFT JOIN users u ON u.id = a.user_id
+               ORDER BY a.created_at DESC"""
+        ).fetchall()
+    out = [["time","name","email","stimulus_id","video","chills","what","why"]]
+    for r in rows:
+        cat = video_by_sid(r["stimulus_id"]) or {}
+        out.append([
+            datetime.utcfromtimestamp(r["created_at"]).isoformat(),
+            r["pid"] or "", r["email"] or "", r["stimulus_id"], cat.get("name",""),
+            "yes" if r["chills"] else "no", r["what_text"] or "", r["why_text"] or "",
+        ])
+    csv_text = "\n".join(",".join('"' + str(c).replace('"', '""') + '"' for c in row) for row in out)
+    headers = {"Content-Disposition": "attachment; filename=chillstv_after_answers.csv"}
     return HTMLResponse(csv_text, media_type="text/csv", headers=headers)
 
 
