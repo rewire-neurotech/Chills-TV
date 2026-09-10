@@ -936,6 +936,20 @@ def _persist_flow(req: Request, user, sess_data):
     )
     chillsdb.set_percentile(user["token"], float(sess_data.get("chills_score", 0.0)))
     user = chillsdb.get_user_by_token(user["token"])
+    try:
+        lp = "/data/logs.csv"
+        hdr = ["ts","participant_id","email","prolific_id","stimulus_id","url",
+               "experienced","chills_amount_0_10","chills_length_0_6","chills_waves_0_10","description"]
+        is_new = not os.path.exists(lp)
+        with open(lp, "a", newline="", encoding="utf-8") as fh:
+            w = csv.writer(fh)
+            if is_new: w.writerow(hdr)
+            w.writerow([
+                datetime.utcnow().isoformat(), pid, user["email"] or "", "",
+                stim.get("stimulus_id",""), stim.get("url",""), "unlock", 0, 0, 0, "unified_funnel",
+            ])
+    except Exception:
+        pass
     log_ev("profile_created", user=user, detail={
         "chills_score": float(sess_data.get("chills_score", 0.0)),
         "top_match": stim.get("stim_name", stim.get("name", "")),
@@ -995,7 +1009,10 @@ def index(req: Request, send: str = "", us: str = ""):
                          max_age=3600, httponly=True, samesite="lax")
         return resp
     user = chillsauth.get_current_user(req)
-    return t.TemplateResponse("unified.html", unified_context(req, user))
+    uctx = unified_context(req, user)
+    if uctx["ctx"]["logged_in"] and uctx["ctx"]["has_profile"]:
+        log_ev("hub_viewed", user=user, detail={"likely_pct": uctx["likely_pct"]})
+    return t.TemplateResponse("unified.html", uctx)
 
 @a.get("/chillstv")
 def chillstv_page():
@@ -1228,6 +1245,24 @@ async def flow_after(req: Request):
     if sid:
         chillsdb.record_after_answers(user["id"], sid, chills, what, why)
         chillsdb.record_watch(user["id"], sid)
+        text = what if not why else (what + ("\n" if what else "") + why)
+        author = (user["pid"] or "").strip() or "You"
+        chillsdb.add_video_comment(sid, text, chills, author=author, user_id=user["id"])
+        try:
+            lp = "/data/logs.csv"
+            hdr = ["ts","participant_id","email","prolific_id","stimulus_id","url",
+                   "experienced","chills_amount_0_10","chills_length_0_6","chills_waves_0_10","description"]
+            is_new = not os.path.exists(lp)
+            with open(lp, "a", newline="", encoding="utf-8") as fh:
+                w = csv.writer(fh)
+                if is_new: w.writerow(hdr)
+                w.writerow([datetime.utcnow().isoformat(), author, user["email"] or "", "", sid, "",
+                            "yes" if chills else "no", 0, 0, 0, text])
+        except Exception:
+            pass
+        if user["pending_send_token"] and (user["stimulus_id"] or "") == sid:
+            chillsdb.record_send_response(user["pending_send_token"], chills, recipient_name=author)
+            chillsdb.set_pending_send_token(user["token"], "")
     chillsdb.clear_pending_after(user["id"])
     log_ev("after_answers", user=user, detail={
         "stimulus_id": sid, "chills": chills, "what": what, "why": why,
