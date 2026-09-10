@@ -1000,8 +1000,6 @@ def _persist_flow(req: Request, user, sess_data):
 
 @a.get("/", response_class=HTMLResponse)
 def index(req: Request, send: str = "", us: str = ""):
-    if chillsauth.is_admin(req) and not send and not us:
-        return RedirectResponse("/admin")
     if send or us:
         resp = RedirectResponse("/#/account")
         kind = "send" if send else "duo"
@@ -2053,6 +2051,8 @@ def method_page(req: Request):
 
 @a.get("/admin/login", response_class=HTMLResponse)
 def admin_login_page(req: Request, error: int = 0):
+    if chillsauth.is_admin(req):
+        return RedirectResponse("/admin")
     return t.TemplateResponse("admin_login.html", {"request": req, "page": "admin-login", "error": error})
 
 
@@ -2070,7 +2070,7 @@ async def admin_login_submit(req: Request):
 @a.get("/admin/logout")
 def admin_logout(req: Request):
     chillsdb.revoke_admin_session(req.cookies.get(chillsauth.ADMIN_COOKIE, ""))
-    resp = RedirectResponse("/admin/login")
+    resp = RedirectResponse("/")
     resp.delete_cookie(chillsauth.ADMIN_COOKIE)
     return resp
 
