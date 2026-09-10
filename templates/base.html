@@ -559,15 +559,19 @@ td.em{color:var(--ink);font-weight:500}
     </div>
   </div>
   <div class="menu" id="menu" role="menu">
+    {% if request.url.path.startswith('/admin') %}
+    <a role="menuitem" href="/admin">Admin</a>
+    <a role="menuitem" href="/admin/logout">Sign out</a>
+    {% else %}
     <a role="menuitem" href="/hub">Profile</a>
     <a role="menuitem" href="/#/beta">Edge</a>
     <a role="menuitem" href="/about">About</a>
     <hr>
     {% if is_admin %}<a role="menuitem" href="/admin">Admin</a>{% endif %}
     <a role="menuitem" onclick="fetch('/auth/logout',{method:'POST'}).finally(function(){location.href='/'})" style="cursor:pointer">Sign out</a>
+    {% endif %}
   </div>
 </nav>
-<div class="nav-veil" id="navVeil"></div>
 <div class="nav-veil" id="navVeil"></div>
 
 {% block content %}{% endblock %}
