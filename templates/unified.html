@@ -1546,6 +1546,11 @@ body.dk .legal{border-color:rgba(255,255,255,.1)}
 #ctv .playscr .ptop .done{display:none}
 #ctv .playscr .frame .done{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.96);height:72px;padding:0 44px;border-radius:18px;background:#FBF9F4;color:#1C1A16;font-size:20px;font-weight:600;box-shadow:0 20px 60px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .5s,transform .5s var(--ease);z-index:3}
 #ctv .playscr.ending .frame .done{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+/* felix 9 sep: video full screen, bigger X */
+#ctv .playscr .stage{place-items:stretch}
+#ctv .playscr .frame{max-width:none;aspect-ratio:auto;height:100%}
+#ctv .playscr .xbtn{width:56px;height:56px}
+#ctv .playscr .xbtn svg{width:22px;height:22px}
 #ctv .playscr.ending .poster::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.35)}
 #ctv .ac-title small{font-family:var(--sf);font-size:15px;font-weight:500;color:var(--muted);letter-spacing:0;margin-left:8px;vertical-align:middle}
 #ctv .ac-launch{font-size:15px;color:var(--ink2);margin-top:6px}
@@ -2482,7 +2487,7 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
       </div>
       <div class="vstrip">
         {% for v in videos %}<div class="vcard" onclick="openVideo({{ loop.index0 }})">
-          <div class="vthumb" style="background:{{ v.bg }}">{% if loop.first %}<span class="tag">Your match</span>{% endif %}</div>
+          <div class="vthumb" style="{% if v.yt %}background-image:url('https://i.ytimg.com/vi/{{ v.yt }}/hqdefault.jpg'),{{ v.bg }};background-size:cover;background-position:center{% else %}background:{{ v.bg }}{% endif %}">{% if loop.first %}<span class="tag">Your match</span>{% endif %}</div>
           <div class="vmeta"><b>{{ v.t }}</b><button class="btn-s" onclick="event.stopPropagation(); openVideo({{ loop.index0 }})">{% if loop.first %}Watch again{% else %}Watch{% endif %}</button></div>
         </div>
         {% endfor %}</div>
@@ -2655,7 +2660,7 @@ function authGo(){
       if(!d || !d.ok){ toast((d && d.error) || 'That did not work. Check the details and try again.'); return; }
       CTX.logged_in = true; CTX.email = email;
       if(authUp || !d.has_profile){ firstVisit = true; go('consent'); return; }
-      location.href = '/#/profile'; location.reload();
+      location.replace('/?r=' + Date.now() + '#/profile');
     })
     .catch(function(){ btn.disabled = false; toast('Could not reach the server'); });
 }
@@ -2798,7 +2803,12 @@ function playVideo(){
   var ps = document.getElementById('playscr');
   ps.classList.remove('ended','playing','ending');
   var v = V[vi];
-  if(v){ document.getElementById('poster').innerHTML = '<div class="pl">\u25b6</div><div class="bar"><span>Plays on YouTube</span><span id="plen">' + (v.len || '') + '</span></div>'; document.getElementById('poster').onclick = realPlay; }
+  if(v){
+    var p0 = document.getElementById('poster');
+    p0.innerHTML = '<div class="pl">\u25b6</div><div class="bar"><span>Plays on YouTube</span><span id="plen">' + (v.len || '') + '</span></div>';
+    p0.onclick = realPlay;
+    if(v.yt){ p0.style.backgroundImage = "url('https://i.ytimg.com/vi/" + v.yt + "/hqdefault.jpg')," + (v.bg || 'none'); p0.style.backgroundSize = 'cover'; p0.style.backgroundPosition = 'center'; }
+  }
   if(v && v.sid){ fetch('/flow/pending', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sid: v.sid})}).catch(function(){}); }
 }
 function realPlay(){
@@ -2822,7 +2832,14 @@ function realPlay(){
   } catch(err){ ytFallback(v); }
   clearInterval(vT);
   vT = setInterval(function(){
-    try { var d = ytPlayer && ytPlayer.getDuration ? ytPlayer.getDuration() : 0; var c = ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0; if(d > 0){ document.getElementById('vprog').style.width = Math.min(100, 100 * c / d) + '%'; } } catch(x){}
+    try {
+      var d = ytPlayer && ytPlayer.getDuration ? ytPlayer.getDuration() : 0;
+      var c = ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
+      if(d > 0){
+        document.getElementById('vprog').style.width = Math.min(100, 100 * c / d) + '%';
+        if(d - c <= 5){ sc.classList.add('ending'); }
+      }
+    } catch(x){}
   }, 1000);
 }
 function ytFallback(v){
@@ -2859,7 +2876,7 @@ function aDone(){
   fetch('/flow/after', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sid: window._afterSid || '', chills: !!aAns.chills, what: aAns.what || '', why: aAns.why || ''})}).catch(function(){});
   var first = firstVisit; firstVisit = false;
   toast(first ? 'Welcome to your profile' : 'Saved. Added to the research.');
-  setTimeout(function(){ location.href = '/#/profile'; location.reload(); }, 700);
+  setTimeout(function(){ location.replace('/?r=' + Date.now() + '#/profile'); }, 700);
 }
 
 /* ───────── the two products, three states ───────── */
