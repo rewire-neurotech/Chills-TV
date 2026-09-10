@@ -3,7 +3,7 @@ from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-import bisect, csv, hashlib, json, os, re, secrets, time, unicodedata
+import bisect, csv, hashlib, json, os, random, re, secrets, time, unicodedata
 import requests
 from datetime import datetime
 import joblib, numpy as np, onnxruntime as rt, pandas as pd
@@ -807,6 +807,7 @@ def avatar_color(seed: str) -> str:
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
+MATCH_BAR = float(os.getenv("MATCH_BAR", "0.65"))
 
 FLOW_GRADIENTS = [
     "radial-gradient(120% 90% at 30% 20%,#2a2438 0%,#141320 55%,#0c0b12 100%)",
@@ -1182,13 +1183,25 @@ async def flow_submit(req: Request):
             chillsdb.set_consented(user["id"])
         m = map_answers_to_features(H)
         p = predict_probs(m)
-        best5 = topk(m, 5, pid=name, p=p)
-        P["last_top5"] = best5[:]
+        allranked = topk(m, len(STIM), pid=name, p=p)
         mean_p = float(np.mean(p))
         user_chills_score = percentile_against(SCORE_REF, mean_p)
-        best = _choose_from_ties(best5, name, built_vec=FW.get("built_vector", [])) if best5 else {
-            "score": 0.0, "stimulus_id": "", "url": "", "name": "", "desc": "", "dur": "", "cap": ""
-        }
+        # felix 10 sep: rotate the match among everything above the bar for this
+        # person; keep hallelujah out of the draw when others qualify so it sits
+        # second as the no-chills fallback. below the bar: honest top pick.
+        pool = [e for e in allranked if float(e.get("score", 0.0)) >= MATCH_BAR]
+        non_halle = [e for e in pool if "hallelujah" not in (e.get("name", "") or "").lower()]
+        if non_halle:
+            best = random.choice(non_halle)
+        elif pool:
+            best = pool[0]
+        elif allranked:
+            best = _choose_from_ties(allranked[:5], name, built_vec=FW.get("built_vector", []))
+        else:
+            best = {"score": 0.0, "stimulus_id": "", "url": "", "name": "", "desc": "", "dur": "", "cap": ""}
+        rest = [e for e in allranked if e.get("stimulus_id") != best.get("stimulus_id")]
+        best5 = [best] + rest[:4]
+        P["last_top5"] = best5[:]
         sess_data = {
             "pid": name, "stimulus": best, "top5": best5,
             "vector": FW.get("built_vector", []),
