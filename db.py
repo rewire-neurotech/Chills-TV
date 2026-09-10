@@ -133,6 +133,26 @@ CREATE TABLE IF NOT EXISTS auth_sessions (
     created_at REAL NOT NULL,
     expires_at REAL NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS user_tags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    tag TEXT NOT NULL,
+    created_at REAL NOT NULL,
+    UNIQUE(user_id, tag)
+);
+
+CREATE TABLE IF NOT EXISTS admin_notes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    created_at REAL NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS admin_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT DEFAULT ''
+);
 """
 
 
@@ -181,6 +201,9 @@ def _migrate(conn):
         ("consented_at", "REAL"),
         ("beta_status", "TEXT DEFAULT 'none'"),
         ("pending_after_sid", "TEXT DEFAULT ''"),
+        ("beta_requested_at", "REAL"),
+        ("edge_code", "TEXT DEFAULT ''"),
+        ("edge_granted_at", "REAL"),
     ]:
         if col not in existing:
             conn.execute(f"ALTER TABLE users ADD COLUMN {col} {decl}")
@@ -688,3 +711,169 @@ def revoke_admin_session(token: str):
         return
     with get_conn() as conn:
         conn.execute("DELETE FROM admin_sessions WHERE token=?", (token,))
+
+
+# ── admin console (tags, notes, edge access, settings) ───────────────
+def add_tag(user_id: int, tag: str):
+    tag = (tag or "").strip().lower()
+    if not user_id or not tag:
+        return
+    with get_conn() as conn:
+        conn.execute(
+            "INSERT OR IGNORE INTO user_tags (user_id, tag, created_at) VALUES (?,?,?)",
+            (user_id, tag, time.time()),
+        )
+
+
+def tags_map() -> dict:
+    """user_id -> [tag, ...] for the people table and drawer."""
+    with get_conn() as conn:
+        rows = conn.execute("SELECT user_id, tag FROM user_tags ORDER BY created_at ASC").fetchall()
+    out = {}
+    for r in rows:
+        out.setdefault(r["user_id"], []).append(r["tag"])
+    return out
+
+
+def add_admin_note(user_id: int, text: str):
+    text = (text or "").strip()
+    if not user_id or not text:
+        return
+    with get_conn() as conn:
+        conn.execute(
+            "INSERT INTO admin_notes (user_id, text, created_at) VALUES (?,?,?)",
+            (user_id, text, time.time()),
+        )
+
+
+def notes_map() -> dict:
+    """user_id -> [{text, created_at}, ...] newest first."""
+    with get_conn() as conn:
+        rows = conn.execute("SELECT * FROM admin_notes ORDER BY created_at DESC").fetchall()
+    out = {}
+    for r in rows:
+        out.setdefault(r["user_id"], []).append({"text": r["text"], "created_at": r["created_at"]})
+    return out
+
+
+def set_beta_requested(user_id: int):
+    """Stamp when the person tapped the beta card. Only stamps once."""
+    with get_conn() as conn:
+        conn.execute(
+            "UPDATE users SET beta_requested_at=? WHERE id=? AND beta_requested_at IS NULL",
+            (time.time(), user_id),
+        )
+
+
+def grant_edge(user_id: int) -> str:
+    """Grant Edge access: beta_status granted, mint a /go/ code if none yet.
+    Returns the code."""
+    code = new_token(6)
+    with get_conn() as conn:
+        conn.execute(
+            """UPDATE users SET beta_status='granted', edge_granted_at=?,
+               edge_code=CASE WHEN edge_code='' THEN ? ELSE edge_code END
+               WHERE id=?""",
+            (time.time(), code, user_id),
+        )
+        row = conn.execute("SELECT edge_code FROM users WHERE id=?", (user_id,)).fetchone()
+    return row["edge_code"] if row else code
+
+
+def revoke_edge(user_id: int):
+    """Back to the waiting list, code cleared so a regrant mints a fresh one."""
+    with get_conn() as conn:
+        conn.execute(
+            "UPDATE users SET beta_status='listed', beta_requested_at=?, edge_code='', edge_granted_at=NULL WHERE id=?",
+            (time.time(), user_id),
+        )
+
+
+def grant_all_edge() -> int:
+    """Grant everyone waiting. Codes minted per user. Returns how many."""
+    with get_conn() as conn:
+        rows = conn.execute("SELECT id FROM users WHERE beta_status='listed'").fetchall()
+        now = time.time()
+        for r in rows:
+            conn.execute(
+                "UPDATE users SET beta_status='granted', edge_granted_at=?, edge_code=? WHERE id=?",
+                (now, new_token(6), r["id"]),
+            )
+    return len(rows)
+
+
+def set_contribution_status(cid: int, status: str):
+    assert status in ("pending", "approved", "declined")
+    with get_conn() as conn:
+        conn.execute("UPDATE contributions SET status=? WHERE id=?", (status, cid))
+
+
+def set_display_name(user_id: int, name: str):
+    with get_conn() as conn:
+        conn.execute("UPDATE users SET display_name=? WHERE id=?", ((name or "").strip(), user_id))
+
+
+def get_setting(key: str, default: str = "") -> str:
+    with get_conn() as conn:
+        row = conn.execute("SELECT value FROM admin_settings WHERE key=?", (key,)).fetchone()
+    return row["value"] if row else default
+
+
+def set_setting(key: str, value: str):
+    with get_conn() as conn:
+        conn.execute(
+            "INSERT INTO admin_settings (key, value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+            (key, value or ""),
+        )
+
+
+def all_settings() -> dict:
+    with get_conn() as conn:
+        rows = conn.execute("SELECT key, value FROM admin_settings").fetchall()
+    return {r["key"]: r["value"] for r in rows}
+
+
+# ── admin console rollups ─────────────────────────────────────────────
+def users_all():
+    """Every user row ascending by id. The console bootstrap walks this once."""
+    with get_conn() as conn:
+        return conn.execute("SELECT * FROM users ORDER BY id ASC").fetchall()
+
+
+def after_answers_all():
+    """Every after-video answer, newest first, for the report feeds."""
+    with get_conn() as conn:
+        return conn.execute("SELECT * FROM after_answers ORDER BY created_at DESC").fetchall()
+
+
+def sends_all():
+    with get_conn() as conn:
+        return conn.execute("SELECT * FROM sends ORDER BY created_at DESC").fetchall()
+
+
+def duos_all():
+    with get_conn() as conn:
+        return conn.execute("SELECT * FROM duo_pairs ORDER BY created_at DESC").fetchall()
+
+
+def duo_counts_map() -> dict:
+    """user_id -> duo links created. Feeds the compat column."""
+    with get_conn() as conn:
+        rows = conn.execute(
+            "SELECT user_id, COUNT(*) AS n FROM duo_pairs GROUP BY user_id"
+        ).fetchall()
+    return {r["user_id"]: r["n"] for r in rows}
+
+
+def watches_all():
+    with get_conn() as conn:
+        return conn.execute("SELECT * FROM video_watches ORDER BY watched_at DESC").fetchall()
+
+
+def last_active_map() -> dict:
+    """user_id -> latest event timestamp. Falls back to created_at in app code."""
+    with get_conn() as conn:
+        rows = conn.execute(
+            "SELECT user_id, MAX(created_at) AS ts FROM events WHERE user_id IS NOT NULL GROUP BY user_id"
+        ).fetchall()
+    return {r["user_id"]: r["ts"] for r in rows}
