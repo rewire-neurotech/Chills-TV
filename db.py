@@ -376,6 +376,17 @@ def duos_for_user(user_id: int):
         ).fetchall()
 
 
+def duos_involving_user(user_id: int):
+    """All duo pairs where this user is either side, newest first. The
+    profile compatibility card uses this so the receiver sees the result
+    too, not just the sender."""
+    with get_conn() as conn:
+        return conn.execute(
+            "SELECT * FROM duo_pairs WHERE user_id=? OR partner_user_id=? ORDER BY created_at DESC",
+            (user_id, user_id),
+        ).fetchall()
+
+
 def complete_duo(token: str, partner_user_id: int, partner_name: str, match_pct: float,
                   video_stimulus_id: str, video_stimulus_name: str):
     with get_conn() as conn:
