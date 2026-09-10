@@ -1287,6 +1287,7 @@ async def flow_beta(req: Request):
         return JSONResponse({"ok": False, "error": "Please sign in first."})
     if (user["beta_status"] or "none") != "granted":
         chillsdb.set_beta_status(user["id"], "listed")
+        chillsdb.set_beta_requested(user["id"])
         log_ev("beta_joined", user=user)
     return JSONResponse({"ok": True})
 
@@ -2088,7 +2089,7 @@ def admin_logout(req: Request):
     return resp
 
 
-@a.get("/admin", response_class=HTMLResponse)
+@a.get("/admin/legacy", response_class=HTMLResponse)
 def admin_console(req: Request, tab: str = "overview", sort: str = "created_at", page: int = 0):
     if not chillsauth.is_admin(req):
         return RedirectResponse("/admin/login")
@@ -2238,6 +2239,243 @@ def admin_events_csv(req: Request):
     csv_text = "\n".join(",".join('"' + str(c).replace('"', '""') + '"' for c in row) for row in out)
     headers = {"Content-Disposition": "attachment; filename=chillstv_events.csv"}
     return HTMLResponse(csv_text, media_type="text/csv", headers=headers)
+
+
+# ═══════════════════════════════════════════════════
+# ADMIN CONSOLE v2 (Felix's rewire admin, pixel to pixel)
+# ═══════════════════════════════════════════════════
+
+@a.get("/admin", response_class=HTMLResponse)
+def admin_console_v2(req: Request):
+    if not chillsauth.is_admin(req):
+        return RedirectResponse("/admin/login")
+    # served raw, not through Jinja, so Felix's markup and JS stay untouched
+    with open(os.path.join(b, "templates", "admin_console.html"), encoding="utf-8") as fh:
+        return HTMLResponse(fh.read())
+
+
+def _admin_json_guard(req: Request):
+    if not chillsauth.is_admin(req):
+        return JSONResponse({"ok": False, "error": "auth"}, status_code=401)
+    return None
+
+
+ADMIN_SETTING_KEYS = ("beta_weekly", "link_expiry", "grant_subject", "grant_message")
+ADMIN_SETTING_DEFAULTS = {
+    "beta_weekly": "0",
+    "link_expiry": "They never expire",
+    "grant_subject": "Your access to Edge is ready",
+    "grant_message": "Hi {name},\n\nYour access to Edge is ready. Open this link on your phone and it signs you in:\n{link}\n\nF\u00e9lix",
+}
+
+
+def _edge_link(code: str) -> str:
+    return "app.rewire.bio/go/" + (code or "")
+
+
+@a.get("/admin/data")
+def admin_data(req: Request):
+    guard = _admin_json_guard(req)
+    if guard:
+        return guard
+    users = chillsdb.users_all()
+    tags = chillsdb.tags_map()
+    notes = chillsdb.notes_map()
+    sent_map = chillsdb.sent_counts_map()
+    duo_map = chillsdb.duo_counts_map()
+    last_map = chillsdb.last_active_map()
+    afters_by_user = {}
+    for r in chillsdb.after_answers_all():
+        afters_by_user.setdefault(r["user_id"], []).append(r)
+    names_by_id = {}
+    people = []
+    for u in users:
+        rep_rows = afters_by_user.get(u["id"], [])
+        reports = []
+        for r in rep_rows:
+            cat = video_by_sid(r["stimulus_id"]) or {}
+            reports.append({
+                "video": cat.get("name", "") or r["stimulus_id"],
+                "chills": bool(r["chills"]),
+                "what": r["what_text"] or "",
+                "why": r["why_text"] or "",
+                "date": r["created_at"],
+            })
+        matched_sid = u["stimulus_id"] or ""
+        chills = any(r["chills"] for r in rep_rows if r["stimulus_id"] == matched_sid)
+        status = {"none": "none", "listed": "requested", "granted": "granted"}.get(u["beta_status"] or "none", "none")
+        edge = {"status": status, "opened": False, "signedIn": None, "sessions": [], "protocols": []}
+        if status == "requested":
+            edge["requested"] = u["beta_requested_at"] or u["created_at"]
+        if status == "granted":
+            edge["granted"] = u["edge_granted_at"] or u["created_at"]
+            edge["link"] = _edge_link(u["edge_code"])
+        name = (u["pid"] or "").strip() or ((u["email"] or "").split("@")[0]) or "Anonymous"
+        names_by_id[u["id"]] = name
+        people.append({
+            "id": u["id"],
+            "name": name,
+            "email": u["email"] or "",
+            "created": u["created_at"],
+            "test": bool(u["paid"]) and bool(matched_sid),
+            "chills": bool(chills),
+            "score": round(float(u["percentile"] or 0)),
+            "video": u["stimulus_name"] or "",
+            "reports": reports,
+            "invites": sent_map.get(u["id"], 0),
+            "compat": duo_map.get(u["id"], 0),
+            "tags": tags.get(u["id"], []),
+            "notes": notes.get(u["id"], []),
+            "edge": edge,
+            "lastActive": last_map.get(u["id"]) or u["created_at"],
+        })
+    sends = chillsdb.sends_all()
+    sb = bets_scoreboard(sends)
+    duos = chillsdb.duos_all()
+    subs = []
+    for c in chillsdb.all_contributions(limit=1000):
+        if (c["status"] or "pending") != "pending":
+            continue
+        subs.append({
+            "id": c["id"],
+            "who": names_by_id.get(c["submitted_by"], "Anonymous"),
+            "what": " ".join(x for x in [(c["description"] or "").strip(), (c["url"] or "").strip()] if x),
+            "date": c["created_at"],
+        })
+    settings = dict(ADMIN_SETTING_DEFAULTS)
+    settings.update({k: v for k, v in chillsdb.all_settings().items() if k in ADMIN_SETTING_KEYS})
+    return JSONResponse({
+        "now": time.time(),
+        "people": people,
+        "flags": [],
+        "screened": 0,
+        "subs": subs,
+        "games": {
+            "compat_sent": len(duos),
+            "compat_completed": sum(1 for d in duos if d["status"] == "completed"),
+            "rounds": sb["rounds_played"],
+            "rounds_won": sb["you_points"],
+        },
+        "settings": settings,
+        "admin_email": chillsauth.ADMIN_EMAIL or "admin",
+    })
+
+
+@a.post("/admin/grant")
+async def admin_grant(req: Request):
+    guard = _admin_json_guard(req)
+    if guard:
+        return guard
+    d = await req.json()
+    user = chillsdb.get_user_by_id(int(d.get("user_id") or 0))
+    if not user:
+        return JSONResponse({"ok": False, "error": "No such user."})
+    code = chillsdb.grant_edge(user["id"])
+    log_ev("admin_edge_granted", user=user)
+    return JSONResponse({"ok": True, "link": _edge_link(code)})
+
+
+@a.post("/admin/revoke")
+async def admin_revoke(req: Request):
+    guard = _admin_json_guard(req)
+    if guard:
+        return guard
+    d = await req.json()
+    user = chillsdb.get_user_by_id(int(d.get("user_id") or 0))
+    if not user:
+        return JSONResponse({"ok": False, "error": "No such user."})
+    chillsdb.revoke_edge(user["id"])
+    log_ev("admin_edge_revoked", user=user)
+    return JSONResponse({"ok": True})
+
+
+@a.post("/admin/grant-all")
+async def admin_grant_all(req: Request):
+    guard = _admin_json_guard(req)
+    if guard:
+        return guard
+    n = chillsdb.grant_all_edge()
+    log_ev("admin_edge_granted_all", detail={"n": n})
+    return JSONResponse({"ok": True, "n": n})
+
+
+@a.post("/admin/tag")
+async def admin_tag(req: Request):
+    guard = _admin_json_guard(req)
+    if guard:
+        return guard
+    d = await req.json()
+    chillsdb.add_tag(int(d.get("user_id") or 0), d.get("tag") or "")
+    return JSONResponse({"ok": True})
+
+
+@a.post("/admin/note")
+async def admin_note(req: Request):
+    guard = _admin_json_guard(req)
+    if guard:
+        return guard
+    d = await req.json()
+    chillsdb.add_admin_note(int(d.get("user_id") or 0), d.get("text") or "")
+    return JSONResponse({"ok": True})
+
+
+@a.post("/admin/invite")
+async def admin_invite(req: Request):
+    guard = _admin_json_guard(req)
+    if guard:
+        return guard
+    d = await req.json()
+    name = (d.get("name") or "").strip()
+    email = (d.get("email") or "").strip().lower()
+    if not name or not email:
+        return JSONResponse({"ok": False, "error": "Name and email, please"})
+    user = chillsdb.get_user_by_email(email)
+    if not user:
+        user = chillsdb.create_account_user(email)
+    if name and (user["pid"] or "") != name:
+        with chillsdb.get_conn() as conn:
+            conn.execute("UPDATE users SET pid=? WHERE id=?", (name, user["id"]))
+    tag = (d.get("tag") or "").strip()
+    if tag:
+        chillsdb.add_tag(user["id"], tag)
+    note = (d.get("note") or "").strip()
+    if note:
+        chillsdb.add_admin_note(user["id"], note)
+    code = chillsdb.grant_edge(user["id"])
+    log_ev("admin_edge_invited", detail={"user_id": user["id"]})
+    return JSONResponse({"ok": True, "user_id": user["id"], "link": _edge_link(code)})
+
+
+@a.post("/admin/sub/{cid}/approve")
+async def admin_sub_approve(req: Request, cid: int):
+    guard = _admin_json_guard(req)
+    if guard:
+        return guard
+    chillsdb.set_contribution_status(cid, "approved")
+    log_ev("admin_sub_approved", detail={"cid": cid})
+    return JSONResponse({"ok": True})
+
+
+@a.post("/admin/sub/{cid}/decline")
+async def admin_sub_decline(req: Request, cid: int):
+    guard = _admin_json_guard(req)
+    if guard:
+        return guard
+    chillsdb.set_contribution_status(cid, "declined")
+    log_ev("admin_sub_declined", detail={"cid": cid})
+    return JSONResponse({"ok": True})
+
+
+@a.post("/admin/settings")
+async def admin_settings_save(req: Request):
+    guard = _admin_json_guard(req)
+    if guard:
+        return guard
+    d = await req.json()
+    for k in ADMIN_SETTING_KEYS:
+        if k in d:
+            chillsdb.set_setting(k, str(d[k]))
+    return JSONResponse({"ok": True})
 
 
 # ═══════════════════════════════════════════════════
