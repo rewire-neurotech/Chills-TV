@@ -2648,7 +2648,7 @@ var firstVisit = false, cur = 'overview';
 var NONAV = {overview:1, auth:1, play:1};
 var ROUTE = {overview:'flow', auth:'account', consent:'consent', test:'test', finding:'finding', video:'video', play:'play', after:'after', profile:'profile', app:'beta'};
 function go(id, mode, silent){
-  if(id==='auth' && CTX.logged_in && mode!=='in'){ id = CTX.has_profile ? 'profile' : 'consent'; }
+  if(id==='auth' && CTX.logged_in){ id = CTX.has_profile ? 'profile' : 'consent'; }
   document.querySelectorAll('#ctv .screen').forEach(function(s){ s.classList.remove('active'); });
   var el = document.getElementById('screen-'+id); if(!el) return;
   el.classList.add('active'); cur = id;
@@ -2698,6 +2698,7 @@ function authGo(){
       btn.disabled = false;
       if(!d || !d.ok){ toast((d && d.error) || 'That did not work. Check the details and try again.'); return; }
       CTX.logged_in = true; CTX.email = email;
+      var avEl = document.getElementById('ctvAv'); if(avEl) avEl.textContent = (email.charAt(0) || '?').toUpperCase();
       if(authUp || !d.has_profile){ firstVisit = true; go('consent'); return; }
       location.replace('/?r=' + Date.now() + '#/profile');
     })
@@ -2817,14 +2818,15 @@ function runFinding(){
 /* ───────── video ───────── */
 var V = CTX.videos || [];
 var vi = 0;
+var loopOn = false;
 function openVideo(i, matched){
-  if(matched) firstVisit = true;
+  if(matched){ firstVisit = true; loopOn = true; }
   vi = i; var v = V[i]; if(!v) return;
   window._afterSid = v.sid || '';
   document.getElementById('vtitle').textContent = v.t;
   document.getElementById('vdesc').textContent = v.d;
   document.getElementById('vlen').textContent = v.len;
-  document.getElementById('plen').textContent = v.len;
+  var plenEl = document.getElementById('plen'); if(plenEl) plenEl.textContent = v.len;
   document.getElementById('vkind').textContent = matched ? 'Matched to your answers' : v.kind;
   document.getElementById('poster').style.background = v.bg;
   go('video');
@@ -2912,9 +2914,9 @@ function aDone(){
   if(ai === 2){ var t2 = document.getElementById('aT'); if(t2){ aAns.why = t2.value || ''; } }
   clearInterval(vT);
   try { if(ytPlayer && ytPlayer.destroy){ ytPlayer.destroy(); ytPlayer = null; } } catch(x){}
-  var sid = window._afterSid || '';
+  var sid = window._afterSid || (V[vi] && V[vi].sid) || '';
   fetch('/flow/after', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sid: sid, chills: !!aAns.chills, what: aAns.what || '', why: aAns.why || ''})}).catch(function(){});
-  if(!aAns.chills){ nextPick(sid); return; }
+  if(!aAns.chills && loopOn){ nextPick(sid); return; }
   var first = firstVisit; firstVisit = false;
   toast(first ? 'Welcome to your profile' : 'Saved. Added to the research.');
   setTimeout(function(){ location.replace('/?r=' + Date.now() + '#/profile'); }, 700);
@@ -2932,9 +2934,11 @@ function nextPick(sid){
     .then(function(d){
       var wait = Math.max(0, 2400 - (Date.now() - started));
       setTimeout(function(){
-        if(!d || !d.ok || d.done || !d.video){ toProfile(); return; }
-        V.push(d.video); vi = V.length - 1;
-        openVideo(vi, false);
+        if(!d || !d.ok || d.done || !d.video){ if(d && !d.ok && d.error){ toast(d.error); } toProfile(); return; }
+        try {
+          V.push(d.video); vi = V.length - 1;
+          openVideo(vi, false);
+        } catch(err){ toProfile(); }
       }, wait);
     })
     .catch(function(){ toProfile(); });
