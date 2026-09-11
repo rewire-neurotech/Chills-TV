@@ -858,13 +858,13 @@ def flow_videos_for(user) -> list:
     return out
 
 def next_unseen_pick(user, exclude_sid: str = ""):
-    """Highest-p video the user hasn't seen, for the after-video No path.
-    Seen = watched rows + anything they answered about. None when picks run out."""
+    """Next unseen pick from the user's top 5, for the after-video No path.
+    Seen = watched rows + anything they answered about. None when the 5 are done."""
     try:
-        probs = json.loads(user["vector_json"] or "[]")
+        top5 = json.loads(user["top5_json"] or "[]")
     except Exception:
-        probs = []
-    if not probs or len(probs) != len(STIM):
+        top5 = []
+    if not top5:
         return None
     seen = {exclude_sid} if exclude_sid else set()
     with chillsdb.get_conn() as conn:
@@ -872,16 +872,17 @@ def next_unseen_pick(user, exclude_sid: str = ""):
             seen.add(r["stimulus_id"])
     for r in chillsdb.after_answers_for_user(user["id"], limit=200):
         seen.add(r["stimulus_id"])
-    order = sorted(range(len(STIM)), key=lambda j: -float(probs[j]))
-    for rank, j in enumerate(order):
-        e = stim_entry(j, float(probs[j]))
-        if not _is_video(e) or e["stimulus_id"] in seen:
+    for rank, e in enumerate(top5[:5]):
+        sid = e.get("stimulus_id", "")
+        cat = video_by_sid(sid) or {}
+        url = e.get("url", "") or cat.get("url", "")
+        if not sid or sid in seen or not url.startswith("http"):
             continue
         return {
-            "sid": e["stimulus_id"], "t": e["name"], "d": e["desc"],
-            "len": e["dur"], "kind": "Another pick for you",
+            "sid": sid, "t": e.get("name", "") or cat.get("name", ""), "d": cat.get("desc", ""),
+            "len": cat.get("dur", ""), "kind": "Another pick for you",
             "bg": FLOW_GRADIENTS[rank % len(FLOW_GRADIENTS)],
-            "url": e["url"], "yt": ytid(e["url"]),
+            "url": url, "yt": ytid(url),
         }
     return None
 
@@ -2252,7 +2253,7 @@ def admin_export_csv(req: Request):
     rows = chillsdb.all_users(limit=100000)
     akeys = [x["k"] for x in qall()]
     out = [["signed_up","name","email","google","consented","beta_status","chills_score",
-            "match_video","match_p","top5","paid"] + akeys]
+            "match_video","match_p","top5","paid","vector"] + akeys]
     for u in rows:
         try:
             aj = json.loads(u["answers_json"] or "{}")
@@ -2269,6 +2270,7 @@ def admin_export_csv(req: Request):
             u["beta_status"] or "none",
             round(float(u["percentile"] or 0), 1),
             u["stimulus_name"], round(float(u["score"] or 0) * 100, 1), t5, bool(u["paid"]),
+            u["vector_json"] or "",
         ] + [aj.get(k, "") for k in akeys])
     csv_text = "\n".join(",".join('"' + str(c).replace('"', '""') + '"' for c in row) for row in out)
     headers = {"Content-Disposition": "attachment; filename=chillstv_users.csv"}
@@ -2313,6 +2315,128 @@ def admin_events_csv(req: Request):
         ])
     csv_text = "\n".join(",".join('"' + str(c).replace('"', '""') + '"' for c in row) for row in out)
     headers = {"Content-Disposition": "attachment; filename=chillstv_events.csv"}
+    return HTMLResponse(csv_text, media_type="text/csv", headers=headers)
+
+
+@a.get("/admin/duo.csv")
+def admin_duo_csv(req: Request):
+    if not chillsauth.is_admin(req):
+        return RedirectResponse("/admin/login")
+    with chillsdb.get_conn() as conn:
+        rows = conn.execute(
+            """SELECT d.created_at, d.completed_at, u.pid, u.email, d.partner_name,
+                      d.status, d.match_pct, d.video_stimulus_name, d.token
+               FROM duo_pairs d LEFT JOIN users u ON u.id = d.user_id
+               ORDER BY d.created_at DESC"""
+        ).fetchall()
+    out = [["created","completed","initiator","initiator_email","partner","status","match_pct","joint_video","token"]]
+    for r in rows:
+        out.append([
+            datetime.utcfromtimestamp(r["created_at"]).isoformat(),
+            datetime.utcfromtimestamp(r["completed_at"]).isoformat() if r["completed_at"] else "",
+            r["pid"] or "", r["email"] or "", r["partner_name"] or "",
+            r["status"] or "", round(float(r["match_pct"] or 0), 1),
+            r["video_stimulus_name"] or "", r["token"],
+        ])
+    csv_text = "\n".join(",".join('"' + str(c).replace('"', '""') + '"' for c in row) for row in out)
+    headers = {"Content-Disposition": "attachment; filename=chillstv_duo.csv"}
+    return HTMLResponse(csv_text, media_type="text/csv", headers=headers)
+
+
+@a.get("/admin/sends.csv")
+def admin_sends_csv(req: Request):
+    if not chillsauth.is_admin(req):
+        return RedirectResponse("/admin/login")
+    with chillsdb.get_conn() as conn:
+        rows = conn.execute(
+            """SELECT s.created_at, s.watched_at, s.revealed_at, u.pid, u.email,
+                      s.recipient_name, s.stimulus_name, s.mode, s.status,
+                      s.experienced, s.closeness, s.relationship, s.description, s.token
+               FROM sends s LEFT JOIN users u ON u.id = s.sender_user_id
+               ORDER BY s.created_at DESC"""
+        ).fetchall()
+    out = [["created","sender","sender_email","recipient","video","mode","status",
+            "experienced","closeness","relationship","description","watched","revealed","token"]]
+    for r in rows:
+        exp = "" if r["experienced"] is None else ("yes" if r["experienced"] else "no")
+        out.append([
+            datetime.utcfromtimestamp(r["created_at"]).isoformat(),
+            r["pid"] or "", r["email"] or "", r["recipient_name"] or "",
+            r["stimulus_name"] or "", r["mode"] or "", r["status"] or "",
+            exp, r["closeness"] if r["closeness"] is not None else "",
+            r["relationship"] or "", r["description"] or "",
+            datetime.utcfromtimestamp(r["watched_at"]).isoformat() if r["watched_at"] else "",
+            datetime.utcfromtimestamp(r["revealed_at"]).isoformat() if r["revealed_at"] else "",
+            r["token"],
+        ])
+    csv_text = "\n".join(",".join('"' + str(c).replace('"', '""') + '"' for c in row) for row in out)
+    headers = {"Content-Disposition": "attachment; filename=chillstv_sends.csv"}
+    return HTMLResponse(csv_text, media_type="text/csv", headers=headers)
+
+
+@a.get("/admin/watches.csv")
+def admin_watches_csv(req: Request):
+    if not chillsauth.is_admin(req):
+        return RedirectResponse("/admin/login")
+    with chillsdb.get_conn() as conn:
+        rows = conn.execute(
+            """SELECT w.watched_at, u.pid, u.email, w.stimulus_id
+               FROM video_watches w LEFT JOIN users u ON u.id = w.user_id
+               ORDER BY w.watched_at DESC"""
+        ).fetchall()
+    out = [["time","name","email","stimulus_id","video"]]
+    for r in rows:
+        cat = video_by_sid(r["stimulus_id"]) or {}
+        out.append([
+            datetime.utcfromtimestamp(r["watched_at"]).isoformat(),
+            r["pid"] or "", r["email"] or "", r["stimulus_id"], cat.get("name",""),
+        ])
+    csv_text = "\n".join(",".join('"' + str(c).replace('"', '""') + '"' for c in row) for row in out)
+    headers = {"Content-Disposition": "attachment; filename=chillstv_watches.csv"}
+    return HTMLResponse(csv_text, media_type="text/csv", headers=headers)
+
+
+@a.get("/admin/comments.csv")
+def admin_comments_csv(req: Request):
+    if not chillsauth.is_admin(req):
+        return RedirectResponse("/admin/login")
+    with chillsdb.get_conn() as conn:
+        rows = conn.execute(
+            """SELECT c.created_at, c.author, c.stimulus_id, c.experienced, c.text, u.email
+               FROM video_comments c LEFT JOIN users u ON u.id = c.user_id
+               ORDER BY c.created_at DESC"""
+        ).fetchall()
+    out = [["time","author","email","stimulus_id","video","chills","text"]]
+    for r in rows:
+        cat = video_by_sid(r["stimulus_id"]) or {}
+        out.append([
+            datetime.utcfromtimestamp(r["created_at"]).isoformat(),
+            r["author"] or "", r["email"] or "", r["stimulus_id"], cat.get("name",""),
+            "yes" if r["experienced"] else "no", r["text"] or "",
+        ])
+    csv_text = "\n".join(",".join('"' + str(c).replace('"', '""') + '"' for c in row) for row in out)
+    headers = {"Content-Disposition": "attachment; filename=chillstv_comments.csv"}
+    return HTMLResponse(csv_text, media_type="text/csv", headers=headers)
+
+
+@a.get("/admin/contributions.csv")
+def admin_contributions_csv(req: Request):
+    if not chillsauth.is_admin(req):
+        return RedirectResponse("/admin/login")
+    with chillsdb.get_conn() as conn:
+        rows = conn.execute(
+            """SELECT c.created_at, c.url, c.description, c.status, u.pid, u.email
+               FROM contributions c LEFT JOIN users u ON u.id = c.submitted_by
+               ORDER BY c.created_at DESC"""
+        ).fetchall()
+    out = [["time","name","email","url","status","description"]]
+    for r in rows:
+        out.append([
+            datetime.utcfromtimestamp(r["created_at"]).isoformat(),
+            r["pid"] or "", r["email"] or "", r["url"] or "", r["status"] or "", r["description"] or "",
+        ])
+    csv_text = "\n".join(",".join('"' + str(c).replace('"', '""') + '"' for c in row) for row in out)
+    headers = {"Content-Disposition": "attachment; filename=chillstv_contributions.csv"}
     return HTMLResponse(csv_text, media_type="text/csv", headers=headers)
 
 
