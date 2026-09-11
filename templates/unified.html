@@ -54,6 +54,8 @@ body.dk .nav-right a:not(.ncta):hover{color:#fff;background:rgba(255,255,255,.08
 body.dk .nav-right a.on{color:#fff;background:rgba(255,255,255,.1)}
 .ncta{background:var(--ink);color:var(--bg)!important;padding:8px 16px;border-radius:999px;font-weight:500;margin-left:4px;transition:.2s}
 body.dk .ncta{background:#F2EFEA;color:#171512!important}
+.ncta-o{background:transparent;color:var(--ink)!important;border:1px solid var(--rule2)}
+body.dk .ncta-o{background:transparent;color:#F2EFEA!important;border-color:rgba(255,255,255,.28)}
 .ncta:hover{opacity:.85}.ncta:active{transform:scale(.97)}
 .navdrop{display:inline-flex;align-items:center;gap:6px;color:var(--ink2);padding:8px 11px;border-radius:999px;border:0;background:none;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:.2s}
 body.dk .navdrop{color:#B8B2A6}
@@ -99,6 +101,7 @@ h2{font-family:var(--display);font-size:clamp(31px,4.1vw,48px);font-weight:600;l
 body.dk .sub{color:#B8B2A6}
 .sub b{font-weight:600;color:var(--ink)}body.dk .sub b{color:#fff}
 .lede{font-size:19px;line-height:1.55;color:var(--ink2);max-width:58ch;letter-spacing:-.01em}
+@media(min-width:901px){body{font-size:18px}.nav-inner{font-size:15.5px;height:66px}nav.top{max-width:880px}.sub{font-size:24px}.lede{font-size:23px}.faq p{font-size:17px}.deck-note{font-size:17px}}
 body.dk .lede{color:#B8B2A6}
 .actions{display:flex;gap:20px;flex-wrap:wrap;align-items:center}
 .btn{display:inline-flex;align-items:center;gap:6px;height:46px;padding:0 24px;border-radius:999px;font-size:16px;font-weight:500;cursor:pointer;border:0;font-family:inherit;transition:.2s;letter-spacing:-.005em}
@@ -1586,6 +1589,29 @@ body.dk .legal{border-color:rgba(255,255,255,.1)}
 #ctv #screen-consent .actions,#ctv #screen-test .actions,#ctv #screen-video .actions,#ctv #screen-after .actions{position:fixed;left:18px;right:18px;bottom:calc(16px + env(safe-area-inset-bottom) + var(--kb,0px));z-index:30;margin:0;flex-direction:column;transition:bottom .15s;gap:6px;align-items:stretch;background:linear-gradient(180deg,rgba(251,249,244,0),rgba(251,249,244,.96) 30%);padding-top:14px}
 #ctv #screen-consent .actions .btn,#ctv #screen-test .actions .btn,#ctv #screen-video .actions .btn,#ctv #screen-after .actions .btn-p{width:100%}
 #ctv #screen-after .actions .btn-l{align-self:center}
+#ctv .authsw{text-align:center;margin-top:14px;font-size:13.5px;color:var(--muted)}
+#ctv .authsw a{text-decoration:underline;text-underline-offset:3px;cursor:pointer;color:inherit}
+#ctv #screen-finding2 .find2{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;padding:24px;text-align:center}
+#ctv #screen-finding2 h1{font-size:clamp(24px,5.6vw,34px);letter-spacing:-.02em}
+#ctv .shuf{position:relative;width:150px;height:104px}
+#ctv .shuf i{position:absolute;inset:0;border-radius:16px;box-shadow:0 10px 26px -12px rgba(0,0,0,.35)}
+#ctv .shuf i:nth-child(1){background:linear-gradient(150deg,#E3ECF9,#B2B9E8);animation:shf 1.5s ease-in-out infinite}
+#ctv .shuf i:nth-child(2){background:linear-gradient(150deg,#F7E8DC,#D89AA6);animation:shf 1.5s ease-in-out .25s infinite}
+#ctv .shuf i:nth-child(3){background:linear-gradient(150deg,#E0F2E9,#9CCBBC);animation:shf 1.5s ease-in-out .5s infinite}
+@keyframes shf{0%,100%{transform:translateX(0) rotate(0)}33%{transform:translateX(-40px) rotate(-7deg)}66%{transform:translateX(40px) rotate(7deg)}}
+#ctv .find2 .fs{font-size:14.5px;color:var(--muted)}
+#ctv .pfban{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;background:#fff;border:1px solid var(--rule);border-radius:22px;padding:18px 22px}
+#ctv .pfban .btn{flex-shrink:0}
+#ctv .labcard{background:#171512;color:#F5F1E8;border-radius:22px;padding:26px 24px}
+#ctv .labcard h3{font-size:20px;letter-spacing:-.015em;margin-bottom:8px}
+#ctv .labcard p{font-size:14.5px;color:rgba(245,241,232,.72);max-width:56ch}
+#ctv .labcard textarea{width:100%;margin-top:16px;min-height:74px;border-radius:14px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#F5F1E8;padding:12px 14px;font:inherit;font-size:15px;resize:vertical}
+#ctv .labcard textarea::placeholder{color:rgba(245,241,232,.45)}
+#ctv .labact{margin-top:14px}
+#ctv .lablist{margin-top:18px;display:flex;flex-direction:column;gap:10px}
+#ctv .labitem{font-size:13.5px;color:rgba(245,241,232,.8);border-top:1px solid rgba(255,255,255,.1);padding-top:10px}
+#ctv .labitem .d{color:rgba(245,241,232,.5);margin-right:8px}
+#ctv .labitem a{color:#F5F1E8;text-decoration:underline;text-underline-offset:3px;word-break:break-all}
 #ctv #screen-video .actions .hint{text-align:center}
 #ctv .cons,#ctv .tq,#ctv .vintro{padding-bottom:150px}
 #ctv .vintro{min-height:0;padding-top:104px;justify-content:flex-start}
@@ -1655,16 +1681,16 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
   <div class="nav-inner">
     <a class="brand" href="#/"><img src="data:image/png;base64,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" alt="ReWire"><span>ReWire</span></a>
     <div class="nav-right">
-      <a href="#/" data-r="/">Vision</a>
+      <a href="#/vision" data-r="/vision">Vision</a>
       <button class="navdrop" id="prodBtn" aria-haspopup="true" aria-expanded="false">Products
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
-      <a class="ncta" href="#/signin">Sign in</a>
+      <a class="ncta" href="#/account">Create account</a><a class="ncta ncta-o" href="#/signin">Sign in</a>
     </div>
   </div>
   <div class="prod-menu" id="prodMenu" role="menu">
-    <a href="#/app" data-r="/app" role="menuitem"><b>Edge</b><span>Meditations that give you chills</span></a>
-    <a href="#/clinical" data-r="/clinical" role="menuitem"><b>Clinical</b><span>Prescription digital therapeutics in clinical trials</span></a>
+    <a href="#/" data-r="/" role="menuitem"><b>Edge</b><span>Discover and extend the edge of your mind.</span></a>
+    <a href="#/clinical" data-r="/clinical" role="menuitem"><b>ReWire DTx</b><span>Prescription digital therapeutics in clinical trials</span></a>
     <a href="#/chills" data-r="/chills" role="menuitem"><b>ChillsTV</b><span>Find out what gives you chills</span></a>
     <a href="#/chillsdb" data-r="/chillsdb" role="menuitem"><b>ChillsDB</b><span>The research kit for laboratories</span></a>
   </div>
@@ -1672,13 +1698,13 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
 <div class="nav-veil" id="navVeil"></div>
 
 <!-- ══════════ PROTOCOLS ══════════ -->
-<main id="p-/app" class="page">
+<main id="p-/" class="page on">
   <section class="heroA">
     <div class="shell">
       <div class="grid">
         <div>
-          <h1 class="r1">Experience a new form of <span class="g nb">meditation</span></h1>
-          <p class="sub r2">ReWire generates immersive meditations about what gives you chills. Each one is designed to bring that feeling back and open new insight and perspective.</p>
+          <h1 class="r1">A new kind of <span class="g nb">experience</span></h1>
+          <p class="sub r2">ReWire generates immersive experiences about what gives you chills. Each one is designed to bring that feeling back and open new insight and perspective.</p>
           <div class="actions r3">
             <a href="#/account" class="btn btn-p">Try one</a>
           </div>
@@ -1690,12 +1716,12 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
 
   <section id="deck" style="padding-top:0">
     <div class="shell rev" style="text-align:center">
-      <h2>A meditation for the exact thing that gives you chills.</h2>
+      <h2>Discover the edge of your mind, then extend it.</h2>
     </div>
     <div class="wall2 rev" aria-hidden="false">
       <div class="strip2"><div class="qc" style="--g1:#E3ECF9;--g2:#C7D9F2;--g3:#B2B9E8;--cink:#3D4B7D"><span class="qn">Protocol</span><div class="qfoot"><p>The last chord of a choir, when every voice lands at once.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#F7E8DC;--g2:#F2C9B8;--g3:#D89AA6;--cink:#7A4030"><span class="qn">Protocol</span><div class="qfoot"><p>My daughter singing to herself when she thinks no one hears.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#EBE5F6;--g2:#D9C9EF;--g3:#C3A6DD;--cink:#563A78"><span class="qn">Protocol</span><div class="qfoot"><p>The morning the plane broke through the clouds.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#E0F2E9;--g2:#BFE4D2;--g3:#9CCBBC;--cink:#2E5C4B"><span class="qn">Protocol</span><div class="qfoot"><p>A stranger giving up his seat without a word.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#FBF3D8;--g2:#F4DFAE;--g3:#E4BC8E;--cink:#7A5A22"><span class="qn">Protocol</span><div class="qfoot"><p>My grandmother's handwriting on a recipe card.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#E3ECF9;--g2:#C7D9F2;--g3:#B2B9E8;--cink:#3D4B7D"><span class="qn">Protocol</span><div class="qfoot"><p>The crowd going quiet right before the encore.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#F7E8DC;--g2:#F2C9B8;--g3:#D89AA6;--cink:#7A4030"><span class="qn">Protocol</span><div class="qfoot"><p>Standing on a summit as the sun comes over the ridge.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#EBE5F6;--g2:#D9C9EF;--g3:#C3A6DD;--cink:#563A78"><span class="qn">Protocol</span><div class="qfoot"><p>Finishing the thing I started years ago.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#E0F2E9;--g2:#BFE4D2;--g3:#9CCBBC;--cink:#2E5C4B"><span class="qn">Protocol</span><div class="qfoot"><p>That morning in the ocean, when something enormous held me.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#FBF3D8;--g2:#F4DFAE;--g3:#E4BC8E;--cink:#7A5A22"><span class="qn">Protocol</span><div class="qfoot"><p>A speech that says the thing I could never say.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#E3ECF9;--g2:#C7D9F2;--g3:#B2B9E8;--cink:#3D4B7D"><span class="qn">Protocol</span><div class="qfoot"><p>The first snow of the year, before anyone has walked on it.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#F7E8DC;--g2:#F2C9B8;--g3:#D89AA6;--cink:#7A4030"><span class="qn">Protocol</span><div class="qfoot"><p>Coming home to people who waited up.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#E3ECF9;--g2:#C7D9F2;--g3:#B2B9E8;--cink:#3D4B7D"><span class="qn">Protocol</span><div class="qfoot"><p>The last chord of a choir, when every voice lands at once.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#F7E8DC;--g2:#F2C9B8;--g3:#D89AA6;--cink:#7A4030"><span class="qn">Protocol</span><div class="qfoot"><p>My daughter singing to herself when she thinks no one hears.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#EBE5F6;--g2:#D9C9EF;--g3:#C3A6DD;--cink:#563A78"><span class="qn">Protocol</span><div class="qfoot"><p>The morning the plane broke through the clouds.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#E0F2E9;--g2:#BFE4D2;--g3:#9CCBBC;--cink:#2E5C4B"><span class="qn">Protocol</span><div class="qfoot"><p>A stranger giving up his seat without a word.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#FBF3D8;--g2:#F4DFAE;--g3:#E4BC8E;--cink:#7A5A22"><span class="qn">Protocol</span><div class="qfoot"><p>My grandmother's handwriting on a recipe card.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#E3ECF9;--g2:#C7D9F2;--g3:#B2B9E8;--cink:#3D4B7D"><span class="qn">Protocol</span><div class="qfoot"><p>The crowd going quiet right before the encore.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#F7E8DC;--g2:#F2C9B8;--g3:#D89AA6;--cink:#7A4030"><span class="qn">Protocol</span><div class="qfoot"><p>Standing on a summit as the sun comes over the ridge.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#EBE5F6;--g2:#D9C9EF;--g3:#C3A6DD;--cink:#563A78"><span class="qn">Protocol</span><div class="qfoot"><p>Finishing the thing I started years ago.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#E0F2E9;--g2:#BFE4D2;--g3:#9CCBBC;--cink:#2E5C4B"><span class="qn">Protocol</span><div class="qfoot"><p>That morning in the ocean, when something enormous held me.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#FBF3D8;--g2:#F4DFAE;--g3:#E4BC8E;--cink:#7A5A22"><span class="qn">Protocol</span><div class="qfoot"><p>A speech that says the thing I could never say.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#E3ECF9;--g2:#C7D9F2;--g3:#B2B9E8;--cink:#3D4B7D"><span class="qn">Protocol</span><div class="qfoot"><p>The first snow of the year, before anyone has walked on it.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div><div class="qc" style="--g1:#F7E8DC;--g2:#F2C9B8;--g3:#D89AA6;--cink:#7A4030"><span class="qn">Protocol</span><div class="qfoot"><p>Coming home to people who waited up.</p><div class="qdots"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div></div>
     </div>
-    <div class="shell"><p class="deck-note rev">You write what gives you chills. Each line becomes a protocol of five sessions.</p></div>
+    <div class="shell"><p class="deck-note rev">We find out what gives you chills. Each discovery becomes a protocol of five sessions that takes you further.</p></div>
   </section>
 
   <section>
@@ -1713,11 +1739,11 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
     <div class="shell rev">
       <h2 style="text-align:center">Questions.</h2>
       <div class="faq">
-        <details><summary>How is it personal?</summary><p>Every meditation is generated for one person and never reused. You write what gives you chills, and the voice speaks to that moment in the words you used. Each session adapts to how you responded to the last one, so the fifth session knows things about you that the first one could not.</p></details>
-        <details class="m-hide"><summary>What is a protocol?</summary><p>A protocol is a set of five sessions built from one line you write. The sessions build on each other and on your responses. The ReWire Store also carries protocols designed by world class experts.</p></details>
+        <details><summary>How is it personal?</summary><p>Every experience is generated for one person and never reused. We find the exact moment that gives you chills, and the voice speaks to it. Each session adapts to how you responded to the last one, so the fifth session knows things about you that the first one could not.</p></details>
+        <details class="m-hide"><summary>What is a protocol?</summary><p>A protocol is a set of five sessions built from one thing that gives you chills. The sessions build on each other and on your responses. The ReWire Store also carries protocols designed by world class experts.</p></details>
         <details><summary>What does a session feel like?</summary><p>Most people describe a wave: a tightness in the chest, goosebumps down the arms, sometimes tears, then a clear thought about what you care about that stays with you afterwards. Headphones help, since every session is built on music and voice.</p></details>
         <details class="m-hide"><summary>What if you don't get chills?</summary><p>It happens, especially at the beginning. Chills come more easily once ReWire has learned how you respond, so the second and third sessions usually land harder than the first. The reflection works either way.</p></details>
-        <details><summary>Is this a treatment for depression?</summary><p>No. These meditations are wellness tools for reflection and emotional wellbeing. They are not medical devices, they have no FDA clearance, and they work best alongside professional care. Our clinical program for depression and anhedonia is separate, in clinical trials, and available only through a clinician. See <a href="#/clinical" style="font-weight:600;border-bottom:1px solid var(--rule2)">the clinical page</a>.</p></details>
+        <details><summary>Is this a treatment for depression?</summary><p>No. These experiences are wellness tools for reflection and emotional wellbeing. They are not medical devices, they have no FDA clearance, and they work best alongside professional care. Our clinical program for depression and anhedonia is separate, in clinical trials, and available only through a clinician. See <a href="#/clinical" style="font-weight:600;border-bottom:1px solid var(--rule2)">the ReWire DTx page</a>.</p></details>
         <details class="m-hide"><summary>When can I use it?</summary><p>The app launches in January 2027. Create your account now, take the test, and join the beta from your profile. Invites go out by email as spots open.</p></details>
       </div>
     </div>
@@ -1734,24 +1760,24 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
   <section class="m-hide" style="padding-top:0">
     <div class="shell rev">
       <div class="doors">
-        <a href="#/" class="door"><div><div class="t">The vision</div><div class="s">See how we design synthetic emotions and meet the team building them.</div></div><div class="go">→</div></a>
+        <a href="#/vision" class="door"><div><div class="t">The vision</div><div class="s">See how we design synthetic emotions and meet the team building them.</div></div><div class="go">→</div></a>
         <a href="#/chills" class="door"><div><div class="t">ChillsTV</div><div class="s">Find out what gives you chills and send it to someone you know.</div></div><div class="go">→</div></a>
         <a href="#/chillsdb" class="door"><div><div class="t">ChillsDB</div><div class="s">Get the free research kit that laboratories use to induce chills.</div></div><div class="go">→</div></a>
-        <a href="#/clinical" class="door"><div><div class="t">Clinical</div><div class="s">Our investigational program for depression and anhedonia.</div></div><div class="go">→</div></a>
+        <a href="#/clinical" class="door"><div><div class="t">ReWire DTx</div><div class="s">Our investigational program for depression and anhedonia.</div></div><div class="go">→</div></a>
       </div>
     </div>
   </section>
 </main>
 
 <!-- ══════════ VISION ══════════ -->
-<main id="p-/" class="page airy on">
+<main id="p-/vision" class="page airy">
   <section class="heroB">
     <div class="aurora"><i></i><i></i><i></i></div>
     <div class="inner">
       <div class="eyebrow r1">The vision</div>
       <h1 class="r1">We design <span class="g nb">synthetic emotions</span></h1>
       <p class="sub r2">ReWire expands the range of what humans can feel. For ten years our team studied how emotions arise in the brain and the body to build an engine that creates them on demand.</p>
-      <div class="actions r3"><a href="#engine" class="btn btn-p m-hide">How the engine works</a><a href="#/app" class="btn btn-l m-hide">See the app →</a><a href="#/app" class="btn btn-p m-only">See the app</a><a href="#/account" class="btn btn-l m-only">Create account →</a></div>
+      <div class="actions r3"><a href="#engine" class="btn btn-p m-hide">How the engine works</a><a href="#/" class="btn btn-l m-hide">See the app →</a><a href="#/" class="btn btn-p m-only">See the app</a><a href="#/account" class="btn btn-l m-only">Create account →</a></div>
     </div>
     <div class="scroll-cue">Scroll</div>
   </section>
@@ -1770,11 +1796,11 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
       <div class="wb">
         <a class="wbi" href="#/account">
           <h3>Edge</h3><div class="wbs">Launches January 2027</div>
-          <p>Meditations that give you chills, generated for one person.</p>
+          <p>Discover what gives you chills, and extend the edge of your mind.</p>
           <div class="go">Get early access <i>→</i></div>
         </a>
         <a class="wbi" href="#/clinical">
-          <h3>Clinical</h3><div class="wbs">In clinical trials</div>
+          <h3>ReWire DTx</h3><div class="wbs">In clinical trials</div>
           <p>A prescription digital therapeutic for depression and anhedonia.</p>
           <div class="go">See the program <i>→</i></div>
         </a>
@@ -2012,7 +2038,7 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
   <section class="m-hide" style="padding-top:0">
     <div class="shell rev">
       <div class="doors">
-        <a href="#/app" class="door"><div><div class="t">ReWire Protocols</div><div class="s">Take five days to start the thing you keep putting off.</div></div><div class="go">→</div></a>
+        <a href="#/" class="door"><div><div class="t">Edge</div><div class="s">Discover what gives you chills, and extend the edge of your mind.</div></div><div class="go">→</div></a>
         <a href="#/chillsdb" class="door"><div><div class="t">ChillsDB</div><div class="s">Get the free research kit behind this test.</div></div><div class="go">→</div></a>
       </div>
     </div>
@@ -2148,9 +2174,9 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
 <main id="p-/clinical" class="page airy">
   <section style="padding-top:180px;padding-bottom:40px">
     <div class="shell" style="max-width:840px">
-      <div class="eyebrow r1">Clinical</div>
+      <div class="eyebrow r1">ReWire DTx</div>
       <h1 class="r1" style="font-size:clamp(38px,5vw,64px)">Now in clinical trials.</h1>
-      <p class="lede r2" style="max-width:640px">ReWire is developing a prescription digital therapeutic for depression and anhedonia, built on the same engine as the app. The program has moved from laboratory research into clinical trials with partner centres. A clinician prescribes the program and supervises it. It is investigational and it is not FDA cleared.</p>
+      <p class="lede r2" style="max-width:640px">ReWire is developing a prescription digital therapeutic for depression and anhedonia, built on the same engine as the app. The program has moved from laboratory research into clinical trials with partner centres.</p>
     </div>
   </section>
 
@@ -2168,8 +2194,6 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
   <section style="padding-top:60px">
     <div class="shell rev">
       <div class="eyebrow">Pipeline</div>
-      <h2>Eight programs, one mechanism.</h2>
-      <p class="lede m-hide">Each program targets a distinct deficit through the same induced response. Bars show the stage each has reached. The last two are exploratory.</p>
       <div class="pipe">
         <div class="pipe-head"><span></span><span>Mechanism</span><span>Pilot study</span><span>Randomized trial</span><span>Clinical trials</span><span>FDA review</span></div>
         <div class="pipe-row">
@@ -2243,18 +2267,6 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
     </div>
   </section>
 
-  <section class="m-hide" style="padding-top:0">
-    <div class="shell rev">
-      <div class="eyebrow">The program</div>
-      <h2>What a patient receives.</h2>
-      <div class="rxlgrid" style="margin-top:36px">
-        <div class="rxl"><div class="t">Prescription</div><p class="s">A clinician prescribes the program and supervises it. Sessions are delivered through the app, at home, between visits.</p></div>
-        <div class="rxl"><div class="t">Protocols</div><p class="s">Five session protocols built around the patient's own situation, each designed to induce chills and to work on positive affect, reward, and belief.</p></div>
-        <div class="rxl"><div class="t">Measurement</div><p class="s">Reward learning, symptom scales, and session level physiology, with preregistered outcomes published openly.</p></div>
-      </div>
-    </div>
-  </section>
-
   <section style="padding-top:0">
     <div class="shell rev">
       <div class="eyebrow">Get involved</div>
@@ -2304,8 +2316,8 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
 
   <article class="mo-art">
     <header class="mo-head">
-      <h1 class="r1">Experiences that change how you feel</h1>
-      <p class="mo-dek r2">ReWire builds technology that extends the range of what humans can feel, designed to induce these moments with the power to change lives.</p>
+      <h1 class="r1">Extend the limits of your mind</h1>
+      <p class="mo-dek r2">Find out what gives you chills, and where it takes you.</p>
       <div class="mo-by r3">Félix Schoeller · Founder and CEO · Los Angeles, CA.</div>
     </header>
 
@@ -2318,14 +2330,13 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
 
     <div class="mo-cta">
       <a class="mo-btn" href="#/account">Create your account</a>
-      <div class="mo-hint">It starts with a short test and a video that gives you chills.</div>
       <div class="mo-hint" style="margin-top:10px"><a href="#/signin" style="text-decoration:underline;text-underline-offset:3px">Already have an account? Sign in</a></div>
     </div>
   </article>
 
   <div class="mo-foot">
-    <p>© 2026 ReWire Neurotechnologies, Inc. · Los Angeles, California</p>
-        <p>ReWire is a research stage company. References to research describe the underlying mechanism and do not constitute claims about a marketed medical device.</p>
+    <p>ReWire is a research stage company. References to research describe the underlying mechanism and do not constitute claims about a marketed medical device.</p>
+        <p>© 2026 ReWire Neurotechnologies, Inc. · Los Angeles, California</p>
   </div>
 </main>
 
@@ -2336,9 +2347,9 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
         <a href="#/" class="brand"><img src="data:image/png;base64,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" alt="ReWire"><span>ReWire</span></a>
         <p class="sml" style="margin-top:14px">Engineering peak experience.<br>Los Angeles, California.</p>
       </div>
-      <div><h4>Get involved</h4><a href="#/signin">Sign in</a><a href="#/clinical">Clinical trials</a><a href="https://tally.so/r/GxLo12">For clinicians</a><a href="https://tally.so/r/gDv7Ql">Commercial &amp; licensing</a></div>
-      <div class="m-hide"><h4>Science</h4><a href="#/clinical">Clinical program</a><a href="#/">Publications</a><a href="#/chillsdb">ChillsDB kit</a><a href="#/chillsdb">API access</a></div>
-      <div class="m-hide"><h4>Company</h4><a href="#/">Team &amp; advisors</a><a href="#/chills">ChillsTV</a><a href="#">Instagram</a><a href="#">Contact</a></div>
+      <div><h4>Get involved</h4><a href="#/signin">Sign in</a><a href="#/clinical">ReWire DTx</a><a href="https://tally.so/r/GxLo12">For clinicians</a><a href="https://tally.so/r/gDv7Ql">Commercial &amp; licensing</a></div>
+      <div class="m-hide"><h4>Science</h4><a href="#/clinical">ReWire DTx program</a><a href="#/vision">Publications</a><a href="#/chillsdb">ChillsDB kit</a><a href="#/chillsdb">API access</a></div>
+      <div class="m-hide"><h4>Company</h4><a href="#/vision">Team &amp; advisors</a><a href="#/chills">ChillsTV</a><a href="#">Instagram</a><a href="#">Contact</a></div>
     </div>
     <div class="legal" style="display:block">
       <p class="sml" style="max-width:72ch">ReWire is a research stage company. References to peer reviewed research describe the underlying mechanism and do not constitute claims about a marketed medical device.</p>
@@ -2376,12 +2387,12 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
     <div class="acard">
       <img class="mark" src="data:image/png;base64,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" alt="">
       <h1 id="authTitle">Create your ReWire account</h1>
-      <div class="segt"><button id="segIn" onclick="authMode('in')">Sign in</button><button id="segUp" class="up on" onclick="authMode('up')">Create account</button></div>
       <button class="gbtn" onclick="googleGo()"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5c-.3 1.5-1.1 2.8-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.7z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1C3.3 21.3 7.3 24 12 24z"/><path fill="#FBBC05" d="M5.3 14.3c-.2-.7-.4-1.5-.4-2.3s.1-1.6.4-2.3V6.6H1.3C.5 8.2 0 10 0 12s.5 3.8 1.3 5.4l4-3.1z"/><path fill="#EA4335" d="M12 4.7c1.8 0 3.3.6 4.6 1.8l3.4-3.4C18 1.2 15.2 0 12 0 7.3 0 3.3 2.7 1.3 6.6l4 3.1c.9-2.9 3.6-5 6.7-5z"/></svg>Continue with Google</button>
       <div class="or"><span>or</span></div>
       <div class="field"><input placeholder="Email" type="email" id="authEmail" name="email" autocomplete="email" enterkeyhint="next"></div>
       <div class="field"><input placeholder="Password" type="password" id="authPw" name="password" autocomplete="current-password" enterkeyhint="go"></div>
       <button class="btn btn-p btn-w" id="authBtn" onclick="authGo()">Create account</button>
+      <div class="authsw" id="authSwitch"><a onclick="authMode('in')">Already have an account? Sign in</a></div>
       <p class="legal2">By continuing you agree to the <a>Terms of Use</a> and <a>Privacy Policy</a>.</p>
     </div>
   </div>
@@ -2415,6 +2426,14 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
     <h1>Finding your chills video.</h1>
     <div class="fbar"><i id="findBar"></i></div>
     <div class="fs" id="findS">Reading your answers</div>
+  </div>
+</div>
+
+<div class="screen" id="screen-finding2">
+  <div class="find2">
+    <div class="shuf"><i></i><i></i><i></i></div>
+    <h1>Finding another one.</h1>
+    <div class="fs" id="find2S">Looking through what's left of your ranking</div>
   </div>
 </div>
 
@@ -2457,6 +2476,13 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
 <div class="screen" id="screen-profile">
   <div class="hub">
 
+    <div class="sec" id="betaBanner" style="display:none">
+      <div class="pfban">
+        <div><b>Edge launches in January 2027.</b> Join the beta and we email you when your access is ready.</div>
+        <button class="btn btn-p" onclick="betaJoin()">Join the beta</button>
+      </div>
+    </div>
+
     <div class="sec">
       <div class="sec-h">
         <h2>Your chills score</h2>
@@ -2479,6 +2505,16 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
           </svg>
           <div class="axis"><span>Less sensitive</span><span>More sensitive</span></div>
         </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="labcard">
+        <h3>What gives you chills?</h3>
+        <p>Tell the lab. A link or a few words. Every submission goes to our research team and can end up in the next study.</p>
+        <textarea id="labT" placeholder="A link, a scene, a song, a moment"></textarea>
+        <div class="labact"><button class="btn btn-w" onclick="labSend()">Send to the lab</button></div>
+        <div class="lablist" id="labList"></div>
       </div>
     </div>
 
@@ -2642,11 +2678,10 @@ function closeMenu(){ ctvNav.classList.remove('open'); CTV.classList.remove('men
 /* ───────── account ───────── */
 function authMode(m){
   var up = m!=='in';
-  document.getElementById('segUp').classList.toggle('on', up);
-  document.getElementById('segIn').classList.toggle('on', !up);
-  document.getElementById('segUp').classList.add('up');
   document.getElementById('authTitle').textContent = up ? 'Create your ReWire account' : 'Sign in to ReWire';
   document.getElementById('authBtn').textContent = up ? 'Create account' : 'Sign in';
+  var sw = document.getElementById('authSwitch');
+  if(sw) sw.innerHTML = up ? '<a onclick="authMode(\'in\')">Already have an account? Sign in</a>' : '<a onclick="authMode(\'up\')">New to ReWire? Create an account</a>';
   authUp = up;
 }
 var authUp = true;
@@ -2669,7 +2704,7 @@ function authGo(){
 function googleGo(){ location.href = '/auth/google/start'; }
 function signOut(){ fetch('/auth/logout', {method:'POST'}).then(function(){ location.href = '/'; }).catch(function(){ location.href = '/'; }); }
 function consentGo(){ fetch('/flow/consent', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({agree:true})}).catch(function(){}); startTest(); }
-function betaJoin(){ fetch('/flow/beta', {method:'POST'}).catch(function(){}); setApp('listed'); renderProducts(); renderApp(); toast('You are on the list'); }
+function betaJoin(){ fetch('/flow/beta', {method:'POST'}).catch(function(){}); var bb = document.getElementById('betaBanner'); if(bb) bb.style.display = 'none'; setApp('listed'); renderProducts(); renderApp(); toast('You are on the list'); }
 function share(kind){
   var txt = '\u26a1 More likely to get chills than ' + (CTX.likely_pct || '') + '% of people. I found it on ChillsTV \u2014 @rewire_protocols';
   var url = location.origin;
@@ -2875,14 +2910,58 @@ function aDone(){
   if(ai === 2){ var t2 = document.getElementById('aT'); if(t2){ aAns.why = t2.value || ''; } }
   clearInterval(vT);
   try { if(ytPlayer && ytPlayer.destroy){ ytPlayer.destroy(); ytPlayer = null; } } catch(x){}
-  fetch('/flow/after', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sid: window._afterSid || '', chills: !!aAns.chills, what: aAns.what || '', why: aAns.why || ''})}).catch(function(){});
+  var sid = window._afterSid || '';
+  fetch('/flow/after', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sid: sid, chills: !!aAns.chills, what: aAns.what || '', why: aAns.why || ''})}).catch(function(){});
+  if(!aAns.chills){ nextPick(sid); return; }
   var first = firstVisit; firstVisit = false;
   toast(first ? 'Welcome to your profile' : 'Saved. Added to the research.');
   setTimeout(function(){ location.replace('/?r=' + Date.now() + '#/profile'); }, 700);
 }
+function toProfile(){
+  var first = firstVisit; firstVisit = false;
+  toast(first ? 'Welcome to your profile' : 'Saved. Added to the research.');
+  setTimeout(function(){ location.replace('/?r=' + Date.now() + '#/profile'); }, 700);
+}
+function nextPick(sid){
+  go('finding2');
+  var started = Date.now();
+  fetch('/flow/next-pick', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sid: sid})})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var wait = Math.max(0, 2400 - (Date.now() - started));
+      setTimeout(function(){
+        if(!d || !d.ok || d.done || !d.video){ toProfile(); return; }
+        V.push(d.video); vi = V.length - 1;
+        openVideo(vi, false);
+      }, wait);
+    })
+    .catch(function(){ toProfile(); });
+}
+
+/* ───────── the lab card ───────── */
+var LAB = CTX.lab_items || [];
+function escL(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function renderLab(){
+  var el = document.getElementById('labList'); if(!el) return;
+  el.innerHTML = LAB.map(function(it){
+    var t = escL(it.text || '');
+    if(it.url){ var u = escL(it.url); t = t.split(u).join('<a href="' + u + '" target="_blank" rel="noopener">' + u + '</a>'); }
+    return '<div class="labitem"><span class="d">' + escL(it.date || '') + '</span>' + t + '</div>';
+  }).join('');
+}
+function labSend(){
+  var t = document.getElementById('labT'); var txt = (t && t.value || '').trim();
+  if(!txt){ toast('Write or paste something first'); return; }
+  fetch('/flow/lab', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text: txt})})
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if(!d || !d.ok){ toast((d && d.error) || 'That did not work'); return; } LAB = d.items || []; renderLab(); t.value = ''; toast('Sent to the lab'); })
+    .catch(function(){ toast('That did not work'); });
+}
+renderLab();
 
 /* ───────── the two products, three states ───────── */
 var appAccess = CTX.app_access || 'none';
+(function(){ var b = document.getElementById('betaBanner'); if(b && CTX.logged_in && CTX.has_profile && appAccess === 'none') b.style.display = ''; })();
 function setApp(s){ appAccess = s; var mk = document.getElementById('mkApp'); if(mk) mk.textContent = s; }
 function renderProducts(){
   var st = document.getElementById('appStatusCard'), ct = document.getElementById('appCtaCard');
@@ -2987,6 +3066,7 @@ function route(){
   var h=location.hash.replace('#','')||'/';
   if(h.charAt(0)!=='/')return;
   setMenu(false);
+  if(h==='/app'){ location.replace('#/'); return; }
   var key=h.slice(1);
   if(CTV_ROUTES[key]){ document.body.classList.remove('home','dk'); go(CTV_ROUTES[key], key==='signin'?'in':undefined, true); document.documentElement.classList.remove('bootctv'); return; }
   document.body.classList.remove('ctv-on');
@@ -2996,7 +3076,7 @@ function route(){
   document.body.classList.toggle('dk',el.dataset.dark==='1');
   document.body.classList.toggle('home',h==='/');
   document.querySelectorAll('[data-r]').forEach(function(a){a.classList.toggle('on',a.dataset.r===h)});
-  if(prodBtn)prodBtn.classList.toggle('on',['/app','/chills','/chillsdb','/clinical'].indexOf(h)>-1);
+  if(prodBtn)prodBtn.classList.toggle('on',['/','/chills','/chillsdb','/clinical'].indexOf(h)>-1);
   window.scrollTo(0,0);bindReveal();
   document.documentElement.classList.remove('bootctv');
 }
