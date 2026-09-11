@@ -1038,12 +1038,13 @@ def _persist_flow(req: Request, user, sess_data):
                     match_pct = cosine_match_pct(init_vec, sess_data.get("vector", []))
                     video_sid = stim.get("stimulus_id","")
                     video_name = stim.get("stim_name", stim.get("name",""))
-                chillsdb.complete_duo(
-                    pending["token"], user["id"], pid or "A friend", match_pct,
+                result_token = chillsdb.add_duo_result(
+                    duo_row["user_id"], user["id"], pid or "A friend", match_pct,
                     video_sid, video_name,
                 )
                 log_ev("duo_completed", user=user, detail={
-                    "token": pending["token"], "match_pct": float(match_pct),
+                    "token": result_token, "link_token": pending["token"],
+                    "match_pct": float(match_pct),
                     "joint_video": video_name, "initiator_id": duo_row["user_id"],
                 })
 
@@ -1650,15 +1651,16 @@ def _finalize_paid_session(req: Request, sid: str, session_label: str = ""):
                     match_pct = cosine_match_pct(init_vec, sess_data.get("vector", []))
                     video_sid = stim.get("stimulus_id","")
                     video_name = stim.get("stim_name", stim.get("name",""))
-                chillsdb.complete_duo(
-                    pending["token"], user["id"] if user else 0, pid or "A friend", match_pct,
+                result_token = chillsdb.add_duo_result(
+                    duo_row["user_id"], user["id"] if user else 0, pid or "A friend", match_pct,
                     video_sid, video_name,
                 )
                 log_ev("duo_completed", user=user, detail={
-                    "token": pending["token"], "match_pct": float(match_pct),
+                    "token": result_token, "link_token": pending["token"],
+                    "match_pct": float(match_pct),
                     "joint_video": video_name, "initiator_id": duo_row["user_id"],
                 })
-                dest = f"/duo/{pending['token']}"
+                dest = f"/duo/{result_token}"
 
     resp = RedirectResponse(dest, status_code=303)
     resp.set_cookie(chillsauth.VISITOR_COOKIE, visitor_token, max_age=60*60*24*365,
