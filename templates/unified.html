@@ -1582,20 +1582,29 @@ body.dk .legal{border-color:rgba(255,255,255,.1)}
 #ctv .shuf i:nth-child(3){background:linear-gradient(150deg,#E0F2E9,#9CCBBC);animation:shf 1.5s ease-in-out .5s infinite}
 @keyframes shf{0%,100%{transform:translateX(0) rotate(0)}33%{transform:translateX(-40px) rotate(-7deg)}66%{transform:translateX(40px) rotate(7deg)}}
 #ctv .find2 .fs{font-size:14.5px;color:var(--muted)}
-#ctv .pfban{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;background:#fff;border:1px solid var(--rule);border-radius:22px;padding:18px 22px}
-#ctv .pfban .btn{flex-shrink:0}
-#ctv .labcard{background:#171512;color:#F5F1E8;border-radius:22px;padding:26px 24px}
-#ctv .labcard h3{font-size:20px;letter-spacing:-.015em;margin-bottom:8px}
-#ctv .labcard p{font-size:14.5px;color:rgba(245,241,232,.72);max-width:56ch}
-#ctv .labcard textarea{width:100%;margin-top:16px;min-height:74px;border-radius:14px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#F5F1E8;padding:12px 14px;font:inherit;font-size:15px;resize:vertical}
-#ctv .labcard textarea::placeholder{color:rgba(245,241,232,.45)}
-#ctv .labact{margin-top:14px}
-#ctv .labbtn{background:#F2EFEA;color:#171512}
-#ctv .labbtn:hover{background:#fff}
-#ctv .lablist{margin-top:18px;display:flex;flex-direction:column;gap:10px}
-#ctv .labitem{font-size:13.5px;color:rgba(245,241,232,.8);border-top:1px solid rgba(255,255,255,.1);padding-top:10px}
-#ctv .labitem .d{color:rgba(245,241,232,.5);margin-right:8px}
-#ctv .labitem a{color:#F5F1E8;text-decoration:underline;text-underline-offset:3px;word-break:break-all}
+#ctv .beta-banner{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 18px 16px 24px;margin-bottom:34px;border-radius:22px;background:linear-gradient(118deg,var(--l1),var(--l2) 34%,var(--l3) 64%,var(--l4));color:var(--ink);box-shadow:var(--shadow-soft)}
+#ctv .beta-banner.off{display:none}
+#ctv .beta-banner .bb-copy{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;font-size:15.5px;line-height:1.4}
+#ctv .beta-banner .bb-copy b{font-weight:600}
+#ctv .beta-banner .bb-copy span{opacity:.8}
+#ctv .beta-banner .btn{flex:none}
+#ctv .beta-banner+.sec{margin-top:0}
+@media(max-width:900px){ #ctv .beta-banner{flex-direction:column;align-items:stretch;padding:18px 18px;margin-bottom:26px}#ctv .beta-banner .btn{width:100%}}
+#ctv .moments{border-radius:30px;padding:34px 34px 32px;background:radial-gradient(120% 90% at 30% 20%,#2a2438 0%,#141320 55%,#0c0b12 100%);color:#F2EFEA;display:grid;grid-template-columns:1fr 1.15fr;gap:34px;align-items:center;box-shadow:var(--shadow-lift)}
+#ctv .moments .tag{font-size:12.5px;font-weight:600;color:#B2B9E8;letter-spacing:.02em}
+#ctv .moments h3{font-family:var(--display);font-size:clamp(30px,3.4vw,40px);font-weight:600;letter-spacing:-.024em;line-height:1.05;margin-top:8px;padding-bottom:.06em}
+#ctv .moments p{font-size:16.5px;line-height:1.5;margin-top:12px;opacity:.82;max-width:34ch}
+#ctv .moments textarea{width:100%;min-height:124px;font-family:inherit;font-size:16px;line-height:1.5;color:#F2EFEA;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);padding:16px 18px;border-radius:20px;resize:vertical}
+#ctv .moments textarea::placeholder{color:rgba(242,239,234,.45)}
+#ctv .moments textarea:focus{outline:none;border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.1)}
+#ctv .moments .mo-row{display:flex;align-items:center;gap:16px;margin-top:14px;flex-wrap:wrap}
+#ctv .moments .mo-row .btn-p{background:#F2EFEA;color:#171512}
+#ctv .moments .mo-row .btn-p:disabled{opacity:.35}
+#ctv .moments .mo-row .hint{color:rgba(242,239,234,.55)}
+#ctv .moments .mo-list{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+#ctv .moments .mo-list div{font-size:14.5px;line-height:1.45;padding:12px 16px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);word-break:break-word}
+#ctv .moments .mo-list a{text-decoration:underline;text-underline-offset:3px;color:#B2B9E8}
+@media(max-width:900px){ #ctv .moments{grid-template-columns:1fr;gap:22px;padding:26px 24px 24px}#ctv .moments .mo-row{flex-direction:column;align-items:stretch}#ctv .moments .mo-row .btn-p{width:100%}#ctv .moments .mo-row .hint{text-align:center}}
 @media(max-width:900px){ #ctv .screen.active{animation:none}
 #ctv .btn{height:60px;border-radius:16px;font-size:17px;width:100%;padding:0 22px}
 #ctv .btn-l{height:auto;width:auto;padding:12px 6px;font-size:16px}
@@ -2478,11 +2487,9 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
 <div class="screen" id="screen-profile">
   <div class="hub">
 
-    <div class="sec" id="betaBanner" style="display:none">
-      <div class="pfban">
-        <div><b>Edge launches in January 2027.</b> Join the beta and we email you when your access is ready.</div>
-        <button class="btn btn-p" onclick="betaJoin()">Join the beta</button>
-      </div>
+    <div class="beta-banner off" id="betaBanner">
+      <div class="bb-copy"><b>Edge launches in January 2027.</b><span>Join the beta and be the first to get access.</span></div>
+      <button class="btn btn-p" onclick="betaJoin()">Join the beta</button>
     </div>
 
     <div class="sec">
@@ -2511,12 +2518,17 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
     </div>
 
     <div class="sec">
-      <div class="labcard">
-        <h3>What gives you chills?</h3>
-        <p>Tell the lab. A link or a few words. Every submission goes to our research team and can end up in the next study.</p>
-        <textarea id="labT" placeholder="A link, a scene, a song, a moment"></textarea>
-        <div class="labact"><button class="btn labbtn" onclick="labSend()">Send to the lab</button></div>
-        <div class="lablist" id="labList"></div>
+      <div class="moments">
+        <div class="mo-copy">
+          <div class="tag">Contribute to the science</div>
+          <h3>What gives you chills?</h3>
+          <p>A song, a speech, a scene, a link, a memory. Anything you send goes to our research lab, where it improves ChillsDB and shapes our next studies.</p>
+        </div>
+        <div class="mo-form">
+          <textarea id="momentT" placeholder="Help us identify more chills stimuli. You can share links, descriptions, anything." oninput="momentCheck(this)"></textarea>
+          <div class="mo-row"><button class="btn btn-p" id="momentBtn" disabled onclick="addMoment()">Send to the lab</button><span class="hint" id="momentHint"></span></div>
+          <div class="mo-list" id="momentList"></div>
+        </div>
       </div>
     </div>
 
@@ -2707,7 +2719,7 @@ function authGo(){
 function googleGo(){ location.href = '/auth/google/start'; }
 function signOut(){ fetch('/auth/logout', {method:'POST'}).then(function(){ location.href = '/'; }).catch(function(){ location.href = '/'; }); }
 function consentGo(){ fetch('/flow/consent', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({agree:true})}).catch(function(){}); startTest(); }
-function betaJoin(){ fetch('/flow/beta', {method:'POST'}).catch(function(){}); var bb = document.getElementById('betaBanner'); if(bb) bb.style.display = 'none'; setApp('listed'); renderProducts(); renderApp(); toast('You are on the list'); }
+function betaJoin(){ fetch('/flow/beta', {method:'POST'}).catch(function(){}); var bb = document.getElementById('betaBanner'); if(bb) bb.classList.add('off'); setApp('listed'); renderProducts(); renderApp(); toast('You are on the list'); }
 function share(kind){
   var txt = '\u26a1 More likely to get chills than ' + (CTX.likely_pct || '') + '% of people. I found it on ChillsTV \u2014 @rewire_protocols';
   var url = location.origin;
@@ -2948,26 +2960,30 @@ function nextPick(sid){
 var LAB = CTX.lab_items || [];
 function escL(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function renderLab(){
-  var el = document.getElementById('labList'); if(!el) return;
+  var el = document.getElementById('momentList'); if(!el) return;
   el.innerHTML = LAB.map(function(it){
     var t = escL(it.text || '');
-    if(it.url){ var u = escL(it.url); t = t.split(u).join('<a href="' + u + '" target="_blank" rel="noopener">' + u + '</a>'); }
-    return '<div class="labitem"><span class="d">' + escL(it.date || '') + '</span>' + t + '</div>';
+    return '<div>' + t.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>') + '</div>';
   }).join('');
 }
-function labSend(){
-  var t = document.getElementById('labT'); var txt = (t && t.value || '').trim();
-  if(!txt){ toast('Write or paste something first'); return; }
-  fetch('/flow/lab', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text: txt})})
+function momentCheck(el){ document.getElementById('momentBtn').disabled = el.value.trim().length < 8; }
+function addMoment(){
+  var t = document.getElementById('momentT'); var v = (t && t.value || '').trim(); if(v.length < 8) return;
+  fetch('/flow/lab', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text: v})})
     .then(function(r){ return r.json(); })
-    .then(function(d){ if(!d || !d.ok){ toast((d && d.error) || 'That did not work'); return; } LAB = d.items || []; renderLab(); t.value = ''; toast('Sent to the lab'); })
+    .then(function(d){
+      if(!d || !d.ok){ toast((d && d.error) || 'That did not work'); return; }
+      LAB = d.items || []; renderLab(); t.value = ''; momentCheck(t);
+      var h = document.getElementById('momentHint'); if(h) h.textContent = LAB.length === 1 ? 'Sent. Add as many as you like' : LAB.length + ' contributions sent';
+      toast('Thank you. Sent to the research team');
+    })
     .catch(function(){ toast('That did not work'); });
 }
 renderLab();
 
 /* ───────── the two products, three states ───────── */
 var appAccess = CTX.app_access || 'none';
-(function(){ var b = document.getElementById('betaBanner'); if(b && CTX.logged_in && CTX.has_profile && appAccess === 'none') b.style.display = ''; })();
+(function(){ var b = document.getElementById('betaBanner'); if(b && CTX.logged_in && CTX.has_profile && appAccess === 'none') b.classList.remove('off'); })();
 function setApp(s){ appAccess = s; var mk = document.getElementById('mkApp'); if(mk) mk.textContent = s; }
 function renderProducts(){
   var st = document.getElementById('appStatusCard'), ct = document.getElementById('appCtaCard');
