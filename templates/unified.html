@@ -1571,24 +1571,6 @@ body.dk .legal{border-color:rgba(255,255,255,.1)}
 }
 #ctv .playscr.ending:not(.ended) .frame .done{opacity:0;pointer-events:none}
 #ctv .playscr.ending:not(.ended) .poster::after{display:none}
-@media(max-width:900px){ #ctv .screen.active{animation:none}
-#ctv .btn{height:60px;border-radius:16px;font-size:17px;width:100%;padding:0 22px}
-#ctv .btn-l{height:auto;width:auto;padding:12px 6px;font-size:16px}
-#ctv .gbtn{height:58px;border-radius:16px}
-#ctv .field input,#ctv .bigin{border-radius:16px;height:58px}
-#ctv .acard .btn-w{margin-top:16px}
-#ctv .segt{border-radius:16px;width:100%}
-#ctv .segt button{border-radius:12px;flex:1;padding:12px 10px;font-size:15px}
-#ctv .opt{height:60px;border-radius:16px;font-size:17px}
-#ctv .scale button{height:60px;border-radius:14px}
-#ctv .yn2 button{height:72px;border-radius:16px}
-#ctv .btn-s{height:40px;border-radius:12px;padding:0 16px;font-size:14px}
-#ctv .btn-c{width:100%}
-#ctv .chip{border-radius:12px}
-#ctv .tq textarea{border-radius:16px}
-#ctv #screen-consent .actions,#ctv #screen-test .actions,#ctv #screen-video .actions,#ctv #screen-after .actions{position:fixed;left:18px;right:18px;bottom:calc(16px + env(safe-area-inset-bottom) + var(--kb,0px));z-index:30;margin:0;flex-direction:column;transition:bottom .15s;gap:6px;align-items:stretch;background:linear-gradient(180deg,rgba(251,249,244,0),rgba(251,249,244,.96) 30%);padding-top:14px}
-#ctv #screen-consent .actions .btn,#ctv #screen-test .actions .btn,#ctv #screen-video .actions .btn,#ctv #screen-after .actions .btn-p{width:100%}
-#ctv #screen-after .actions .btn-l{align-self:center}
 #ctv .authsw{text-align:center;margin-top:14px;font-size:13.5px;color:var(--muted)}
 #ctv .authsw a{text-decoration:underline;text-underline-offset:3px;cursor:pointer;color:inherit}
 #ctv #screen-finding2 .find2{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;padding:24px;text-align:center}
@@ -1608,10 +1590,30 @@ body.dk .legal{border-color:rgba(255,255,255,.1)}
 #ctv .labcard textarea{width:100%;margin-top:16px;min-height:74px;border-radius:14px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#F5F1E8;padding:12px 14px;font:inherit;font-size:15px;resize:vertical}
 #ctv .labcard textarea::placeholder{color:rgba(245,241,232,.45)}
 #ctv .labact{margin-top:14px}
+#ctv .labbtn{background:#F2EFEA;color:#171512}
+#ctv .labbtn:hover{background:#fff}
 #ctv .lablist{margin-top:18px;display:flex;flex-direction:column;gap:10px}
 #ctv .labitem{font-size:13.5px;color:rgba(245,241,232,.8);border-top:1px solid rgba(255,255,255,.1);padding-top:10px}
 #ctv .labitem .d{color:rgba(245,241,232,.5);margin-right:8px}
 #ctv .labitem a{color:#F5F1E8;text-decoration:underline;text-underline-offset:3px;word-break:break-all}
+@media(max-width:900px){ #ctv .screen.active{animation:none}
+#ctv .btn{height:60px;border-radius:16px;font-size:17px;width:100%;padding:0 22px}
+#ctv .btn-l{height:auto;width:auto;padding:12px 6px;font-size:16px}
+#ctv .gbtn{height:58px;border-radius:16px}
+#ctv .field input,#ctv .bigin{border-radius:16px;height:58px}
+#ctv .acard .btn-w{margin-top:16px}
+#ctv .segt{border-radius:16px;width:100%}
+#ctv .segt button{border-radius:12px;flex:1;padding:12px 10px;font-size:15px}
+#ctv .opt{height:60px;border-radius:16px;font-size:17px}
+#ctv .scale button{height:60px;border-radius:14px}
+#ctv .yn2 button{height:72px;border-radius:16px}
+#ctv .btn-s{height:40px;border-radius:12px;padding:0 16px;font-size:14px}
+#ctv .btn-c{width:100%}
+#ctv .chip{border-radius:12px}
+#ctv .tq textarea{border-radius:16px}
+#ctv #screen-consent .actions,#ctv #screen-test .actions,#ctv #screen-video .actions,#ctv #screen-after .actions{position:fixed;left:18px;right:18px;bottom:calc(16px + env(safe-area-inset-bottom) + var(--kb,0px));z-index:30;margin:0;flex-direction:column;transition:bottom .15s;gap:6px;align-items:stretch;background:linear-gradient(180deg,rgba(251,249,244,0),rgba(251,249,244,.96) 30%);padding-top:14px}
+#ctv #screen-consent .actions .btn,#ctv #screen-test .actions .btn,#ctv #screen-video .actions .btn,#ctv #screen-after .actions .btn-p{width:100%}
+#ctv #screen-after .actions .btn-l{align-self:center}
 #ctv #screen-video .actions .hint{text-align:center}
 #ctv .cons,#ctv .tq,#ctv .vintro{padding-bottom:150px}
 #ctv .vintro{min-height:0;padding-top:104px;justify-content:flex-start}
@@ -2513,7 +2515,7 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
         <h3>What gives you chills?</h3>
         <p>Tell the lab. A link or a few words. Every submission goes to our research team and can end up in the next study.</p>
         <textarea id="labT" placeholder="A link, a scene, a song, a moment"></textarea>
-        <div class="labact"><button class="btn btn-w" onclick="labSend()">Send to the lab</button></div>
+        <div class="labact"><button class="btn labbtn" onclick="labSend()">Send to the lab</button></div>
         <div class="lablist" id="labList"></div>
       </div>
     </div>
