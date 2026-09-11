@@ -438,6 +438,15 @@ def all_contributions(limit: int = 200):
         ).fetchall()
 
 
+def contributions_by_user(user_id: int, limit: int = 50):
+    """A user's own lab submissions, newest first, for the profile card."""
+    with get_conn() as conn:
+        return conn.execute(
+            "SELECT * FROM contributions WHERE submitted_by=? ORDER BY created_at DESC LIMIT ?",
+            (user_id, limit),
+        ).fetchall()
+
+
 # ── video comments ────────────────────────────────────────────────────
 def add_video_comment(stimulus_id: str, text: str, experienced: bool, author: str = "You",
                        user_id: int = None):
