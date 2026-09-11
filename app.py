@@ -857,6 +857,47 @@ def flow_videos_for(user) -> list:
         })
     return out
 
+def next_unseen_pick(user, exclude_sid: str = ""):
+    """Highest-p video the user hasn't seen, for the after-video No path.
+    Seen = watched rows + anything they answered about. None when picks run out."""
+    try:
+        probs = json.loads(user["vector_json"] or "[]")
+    except Exception:
+        probs = []
+    if not probs or len(probs) != len(STIM):
+        return None
+    seen = {exclude_sid} if exclude_sid else set()
+    with chillsdb.get_conn() as conn:
+        for r in conn.execute("SELECT stimulus_id FROM video_watches WHERE user_id=?", (user["id"],)):
+            seen.add(r["stimulus_id"])
+    for r in chillsdb.after_answers_for_user(user["id"], limit=200):
+        seen.add(r["stimulus_id"])
+    order = sorted(range(len(STIM)), key=lambda j: -float(probs[j]))
+    for rank, j in enumerate(order):
+        e = stim_entry(j, float(probs[j]))
+        if not _is_video(e) or e["stimulus_id"] in seen:
+            continue
+        return {
+            "sid": e["stimulus_id"], "t": e["name"], "d": e["desc"],
+            "len": e["dur"], "kind": "Another pick for you",
+            "bg": FLOW_GRADIENTS[rank % len(FLOW_GRADIENTS)],
+            "url": e["url"], "yt": ytid(e["url"]),
+        }
+    return None
+
+
+def _lab_items(user_id: int) -> list:
+    """The user's own lab submissions for the profile card, newest first."""
+    out = []
+    for c in chillsdb.contributions_by_user(user_id):
+        out.append({
+            "url": c["url"] or "",
+            "text": c["description"] or "",
+            "date": datetime.utcfromtimestamp(c["created_at"]).strftime("%b %d"),
+        })
+    return out
+
+
 def unified_context(req: Request, user) -> dict:
     """Everything unified.html needs, for both jinja and the CTX json."""
     has_profile = _user_has_profile(user)
@@ -898,6 +939,7 @@ def unified_context(req: Request, user) -> dict:
         "pending_sid": pending_sid,
         "likely_pct": likely,
         "videos": videos,
+        "lab_items": _lab_items(user["id"]) if user else [],
     }
     return {
         "request": req, "ctx": ctx, "initial": _user_initial(user) or "?",
@@ -1290,6 +1332,39 @@ async def flow_beta(req: Request):
         chillsdb.set_beta_requested(user["id"])
         log_ev("beta_joined", user=user)
     return JSONResponse({"ok": True})
+
+@a.post("/flow/next-pick")
+async def flow_next_pick(req: Request):
+    user = chillsauth.get_current_user(req)
+    if not user or not _user_has_profile(user):
+        return JSONResponse({"ok": False, "error": "Please sign in first."})
+    try:
+        d = await req.json()
+    except Exception:
+        d = {}
+    pick = next_unseen_pick(user, exclude_sid=(d.get("sid") or ""))
+    if not pick:
+        log_ev("next_pick_exhausted", user=user)
+        return JSONResponse({"ok": True, "done": True})
+    log_ev("next_pick_served", user=user, detail={"sid": pick["sid"], "name": pick["t"]})
+    return JSONResponse({"ok": True, "done": False, "video": pick})
+
+@a.post("/flow/lab")
+async def flow_lab(req: Request):
+    user = chillsauth.get_current_user(req)
+    if not user:
+        return JSONResponse({"ok": False, "error": "Please sign in first."})
+    try:
+        d = await req.json()
+    except Exception:
+        d = {}
+    text = (d.get("text") or "").strip()[:2000]
+    if not text:
+        return JSONResponse({"ok": False, "error": "Write or paste something first."})
+    m = re.search(r"https?://\S+", text)
+    chillsdb.create_contribution(m.group(0) if m else "", text, user["id"])
+    log_ev("lab_submitted", user=user, detail={"has_url": bool(m)})
+    return JSONResponse({"ok": True, "items": _lab_items(user["id"])})
 
 @a.post("/intake", response_class=HTMLResponse)
 async def intake(req: Request):
