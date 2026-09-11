@@ -19,6 +19,16 @@ chillsdb.init_db()
 # APP SETUP
 # ═══════════════════════════════════════════════════
 a = FastAPI()
+
+@a.middleware("http")
+async def security_gate(req: Request, call_next):
+    path = req.url.path
+    if path in ("/legacy-start", "/intake", "/start"):
+        return JSONResponse({"error": "not found"}, status_code=404)
+    if (path.startswith("/_debug/") or path == "/download-logs") and not chillsauth.is_admin(req):
+        return RedirectResponse("/admin/login")
+    return await call_next(req)
+
 b = os.path.dirname(__file__)
 t = Jinja2Templates(directory=os.path.join(b, "templates"))
 if os.path.isdir(os.path.join(b, "images")):
