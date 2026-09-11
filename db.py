@@ -422,6 +422,23 @@ def complete_duo(token: str, partner_user_id: int, partner_name: str, match_pct:
         )
 
 
+def add_duo_result(link_user_id: int, partner_user_id: int, partner_name: str, match_pct: float,
+                   video_stimulus_id: str, video_stimulus_name: str) -> str:
+    """One completed result row per person who finishes on the shared link.
+    The link row itself is never touched, so the same link works for everyone."""
+    token = new_token(6)
+    now = time.time()
+    with get_conn() as conn:
+        conn.execute(
+            """INSERT INTO duo_pairs (token, user_id, partner_user_id, partner_name, status,
+               match_pct, video_stimulus_id, video_stimulus_name, created_at, opened_at, completed_at)
+               VALUES (?,?,?,?,'completed',?,?,?,?,?,?)""",
+            (token, link_user_id, partner_user_id, partner_name, match_pct,
+             video_stimulus_id, video_stimulus_name, now, now, now),
+        )
+    return token
+
+
 # ── contributions ──────────────────────────────────────────────────────
 def create_contribution(url: str, description: str, submitted_by: int = None):
     with get_conn() as conn:
