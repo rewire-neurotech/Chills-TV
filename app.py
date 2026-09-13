@@ -188,8 +188,35 @@ def qdemo():
          "opts": ["No","Yes","Prefer not to say"]},
     ]
 
+NEW_QUESTIONS = [
+    {"k": "FREQ_MUSIC_CHILLS", "q": "How often do you get chills or goosebumps from music?", "min": 1, "max": 5},
+    {"k": "FREQ_FILM_CHILLS", "q": "How often do you get chills from a film, a speech, or a story?", "min": 1, "max": 5},
+    {"k": "FREQ_MOVED_TEARS", "q": "How often are you moved to tears by something beautiful?", "min": 1, "max": 5},
+    {"k": "FREQ_MEDITATE", "q": "How often do you meditate?", "min": 1, "max": 5},
+    {"k": "FREQ_LUMP_THROAT", "q": "When something moves you, how often do you feel a lump in your throat?", "min": 1, "max": 5},
+    {"k": "FREQ_CHEST_WARMTH", "q": "When something moves you, how often do you feel warmth in your chest?", "min": 1, "max": 5},
+    {"k": "FREQ_GOOSEBUMPS_MOVED", "q": "How often do you get goosebumps when you are moved?", "min": 1, "max": 5},
+    {"k": "DESC_BEAUTY_NOTICE", "q": "I see beauty in things that others might not notice.", "min": 1, "max": 5},
+    {"k": "DESC_LOST_THOUGHT", "q": "I like to get lost in thought.", "min": 1, "max": 5},
+    {"k": "DESC_VIVID_IMAGINATION", "q": "I have a vivid imagination.", "min": 1, "max": 5},
+    {"k": "DESC_DAYDREAM", "q": "I love to daydream.", "min": 1, "max": 5},
+    {"k": "DESC_FANTASY", "q": "I enjoy wild flights of fantasy.", "min": 1, "max": 5},
+    {"k": "DESC_DEEPER_MEANING_R", "q": "I rarely look for a deeper meaning in things.", "min": 1, "max": 5},
+    {"k": "DESC_EMOTIONS_INTENSE", "q": "I experience my emotions intensely.", "min": 1, "max": 5},
+    {"k": "DESC_FEEL_OTHERS", "q": "I feel others' emotions.", "min": 1, "max": 5},
+    {"k": "DESC_SELDOM_EMOTIONAL_R", "q": "I seldom get emotional.", "min": 1, "max": 5},
+    {"k": "DESC_LIKE_MUSIC", "q": "I like music.", "min": 1, "max": 5},
+    {"k": "DESC_NATURE_BEAUTY", "q": "I enjoy the beauty of nature.", "min": 1, "max": 5},
+    {"k": "DESC_POETRY_R", "q": "I do not like poetry.", "min": 1, "max": 5},
+    {"k": "HABIT_MOTIVATIONAL", "q": "How often do you listen to motivational videos or speeches?", "min": 1, "max": 5},
+    {"k": "STATE_AROUSAL", "q": "Right now, how calm or excited do you feel?", "min": 1, "max": 5},
+    {"k": "STATE_VALENCE", "q": "Right now, how unpleasant or pleasant do you feel?", "min": 1, "max": 5},
+]
+for _nq in NEW_QUESTIONS:
+    _nq.setdefault("n", nm(_nq["k"])); _nq.setdefault("step", 1); _nq.setdefault("type", "num")
+
 def qall():
-    u = []; u.extend(Q); u.extend(qdemo()); return u
+    u = []; u.extend(Q); u.extend(qdemo()); u.extend(NEW_QUESTIONS); return u
 
 
 # ═══════════════════════════════════════════════════
@@ -449,7 +476,9 @@ for si, sname in enumerate(STIM):
 with open(ff, "r", encoding="utf-8") as f:
     FEATURES = json.load(f)["features"]
 
-AGE_MID = {"18-24": 21.0, "25-34": 30.0, "35-44": 40.0, "45-54": 50.0, "55-64": 60.0, "65+": 70.0}
+AGE_MID = {"18-24": 21.0, "25-34": 30.0, "35-44": 40.0, "45-54": 50.0, "55-64": 60.0, "65+": 70.0,
+           "18 to 24": 21.0, "25 to 34": 30.0, "35 to 44": 40.0, "45 to 54": 50.0, "55 to 64": 60.0,
+           "65 and over": 70.0}
 
 def age_years_from(v):
     """Bucket -> midpoint used in training. Exact ages clamped to 10..95. Fallback 40."""
@@ -818,6 +847,8 @@ def avatar_color(seed: str) -> str:
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 MATCH_BAR = float(os.getenv("MATCH_BAR", "0.65"))
+TERMS_VERSION = os.getenv("TERMS_VERSION", "1.1")
+PRIVACY_VERSION = os.getenv("PRIVACY_VERSION", "1.0")
 
 FLOW_GRADIENTS = [
     "radial-gradient(120% 90% at 30% 20%,#2a2438 0%,#141320 55%,#0c0b12 100%)",
@@ -917,6 +948,7 @@ def unified_context(req: Request, user) -> dict:
     bars, marker_x = [], 0.0
     videos = []
     latest_duo = None
+    duo_results, duo_waiting, duo_link = [], [], ""
     you_points, algo_points = 0, 0
     if user and has_profile:
         likely = max(1, min(99, round(float(user["percentile"] or 0))))
@@ -924,16 +956,32 @@ def unified_context(req: Request, user) -> dict:
         bars, marker_x = hist_bars_for(mean_p_of(user))
         videos = flow_videos_for(user)
         for d0 in chillsdb.duos_involving_user(user["id"]):
-            if d0["status"] == "completed":
-                if d0["user_id"] == user["id"]:
-                    other = d0["partner_name"] or "A friend"
-                else:
-                    initiator0 = chillsdb.get_user_by_id(d0["user_id"])
-                    other = (initiator0["pid"] if initiator0 else "") or "A friend"
-                latest_duo = {"token": d0["token"], "partner_name": other,
-                              "partner_letter": avatar_of(other or "?"),
-                              "match_pct": float(d0["match_pct"] or 0)}
-                break
+            if d0["status"] != "completed":
+                continue
+            if d0["user_id"] == user["id"]:
+                other = d0["partner_name"] or "A friend"
+            else:
+                initiator0 = chillsdb.get_user_by_id(d0["user_id"])
+                other = (initiator0["pid"] if initiator0 else "") or "A friend"
+            duo_results.append({
+                "token": d0["token"], "partner_name": other,
+                "partner_letter": avatar_of(other or "?"),
+                "match_pct": float(d0["match_pct"] or 0),
+                "date_str": datetime.utcfromtimestamp(d0["completed_at"] or d0["created_at"]).strftime("%b %d"),
+            })
+        if duo_results:
+            latest_duo = duo_results[0]
+        for d0 in chillsdb.duos_for_user(user["id"]):
+            if d0["status"] == "pending":
+                duo_waiting.append({"token": d0["token"], "opened": bool(d0["opened_at"]),
+                                     "date_str": datetime.utcfromtimestamp(d0["created_at"]).strftime("%b %d")})
+        if duo_waiting:
+            duo_link = duo_waiting[0]["token"]
+        else:
+            duo_link = chillsdb.create_duo(user["id"])["token"]
+            log_ev("duo_created", user=user, detail={"token": duo_link, "from": "profile"})
+            duo_waiting.append({"token": duo_link, "opened": False,
+                                 "date_str": datetime.utcnow().strftime("%b %d")})
         all_sends = [dict(x) for x in chillsdb.sends_for_sender(user["id"])]
         for x in all_sends:
             x["outcome"] = bet_outcome(x)
@@ -951,12 +999,15 @@ def unified_context(req: Request, user) -> dict:
         "likely_pct": likely,
         "videos": videos,
         "lab_items": _lab_items(user["id"]) if user else [],
+        "you_points": you_points, "algo_points": algo_points,
+        "duo_results": duo_results, "duo_waiting": duo_waiting, "duo_link": duo_link,
     }
     return {
         "request": req, "ctx": ctx, "initial": _user_initial(user) or "?",
         "likely_pct": likely, "one_in": one_in,
         "hist_bars": bars, "marker_x": marker_x, "videos": videos,
         "latest_duo": latest_duo, "you_points": you_points, "algo_points": algo_points,
+        "duo_results": duo_results, "duo_waiting": duo_waiting, "duo_link": duo_link,
     }
 
 def _persist_flow(req: Request, user, sess_data):
@@ -1049,19 +1100,66 @@ def _persist_flow(req: Request, user, sess_data):
                 })
 
 
+def _resolve_duo_now(req: Request, user, token: str) -> str:
+    """A signed in user with a profile opened a duo link. Their vector is
+    already stored, so the match is computed right away, no retake."""
+    row = chillsdb.get_duo_by_token(token)
+    if not row:
+        return "/"
+    if row["status"] == "completed":
+        return f"/duo/{token}"
+    if row["user_id"] == user["id"]:
+        return "/duo/new"
+    chillsdb.mark_duo_opened(token)
+    log_ev("duo_link_opened", user=user, detail={"token": token})
+    initiator = chillsdb.get_user_by_id(row["user_id"])
+    try:
+        init_vec = json.loads(initiator["vector_json"] or "[]") if initiator else []
+        my_vec = json.loads(user["vector_json"] or "[]")
+    except Exception:
+        init_vec, my_vec = [], []
+    res = chills_match(init_vec, my_vec)
+    if res is not None:
+        raw, match_pct, order = res
+        joint = stim_entry(order[0], raw)
+        video_sid = joint["stimulus_id"]
+        video_name = joint["stim_name"]
+    else:
+        match_pct = cosine_match_pct(init_vec, my_vec)
+        video_sid = user["stimulus_id"] or ""
+        video_name = user["stimulus_name"] or ""
+    result_token = chillsdb.add_duo_result(
+        row["user_id"], user["id"], (user["pid"] or "").strip() or "A friend", match_pct,
+        video_sid, video_name,
+    )
+    log_ev("duo_completed", user=user, detail={
+        "token": result_token, "link_token": token, "match_pct": float(match_pct),
+        "joint_video": video_name, "initiator_id": row["user_id"], "instant": True,
+    })
+    return f"/duo/{result_token}"
+
+
 # ═══════════════════════════════════════════════════
 # ROUTES
 # ═══════════════════════════════════════════════════
 
 @a.get("/", response_class=HTMLResponse)
 def index(req: Request, send: str = "", us: str = ""):
+    user = chillsauth.get_current_user(req)
     if send or us:
+        # a user who already has a profile never retakes the test for a link.
+        # duo resolves instantly from the stored vectors, a bet link opens
+        # the recipient page directly.
+        if user and _user_has_profile(user):
+            dest = _resolve_duo_now(req, user, us) if us else f"/b/{send}"
+            resp = RedirectResponse(dest)
+            resp.delete_cookie("pending_link")
+            return resp
         resp = RedirectResponse("/#/account")
         kind = "send" if send else "duo"
         resp.set_cookie("pending_link", json.dumps({"type": kind, "token": send or us}),
                          max_age=3600, httponly=True, samesite="lax")
         return resp
-    user = chillsauth.get_current_user(req)
     uctx = unified_context(req, user)
     if uctx["ctx"]["logged_in"] and uctx["ctx"]["has_profile"]:
         log_ev("hub_viewed", user=user, detail={"likely_pct": uctx["likely_pct"]})
@@ -1203,8 +1301,16 @@ async def flow_consent(req: Request):
     user = chillsauth.get_session_user(req)
     if not user:
         return JSONResponse({"ok": False, "error": "Please sign in first."})
-    chillsdb.set_consented(user["id"])
-    log_ev("consent_given", user=user)
+    try:
+        body = await req.json()
+    except Exception:
+        body = {}
+    boxes = body.get("boxes") or {}
+    chillsdb.record_consent(user["id"], TERMS_VERSION, PRIVACY_VERSION,
+                             json.dumps(boxes) if boxes else "")
+    log_ev("consent_given", user=user, detail={
+        "terms_version": TERMS_VERSION, "privacy_version": PRIVACY_VERSION, "boxes": boxes,
+    })
     return JSONResponse({"ok": True})
 
 @a.post("/flow/submit")
@@ -1234,7 +1340,7 @@ async def flow_submit(req: Request):
             return JSONResponse({"ok": False, "error": "Answers incomplete: " + ", ".join(bad)})
         FW["raw_answers"] = H
         if body.get("consent"):
-            chillsdb.set_consented(user["id"])
+            chillsdb.record_consent(user["id"], TERMS_VERSION, PRIVACY_VERSION, "")
         m = map_answers_to_features(H)
         p = predict_probs(m)
         allranked = topk(m, len(STIM), pid=name, p=p)
@@ -1377,6 +1483,33 @@ async def flow_lab(req: Request):
     chillsdb.create_contribution(m.group(0) if m else "", text, user["id"])
     log_ev("lab_submitted", user=user, detail={"has_url": bool(m)})
     return JSONResponse({"ok": True, "items": _lab_items(user["id"])})
+
+@a.get("/account/export")
+def account_export(req: Request):
+    user = chillsauth.get_current_user(req)
+    if not user:
+        return RedirectResponse("/")
+    data = chillsdb.export_user_data(user["id"])
+    log_ev("data_exported", user=user)
+    headers = {"Content-Disposition": "attachment; filename=rewire_my_data.json"}
+    return JSONResponse(data, headers=headers)
+
+@a.post("/account/delete")
+async def account_delete(req: Request):
+    user = chillsauth.get_current_user(req)
+    if not user:
+        return JSONResponse({"ok": False, "error": "Not signed in."})
+    try:
+        body = await req.json()
+    except Exception:
+        body = {}
+    if not body.get("confirm"):
+        return JSONResponse({"ok": False, "error": "Confirmation required."})
+    log_ev("account_deleted", detail={"user_id": user["id"]})
+    chillsdb.delete_user_account(user["id"])
+    resp = JSONResponse({"ok": True})
+    chillsauth.end_session(resp, req)
+    return resp
 
 @a.post("/intake", response_class=HTMLResponse)
 async def intake(req: Request):
@@ -1739,7 +1872,11 @@ def resume_profile(req: Request, token: str):
 @a.get("/hub")
 def hub_redirect(req: Request):
     """The v49 hub is replaced by the unified profile. Games pages still
-    link here, so redirect instead of removing."""
+    link here, so redirect instead of removing. No profile means no profile
+    page, so guests land on the home page instead."""
+    user = chillsauth.get_current_user(req)
+    if not user or not _user_has_profile(user):
+        return RedirectResponse("/")
     return RedirectResponse("/#/profile")
 
 @a.get("/hub-v49", response_class=HTMLResponse)
@@ -1888,6 +2025,8 @@ def bets(req: Request):
         "request": req, "page": "bets", **nav_context(req, user),
         "ready": ready, "unopened": unopened, "done": done, "hit_rate": hit_rate,
         **board, "ready_count": len(ready), "lead_line": lead_line,
+        "resp_counts": chillsdb.response_counts_map(user["id"]),
+        "friend_answers": [dict(r) for r in chillsdb.responses_for_sender(user["id"])],
         "video_urls": [x.get("stimulus_url", "") for x in ready] + [x.get("stimulus_url", "") for x in unopened],
     })
 
@@ -1950,12 +2089,16 @@ def bet_view(req: Request, token: str):
     recipient = chillsauth.get_current_user(req)
     log_ev("bet_link_opened", user=recipient, detail={"token": token, "sender": sender_name,
                                                        "stimulus": row["stimulus_name"]})
+    responses = [dict(r) for r in chillsdb.responses_for_send(token)]
+    answered = bool(req.cookies.get("br_" + token, "")) or (
+        recipient is not None and any(r["respondent_user_id"] == recipient["id"] for r in responses))
     return t.TemplateResponse("bet_view.html", {
         "request": req, "page": "bet-view", **nav_context(req, recipient),
         "send": row, "sender_name": sender_name,
         "recipient_pid": (recipient["pid"] if recipient else "") or "Anonymous",
         "embed_url": _to_embed_url(row["stimulus_url"]) if row["stimulus_url"] else "",
         "guest": True, "video_urls": [row["stimulus_url"] or ""],
+        "responses": responses, "answered": answered,
     })
 
 
@@ -1964,10 +2107,18 @@ async def bet_respond(req: Request, token: str):
     f = await req.form()
     experienced = (f.get("experienced") or "") == "yes"
     row = chillsdb.get_send_by_token(token)
-    if row and row["status"] == "sent":
-        chillsdb.record_send_response(token, experienced)
-        log_ev("bet_answered", detail={"token": token, "experienced": experienced})
-    return RedirectResponse(f"/b/{token}", status_code=303)
+    if not row:
+        return RedirectResponse("/", status_code=303)
+    viewer = chillsauth.get_current_user(req)
+    rname = (viewer["pid"] if viewer and viewer["pid"] else "") or ""
+    chillsdb.create_send_response(token, experienced, respondent_name=rname,
+                                   respondent_user_id=viewer["id"] if viewer else None)
+    if row["status"] == "sent":
+        chillsdb.record_send_response(token, experienced, recipient_name=rname)
+    log_ev("bet_answered", user=viewer, detail={"token": token, "experienced": experienced})
+    resp = RedirectResponse(f"/b/{token}", status_code=303)
+    resp.set_cookie("br_" + token, "1", max_age=60*60*24*365, httponly=True, samesite="lax")
+    return resp
 
 
 @a.get("/reveal/{token}", response_class=HTMLResponse)
@@ -1991,6 +2142,7 @@ def reveal_gate(req: Request, token: str):
         "request": req, "page": "reveal", **nav_context(req, user), "send": row,
         "rname": (row["recipient_name"] or "").strip() or "They",
         "outcome": bet_outcome(dict(row)), "score_line": score_line, "base_url": req_base(req),
+        "responses": [dict(r) for r in chillsdb.responses_for_send(token)],
     })
 
 
@@ -2085,6 +2237,31 @@ def duo_result(req: Request, token: str):
     elif viewer and row["partner_user_id"] and viewer["id"] == row["partner_user_id"]:
         me_side = "b"
     jv = video_by_sid(vid_sid) or {}
+    a_map = chillsdb.chills_by_video(row["user_id"])
+    b_map = chillsdb.chills_by_video(row["partner_user_id"] or 0)
+    try:
+        va = json.loads(initiator["vector_json"] or "[]") if initiator else []
+        vb = json.loads(partner["vector_json"] or "[]") if partner else []
+    except Exception:
+        va, vb = [], []
+    res = chills_match(va, vb)
+    if res is not None:
+        pool = [stim_entry(j, 0.0) for j in res[2]]
+    else:
+        pool = []
+        try:
+            for e in (json.loads(initiator["top5_json"] or "[]") if initiator else [])[:5]:
+                v0 = video_by_sid(e.get("stimulus_id", "")) or {}
+                pool.append({"stimulus_id": e.get("stimulus_id", ""), "name": e.get("name", ""),
+                             "url": e.get("url", "") or v0.get("url", ""), "dur": v0.get("dur", "")})
+        except Exception:
+            pool = []
+    cv_list = []
+    for e in pool[:5]:
+        sid0 = e.get("stimulus_id", "")
+        cv_list.append({**e, "a_chills": a_map.get(sid0), "b_chills": b_map.get(sid0),
+                         "both_chills": bool(a_map.get(sid0)) and bool(b_map.get(sid0))})
+    cv_match_count = sum(1 for e in cv_list if e["both_chills"])
     def _likely(u):
         return max(1, min(99, round(float((u["percentile"] if u else 0) or 0))))
     return t.TemplateResponse("duo_result.html", {
@@ -2102,6 +2279,7 @@ def duo_result(req: Request, token: str):
         "a_likely_pct": _likely(initiator), "b_likely_pct": _likely(partner),
         "a_one_in": one_in_for(mean_p_of(initiator)) if initiator else 8,
         "b_one_in": one_in_for(mean_p_of(partner)) if partner else 8,
+        "cv_list": cv_list, "cv_match_count": cv_match_count,
         "video_urls": [jv.get("url", "")], "base_url": req_base(req),
     })
 
@@ -2145,6 +2323,22 @@ def about_page(req: Request):
 def method_page(req: Request):
     user = chillsauth.get_current_user(req)
     return t.TemplateResponse("method.html", {"request": req, "page": "method", **nav_context(req, user)})
+
+
+@a.get("/terms", response_class=HTMLResponse)
+def terms_page(req: Request):
+    if not os.path.exists(os.path.join(b, "templates", "terms.html")):
+        return HTMLResponse("Not here yet.", status_code=404)
+    return t.TemplateResponse("terms.html", {"request": req, "page": "terms",
+                                              **nav_context(req, chillsauth.get_current_user(req))})
+
+
+@a.get("/privacy", response_class=HTMLResponse)
+def privacy_page(req: Request):
+    if not os.path.exists(os.path.join(b, "templates", "privacy.html")):
+        return HTMLResponse("Not here yet.", status_code=404)
+    return t.TemplateResponse("privacy.html", {"request": req, "page": "privacy",
+                                                **nav_context(req, chillsauth.get_current_user(req))})
 
 
 # ═══════════════════════════════════════════════════
@@ -2741,11 +2935,19 @@ async def submit(req: Request,
     # picked-mode Send Chills threads its token explicitly through the form;
     # algo-mode has no send_token here, it closes via the recipient's own
     # pending_send_token instead (set when they finished the questionnaire).
+    # every report lands in send_responses; the legacy send row only takes
+    # the first answer, so a second friend never overwrites the first.
+    reporter = chillsauth.get_current_user(req)
     if send_token and chillsdb.get_send_by_token(send_token):
-        chillsdb.record_send_response(send_token, experienced == "yes",
-                                       intensity=chills_amount, recipient_name=id,
+        chillsdb.create_send_response(send_token, experienced == "yes", intensity=chills_amount,
                                        chills_length=chills_length, chills_waves=chills_waves,
-                                       description=clean_description)
+                                       description=clean_description, respondent_name=id,
+                                       respondent_user_id=reporter["id"] if reporter else None)
+        if chillsdb.get_send_by_token(send_token)["status"] == "sent":
+            chillsdb.record_send_response(send_token, experienced == "yes",
+                                           intensity=chills_amount, recipient_name=id,
+                                           chills_length=chills_length, chills_waves=chills_waves,
+                                           description=clean_description)
     else:
         user = chillsauth.get_current_user(req)
         if user and user["pending_send_token"] and user["stimulus_id"] == stimulus_id:
@@ -2755,7 +2957,8 @@ async def submit(req: Request,
                                            description=clean_description)
             chillsdb.set_pending_send_token(user["token"], "")
 
-    return t.TemplateResponse("done.html", {"request": req, "id": id, "email": email})
+    return t.TemplateResponse("done.html", {"request": req, "id": id, "email": email,
+                                             "has_profile": _user_has_profile(chillsauth.get_current_user(req))})
 
 
 # ═══════════════════════════════════════════════════
