@@ -2186,6 +2186,12 @@ def reveal_gate(req: Request, token: str):
         r["outcome"] = bet_outcome(r)
         r["rname"] = (r["respondent_name"] or "").strip() or "A friend"
         r["avatar_letter"] = avatar_of(r["respondent_name"] or "?")
+    # the gate questions are about a person; an anonymous answer has no one
+    # to describe, so it reveals straight into the tally without them.
+    for r in responses:
+        if not r["revealed_at"] and not (r["respondent_name"] or "").strip() and not r["respondent_user_id"]:
+            chillsdb.reveal_send_response(r["id"], 0, "")
+            r["revealed_at"] = time.time()
     unrevealed = [r for r in responses if not r["revealed_at"]]
     revealed = [r for r in responses if r["revealed_at"]]
     gate_resp = unrevealed[0] if unrevealed else None
