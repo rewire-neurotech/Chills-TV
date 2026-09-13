@@ -1,66 +1,138 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="screen" id="screen-reveal">
-  <div class="col">
-    <a class="back" href="/bets">‹ Beat the algorithm</a>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Reveal · ReWire</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Inter:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{--sf:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;--display:'Familjen Grotesk','Inter',sans-serif;--ink:#1C1A16;--muted:#9C968A;--bg:#FBF9F4;--btn:#1C1A16;--line:rgba(28,26,22,.12)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:var(--sf);font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%}
+.top{padding:18px 24px;display:flex;align-items:center;justify-content:space-between}
+.top a{color:var(--ink);text-decoration:none;font-weight:600;letter-spacing:-.01em}
+.top a.back{font-weight:500;color:var(--muted);font-size:14.5px}
+main{max-width:560px;margin:0 auto;padding:10px 24px 90px}
+h1{font-family:var(--display);font-size:clamp(26px,5.4vw,34px);font-weight:700;letter-spacing:-.02em;margin:0 0 10px}
+.lede{color:var(--muted);font-size:15px;margin:0 0 28px}
+.q{margin:0 0 28px}
+.q .lbl{font-family:var(--display);font-size:17.5px;font-weight:700;letter-spacing:-.015em;margin:0 0 14px}
+.ios{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
+.ios button{border:1px solid var(--line);border-radius:12px;background:#fff;padding:6px 2px;cursor:pointer;transition:background .15s,border-color .15s}
+.ios button svg{width:100%;max-width:52px;height:26px;display:block;margin:0 auto}
+.ios button circle{fill:none;stroke:var(--muted);stroke-width:2.4}
+.ios button.on{background:var(--btn);border-color:var(--btn)}
+.ios button.on circle{stroke:#FBF9F4}
+.qscale{display:flex;justify-content:space-between;color:var(--muted);font-size:12.5px;margin-top:7px}
+.chips{display:flex;flex-wrap:wrap;gap:9px}
+.chip{padding:11px 18px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink);font-family:var(--sf);font-weight:600;font-size:14px;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.chip.on{background:var(--btn);color:#FBF9F4;border-color:var(--btn)}
+.priv{color:var(--muted);font-size:13px;margin-top:4px}
+.actions{margin-top:24px}
+.btn{display:inline-block;padding:15px 28px;border-radius:999px;border:0;background:var(--btn);color:#FBF9F4;font-family:var(--sf);font-weight:600;font-size:15.5px;cursor:pointer;text-decoration:none;text-align:center;letter-spacing:-.01em;transition:opacity .18s}
+.btn:hover{opacity:.88}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn-o{display:inline-block;padding:15px 28px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink);font-family:var(--sf);font-weight:600;font-size:15.5px;cursor:pointer;text-decoration:none;text-align:center;letter-spacing:-.01em;transition:background .15s}
+.btn-o:hover{background:rgba(28,26,22,.05)}
+.result{background:#fff;border:1px solid var(--line);border-radius:22px;padding:26px;text-align:center;margin-bottom:22px}
+.result .k{color:var(--muted);font-size:14px;margin-bottom:8px}
+.result .h{font-family:var(--display);font-size:28px;font-weight:700;letter-spacing:-.02em;margin-bottom:12px}
+.result .int{display:inline-flex;align-items:baseline;gap:7px;padding:9px 18px;border-radius:999px;background:rgba(28,26,22,.06);margin-bottom:14px}
+.result .int span{color:var(--muted);font-size:13.5px}
+.result .int b{font-family:var(--display);font-size:22px;font-weight:700}
+.result .int em{font-style:normal;color:var(--muted);font-size:14px}
+.result .fo{color:var(--muted);font-size:14.5px}
+.result .fo b{color:var(--ink)}
+.rev-actions{display:grid;gap:11px}
+.resp{margin-top:32px}
+.resp h2{font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:-.015em;margin:0 0 12px}
+.resp h2 span{color:var(--muted);font-weight:600;font-size:15px;margin-left:6px}
+.rrow{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 16px;margin-bottom:9px}
+.rrow .av{width:32px;height:32px;border-radius:50%;background:var(--btn);color:#FBF9F4;display:grid;place-content:center;font-weight:600;font-size:13px;flex:none}
+.rrow b{flex:1;font-size:14.5px;font-weight:600;letter-spacing:-.01em}
+.rrow span{color:var(--muted);font-size:13.5px;font-weight:600}
+.rrow span.hit{color:var(--ink)}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(12px);background:var(--ink);color:#FBF9F4;padding:11px 20px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9}
+.toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+<div class="top"><a href="/">ReWire</a><a class="back" href="/bets">‹ Beat the algorithm</a></div>
+<main>
+  {% if send.status == "watched" %}<div id="gate-wrap">
+    <h1>Two quick questions</h1>
+    <p class="lede">{{ rname }} has answered. Before you see what happened, tell us a little about them.</p>
 
-    {% if send.status == "watched" %}<div id="gate-wrap">
-      <h1 class="pg-title">Two quick questions</h1>
-      <p class="pg-lede">{{ rname }} has answered. Before you see what happened, tell us a little about them.</p>
-
-      <div class="qs">
-        <div class="q">
-          <div class="lbl">How close are you to {{ rname }}?</div>
-          <div class="ios" id="q2"></div>
-          <div class="qscale"><span>Distant</span><span>Very close</span></div>
-        </div>
-        <div class="q">
-          <div class="lbl">How do you know {{ rname }}?</div>
-          <div class="chips" id="q3">
-            <button class="chip" onclick="pickChip(this)">Partner</button>
-            <button class="chip" onclick="pickChip(this)">Family</button>
-            <button class="chip" onclick="pickChip(this)">Close friend</button>
-            <button class="chip" onclick="pickChip(this)">Friend</button>
-            <button class="chip" onclick="pickChip(this)">Colleague</button>
-            <button class="chip" onclick="pickChip(this)">Barely know them</button>
-          </div>
-        </div>
+    <div class="q">
+      <div class="lbl">How close are you to {{ rname }}?</div>
+      <div class="ios" id="q2"></div>
+      <div class="qscale"><span>Distant</span><span>Very close</span></div>
+    </div>
+    <div class="q">
+      <div class="lbl">How do you know {{ rname }}?</div>
+      <div class="chips" id="q3">
+        <button class="chip" onclick="pickChip(this)">Partner</button>
+        <button class="chip" onclick="pickChip(this)">Family</button>
+        <button class="chip" onclick="pickChip(this)">Close friend</button>
+        <button class="chip" onclick="pickChip(this)">Friend</button>
+        <button class="chip" onclick="pickChip(this)">Colleague</button>
+        <button class="chip" onclick="pickChip(this)">Barely know them</button>
       </div>
+    </div>
 
-      <p class="priv">Only you ever see who you sent this to. We keep these answers without the name, for research on who gives chills to whom.</p>
-      <div class="actions" style="margin-top:22px"><button class="btn btn-p" id="qgo" disabled onclick="doReveal()">See what happened</button></div>
-      <form id="gateform" method="POST" action="/reveal/{{ send.token }}" style="display:none">
-        <input type="hidden" name="closeness" id="gf-close" value="0">
-        <input type="hidden" name="relationship" id="gf-rel" value="">
-      </form>
+    <p class="priv">Only you ever see who you sent this to. We keep these answers without the name, for research on who gives chills to whom.</p>
+    <div class="actions"><button class="btn" id="qgo" disabled onclick="doReveal()">See what happened</button></div>
+    <form id="gateform" method="POST" action="/reveal/{{ send.token }}" style="display:none">
+      <input type="hidden" name="closeness" id="gf-close" value="0">
+      <input type="hidden" name="relationship" id="gf-rel" value="">
+    </form>
+  </div>{% endif %}
+
+  {% if send.status == "revealed" %}<div id="reveal-wrap">
+    <h1>{{ rname }} answered</h1>
+    <div class="result">
+      <div class="k">{{ rname }} watched {{ send.stimulus_name }}</div>
+      <div class="h">{% if send.experienced %}They got chills.{% else %}No chills this time.{% endif %}</div>
+      {% if send.experienced %}<div class="int"><span>Intensity</span><b>{{ send.intensity }}</b><em>/10</em></div>{% endif %}
+      <div class="fo"><b>{% if outcome == "you" %}Point to you.{% else %}Point to the algorithm.{% endif %}</b> {{ score_line }}</div>
+    </div>
+    <div class="rev-actions">
+      <button class="btn" onclick="nativeShare('result')">Share this</button>
+      <a class="btn-o" href="/bets">Back to Beat the algorithm</a>
+    </div>
+
+    {% if responses|length > 1 %}<div class="resp">
+      <h2>Everyone who answered <span>{{ responses|length }}</span></h2>
+      {% for r in responses %}<div class="rrow">
+        <div class="av">{{ ((r.respondent_name or 'A')|trim)[:1]|upper }}</div>
+        <b>{{ r.respondent_name or 'Anonymous' }}</b>
+        <span{% if r.experienced %} class="hit"{% endif %}>{% if r.experienced %}Got chills{% else %}No chills{% endif %}</span>
+      </div>
+      {% endfor %}
+      <p class="priv">The point above is scored on the first answer. Everyone else still counts for the research.</p>
     </div>{% endif %}
+  </div>{% endif %}
+</main>
+<div class="toast" id="toast"></div>
 
-    {% if send.status == "revealed" %}<div id="reveal-wrap">
-      <h1 class="pg-title">{{ rname }} answered</h1>
-      <div class="result">
-        <div class="k">{{ rname }} watched {{ send.stimulus_name }}</div>
-        <div class="h">{% if send.experienced %}They got chills.{% else %}No chills this time.{% endif %}</div>
-        {% if send.experienced %}<div class="int"><span>Intensity</span><b>{{ send.intensity }}</b><em>/10</em></div>{% endif %}
-        <div class="fo"><b>{% if outcome == "you" %}Point to you.{% else %}Point to the algorithm.{% endif %}</b> {{ score_line }}</div>
-      </div>
-      <div class="rev-actions">
-        <button class="btn btn-p" onclick="nativeShare('result')">Share this</button>
-        <button class="btn btn-o" onclick="location.href='/bets'">Back to Beat the algorithm</button>
-      </div>
-    </div>{% endif %}
-  </div>
-</div>
-
-{% endblock %}
-{% block page_data %}
 <script>
 window.payloads = { result: { text:'\u26a1 I sent {{ rname }} a video and {% if send.experienced %}it gave them chills, {{ send.intensity }} out of 10{% else %}the algorithm took the point{% endif %}. Find out what gives you chills:', url:'{{ base_url }}' } };
-</script>
-{% endblock %}
-{% block page_js %}
-<script>
+var toastT;
+function toast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+}
+function share(kind){
+  var p = payloads[kind] || payloads.result;
+  if (navigator.share) { navigator.share({ title:'ChillsTV', text:p.text, url:p.url }).catch(function(){}); }
+  else { navigator.clipboard.writeText(p.text + ' ' + p.url).then(function(){ toast('Copied \u2014 paste it anywhere'); }).catch(function(){ toast('Copy failed'); }); }
+}
+function nativeShare(kind){ share(kind); }
 {% if send.status == "watched" %}
-/* ── reveal gate ── */
+/* reveal gate */
 var gate = { close:false, rel:false };
 function buildIOS(){
   var box = document.getElementById('q2'); if (!box || box.children.length) return;
@@ -91,4 +163,5 @@ function doReveal(){
 document.addEventListener('DOMContentLoaded', buildIOS);
 {% endif %}
 </script>
-{% endblock %}
+</body>
+</html>
