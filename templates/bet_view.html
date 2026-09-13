@@ -1,37 +1,83 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="screen" id="screen-bet-view">
-  <div class="col">
-    <a class="back" href="/">‹ Back</a>
-    <h1 class="pg-title">{{ sender_name }} sent you chills</h1>
-    <div class="panel">
-      <div class="player"><div id="ytplayer"></div></div>
-      <div class="pb">
-        <h3>{{ send.stimulus_name }}</h3>
-        {% if send.status == "sent" %}<div class="ask" id="bv-q">
-          <div class="lbl">Did you get chills?</div>
-          <div class="yn"><button class="btn btn-p" onclick="answerYes()">Yes</button><button class="btn btn-o" onclick="answerNo()">No</button></div>
-        </div>{% endif %}<div class="ask" id="bv-r"{% if send.status == "sent" %} style="display:none"{% endif %}>
-          <div class="rbig" id="bv-title">{% if send.status != "sent" %}{% if send.experienced %}{{ sender_name }} got you.{% else %}This one left you cold.{% endif %}{% endif %}</div>
-          <p class="rsub" id="bv-sub">{% if send.status != "sent" %}{% if send.experienced %}{{ sender_name }} picked this video for you, and it worked.{% else %}{{ sender_name }} picked this video for you. It happens.{% endif %}{% endif %}</p>
-          <span class="rtag" id="bv-you">{% if send.status != "sent" %}{{ sender_name }} will see this{% endif %}</span>
-          <div style="margin-top:20px"><button class="btn btn-p btn-w" onclick="location.href='/'">Get your chills score</button></div>
-        </div>
-      </div>
-    </div>
-    <p class="note">{{ sender_name }} hears your answer once you have given it. They picked this video for you.</p>
-  </div>
-</div>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>{{ sender_name }} sent you chills · ReWire</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Inter:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{--sf:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;--display:'Familjen Grotesk','Inter',sans-serif;--ink:#1C1A16;--muted:#9C968A;--bg:#FBF9F4;--btn:#1C1A16}
+*{margin:0;padding:0;box-sizing:border-box}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:var(--sf);font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%}
+.top{padding:18px 24px}
+.top a{color:var(--ink);text-decoration:none;font-weight:600;letter-spacing:-.01em}
+main{max-width:560px;margin:0 auto;padding:16px 24px 80px}
+h1{font-family:var(--display);font-size:clamp(26px,5.4vw,34px);font-weight:700;letter-spacing:-.02em;line-height:1.12;margin:0 0 20px}
+.player{position:relative;border-radius:20px;overflow:hidden;background:#111;aspect-ratio:16/9;box-shadow:0 18px 44px rgba(28,26,22,.14)}
+.player iframe,.player #ytplayer{position:absolute;inset:0;width:100%;height:100%;border:0}
+.ytfall{position:absolute;inset:0;background-size:cover;background-position:center;display:grid;place-content:center}
+.ytfall-play{font-size:44px;color:#fff;text-decoration:none;text-shadow:0 4px 18px rgba(0,0,0,.5)}
+.ytfall-bar{position:absolute;left:0;right:0;bottom:0;padding:10px 16px;color:rgba(255,255,255,.85);font-size:13px;background:linear-gradient(transparent,rgba(0,0,0,.55))}
+.vname{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.015em;margin:16px 4px 26px}
+.ask .lbl{font-family:var(--display);font-size:22px;font-weight:700;letter-spacing:-.015em;text-align:center;margin:6px 0 16px}
+.yn{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.yn button{padding:16px 10px;border-radius:999px;border:0;font-family:var(--sf);font-weight:600;font-size:16px;cursor:pointer;letter-spacing:-.01em;transition:opacity .18s,background .18s}
+.yn .yes{background:var(--btn);color:#FBF9F4}
+.yn .no{background:rgba(28,26,22,.07);color:var(--ink)}
+.yn button:hover{opacity:.86}
+.result{text-align:center;padding-top:8px}
+.rbig{font-family:var(--display);font-size:26px;font-weight:700;letter-spacing:-.02em;margin:6px 0 8px}
+.rsub{color:var(--muted);font-size:15px;margin:0 0 14px}
+.rtag{display:inline-block;padding:7px 14px;border-radius:999px;background:rgba(28,26,22,.06);color:var(--muted);font-size:13px}
+.cta{margin-top:24px}
+.btn{display:inline-block;width:100%;max-width:340px;padding:15px 22px;border-radius:999px;background:var(--btn);color:#FBF9F4;font-weight:600;font-size:15.5px;text-decoration:none;text-align:center;letter-spacing:-.01em;transition:opacity .18s}
+.btn:hover{opacity:.88}
+.note{color:var(--muted);font-size:14px;text-align:center;margin-top:26px}
+</style>
+</head>
+<body>
+<div class="top"><a href="/">ReWire</a></div>
+<main>
+  <h1>{{ sender_name }} sent you chills</h1>
+  <div class="player"><div id="ytplayer"></div></div>
+  <div class="vname">{{ send.stimulus_name }}</div>
 
-{% endblock %}
-{% block page_data %}
+  {% if not answered %}
+  <div class="ask" id="bv-q">
+    <div class="lbl">Did you get chills?</div>
+    <div class="yn"><button class="yes" onclick="answerYes()">Yes</button><button class="no" onclick="answerNo()">No</button></div>
+  </div>
+  {% endif %}
+
+  <div class="result" id="bv-r"{% if not answered %} style="display:none"{% endif %}>
+    <div class="rbig" id="bv-title">{% if answered %}You already answered this one.{% endif %}</div>
+    <p class="rsub" id="bv-sub">{% if answered %}{{ sender_name }} picked this video for you.{% endif %}</p>
+    <span class="rtag" id="bv-you">{{ sender_name }} will see this</span>
+    <div class="cta">
+      {% if has_profile %}
+      <a class="btn" href="/#/profile">Back to your profile</a>
+      {% else %}
+      <a class="btn" href="/#/account">Get your chills score</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <p class="note">{{ sender_name }} hears your answer once you have given it. They picked this video for you.</p>
+</main>
+
 <script>window.VIDEOS = {{ video_urls|tojson }};</script>
-{% endblock %}
-{% block page_js %}
 <script>
 var ytPlayer = null, ytReady = false;
 var tag = document.createElement('script'); tag.src = 'https://www.youtube.com/iframe_api';
 document.head.appendChild(tag);
+function vidAt(i){
+  var u = (window.VIDEOS || [])[i] || '';
+  var m = u.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : '';
+}
+function thumbOf(id, hq){ return "'https://i.ytimg.com/vi/" + id + "/" + (hq ? "hqdefault" : "default") + ".jpg'"; }
 function onYouTubeIframeAPIReady(){ ytReady = true; mountPlayer(); }
 function mountPlayer(){
   if (!ytReady || !document.getElementById('ytplayer')) return;
@@ -46,7 +92,7 @@ function mountPlayer(){
   } catch (err) { playerFallback(id); }
 }
 function playerFallback(id){
-  var wrap = document.querySelector('#screen-bet-view .player');
+  var wrap = document.querySelector('.player');
   if (!wrap || wrap.dataset.fallback) return;
   wrap.dataset.fallback = '1';
   ytPlayer = null;
@@ -56,7 +102,7 @@ function playerFallback(id){
       '<div class="ytfall-bar"><span>Opens on YouTube</span></div>' +
     '</div>';
 }
-{% if send.status == "sent" %}
+{% if not answered %}
 function answerYes(){
   /* record the yes immediately so an abandoned detail form cannot lose it */
   var fd = new FormData(); fd.append('experienced', 'yes');
@@ -71,8 +117,8 @@ function answerNo(){
   var r = document.getElementById('bv-r'); r.style.display='block';
   document.getElementById('bv-title').textContent = 'This one left you cold.';
   document.getElementById('bv-sub').textContent = {{ sender_name|tojson }} + ' picked this video for you. It happens.';
-  document.getElementById('bv-you').textContent = {{ sender_name|tojson }} + ' will see this';
 }
 {% endif %}
 </script>
-{% endblock %}
+</body>
+</html>
