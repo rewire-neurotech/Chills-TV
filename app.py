@@ -1028,10 +1028,7 @@ def unified_context(req: Request, user) -> dict:
             log_ev("duo_created", user=user, detail={"token": duo_link, "from": "profile"})
             duo_waiting.append({"token": duo_link, "opened": False,
                                  "date_str": datetime.utcnow().strftime("%b %d")})
-        all_sends = [dict(x) for x in chillsdb.sends_for_sender(user["id"])]
-        for x in all_sends:
-            x["outcome"] = bet_outcome(x)
-        board = bets_scoreboard(all_sends)
+        board = bets_scoreboard([dict(r) for r in chillsdb.responses_for_sender(user["id"])])
         you_points, algo_points = board["you_points"], board["algo_points"]
     pending_sid = (user["pending_after_sid"] or "") if user else ""
     ctx = {
@@ -1953,10 +1950,7 @@ def hub(req: Request):
                           "partner_letter": avatar_of(d0["partner_name"] or "?"),
                           "match_pct": float(d0["match_pct"] or 0)}
             break
-    all_sends = [dict(x) for x in chillsdb.sends_for_sender(user["id"])]
-    for x in all_sends:
-        x["outcome"] = bet_outcome(x)
-    board = bets_scoreboard(all_sends)
+    board = bets_scoreboard([dict(r) for r in chillsdb.responses_for_sender(user["id"])])
     log_ev("hub_viewed", user=user, detail={"likely_pct": likely_pct})
     return t.TemplateResponse("profile.html", {
         "request": req, "page": "hub", **nav_context(req, user), "videos": videos,
@@ -2047,22 +2041,27 @@ def bets(req: Request):
     if not user:
         return RedirectResponse("/")
     sends = [dict(s) for s in chillsdb.sends_for_sender(user["id"])]
-    for s in sends:
-        s["avatar_letter"] = avatar_of(s["recipient_name"] or "?")
-        s["avatar_color"] = avatar_color(s["recipient_name"] or str(s["id"]))
-        s["outcome"] = bet_outcome(s)
-    ready = [s for s in sends if s["status"] == "watched"]
-    unopened = [s for s in sends if s["status"] == "sent"]
-    done = [s for s in sends if s["status"] == "revealed"]
-    hit_n = sum(1 for s in done if s["experienced"])
-    hit_rate = round(100 * hit_n / len(done)) if done else 0
-    board = bets_scoreboard(sends)
+    responses = [dict(r) for r in chillsdb.responses_for_sender(user["id"])]
+    resp_counts = chillsdb.response_counts_map(user["id"])
+    unrev = chillsdb.unrevealed_counts_map(user["id"])
+    # every response is its own round: chills -> your point, none -> the algorithm's
+    for r in responses:
+        r["outcome"] = bet_outcome(r)
+        r["avatar_letter"] = avatar_of(r["respondent_name"] or "?")
+    rounds = [r for r in responses if r["revealed_at"]]
+    ready = [s for s in sends if unrev.get(s["token"], 0)]
+    for s in ready:
+        s["unrevealed"] = unrev.get(s["token"], 0)
+    unopened = [s for s in sends if resp_counts.get(s["token"], 0) == 0]
+    hit_n = sum(1 for r in rounds if r["experienced"])
+    hit_rate = round(100 * hit_n / len(rounds)) if rounds else 0
+    board = bets_scoreboard(responses)
     now_ts = time.time()
     for x in unopened:
         days = int((now_ts - (x["created_at"] or now_ts)) // 86400)
         x["sent_ago"] = "today" if days < 1 else ("1 day ago" if days == 1 else f"{days} days ago")
-    rp = len(done)
-    rd = len(ready)
+    rp = len(rounds)
+    rd = sum(unrev.values())
     if rp == 0 and rd == 0:
         lead_line = "No rounds played yet."
     else:
@@ -2070,10 +2069,9 @@ def bets(req: Request):
         lead_line = played + (f", {rd} more ready to reveal." if rd else ".")
     return t.TemplateResponse("bets.html", {
         "request": req, "page": "bets", **nav_context(req, user),
-        "ready": ready, "unopened": unopened, "done": done, "hit_rate": hit_rate,
+        "ready": ready, "unopened": unopened, "rounds": rounds, "hit_rate": hit_rate,
         **board, "ready_count": len(ready), "lead_line": lead_line,
-        "resp_counts": chillsdb.response_counts_map(user["id"]),
-        "friend_answers": [dict(r) for r in chillsdb.responses_for_sender(user["id"])],
+        "resp_counts": resp_counts,
         "video_urls": [x.get("stimulus_url", "") for x in ready] + [x.get("stimulus_url", "") for x in unopened],
     })
 
@@ -2174,10 +2172,7 @@ def reveal_gate(req: Request, token: str):
     row = chillsdb.get_send_by_token(token)
     if not user or not row or row["sender_user_id"] != user["id"]:
         return RedirectResponse("/bets")
-    all_sends = [dict(x) for x in chillsdb.sends_for_sender(user["id"])]
-    for x in all_sends:
-        x["outcome"] = bet_outcome(x)
-    board = bets_scoreboard(all_sends)
+    board = bets_scoreboard([dict(r) for r in chillsdb.responses_for_sender(user["id"])])
     yp, ap = board["you_points"], board["algo_points"]
     if yp > ap:
         score_line = f"You lead the algorithm {yp} to {ap}."
@@ -2185,11 +2180,24 @@ def reveal_gate(req: Request, token: str):
         score_line = f"The algorithm leads {ap} to {yp}."
     else:
         score_line = f"Level at {yp} to {ap}."
+    responses = [dict(r) for r in chillsdb.responses_for_send(token)]
+    for r in responses:
+        r["mode"] = row["mode"]
+        r["outcome"] = bet_outcome(r)
+        r["rname"] = (r["respondent_name"] or "").strip() or "A friend"
+        r["avatar_letter"] = avatar_of(r["respondent_name"] or "?")
+    unrevealed = [r for r in responses if not r["revealed_at"]]
+    revealed = [r for r in responses if r["revealed_at"]]
+    gate_resp = unrevealed[0] if unrevealed else None
+    got_n = sum(1 for r in revealed if r["experienced"])
+    bet_you = sum(1 for r in revealed if r["outcome"] == "you")
+    bet_algo = sum(1 for r in revealed if r["outcome"] == "algorithm")
     return t.TemplateResponse("reveal.html", {
         "request": req, "page": "reveal", **nav_context(req, user), "send": row,
-        "rname": (row["recipient_name"] or "").strip() or "They",
-        "outcome": bet_outcome(dict(row)), "score_line": score_line, "base_url": req_base(req),
-        "responses": [dict(r) for r in chillsdb.responses_for_send(token)],
+        "gate_resp": gate_resp, "gate_remaining": len(unrevealed),
+        "revealed": revealed, "got_n": got_n, "no_n": len(revealed) - got_n,
+        "bet_you": bet_you, "bet_algo": bet_algo,
+        "score_line": score_line, "base_url": req_base(req),
     })
 
 
@@ -2198,7 +2206,13 @@ async def reveal_submit(req: Request, token: str):
     f = await req.form()
     closeness = int(f.get("closeness", 0) or 0)
     relationship = f.get("relationship", "")
+    response_id = int(f.get("response_id", 0) or 0)
     row = chillsdb.get_send_by_token(token)
+    user = chillsauth.get_current_user(req)
+    resp = chillsdb.get_send_response(response_id) if response_id else None
+    if (row and user and row["sender_user_id"] == user["id"]
+            and resp and resp["send_token"] == token and not resp["revealed_at"]):
+        chillsdb.reveal_send_response(response_id, closeness, relationship)
     if row and row["status"] == "watched":
         chillsdb.record_reveal_gate(token, closeness, relationship)
         log_ev("revealed", user=chillsauth.get_current_user(req), detail={
@@ -2782,7 +2796,9 @@ def admin_data(req: Request):
             "lastActive": last_map.get(u["id"]) or u["created_at"],
         })
     sends = chillsdb.sends_all()
-    sb = bets_scoreboard(sends)
+    mode_by_token = {x["token"]: x["mode"] for x in sends}
+    sb = bets_scoreboard([{"experienced": r["experienced"], "mode": mode_by_token.get(r["send_token"], "picked")}
+                          for r in chillsdb.responses_all()])
     duos = chillsdb.duos_all()
     subs = []
     for c in chillsdb.all_contributions(limit=1000):
@@ -3004,8 +3020,10 @@ async def submit(req: Request,
                                            description=clean_description)
             chillsdb.set_pending_send_token(user["token"], "")
 
+    done_user = chillsauth.get_current_user(req)
     return t.TemplateResponse("done.html", {"request": req, "id": id, "email": email,
-                                             "has_profile": _user_has_profile(chillsauth.get_current_user(req))})
+                                             **nav_context(req, done_user),
+                                             "has_profile": _user_has_profile(done_user)})
 
 
 # ═══════════════════════════════════════════════════
