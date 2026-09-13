@@ -1,211 +1,150 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>ReWire | Feedback</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      .bg-app{background:linear-gradient(180deg,#f8fafc,#fff)}
-      .card{background:rgba(255,255,255,.95);backdrop-filter:saturate(1.08) blur(6px)}
-      .btn{background:linear-gradient(135deg,#ec4899,#db2777)}
-      .bar{height:3px;background:linear-gradient(90deg,#ec4899,#60a5fa);width:100%}
-      .radio{display:flex;gap:.5rem;align-items:center}
-      .muted{color:#64748b}
-      *:focus{outline:none!important;box-shadow:none!important}
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Your chills report · ReWire</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Inter:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{--sf:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;--display:'Familjen Grotesk','Inter',sans-serif;--ink:#1C1A16;--muted:#9C968A;--bg:#FBF9F4;--btn:#1C1A16;--line:rgba(28,26,22,.12)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:var(--sf);font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%}
+.top{padding:18px 24px;display:flex;align-items:center;justify-content:space-between}
+.top a{color:var(--ink);text-decoration:none;font-weight:600;letter-spacing:-.01em}
+.step{color:var(--muted);font-size:13.5px}
+main{max-width:600px;margin:0 auto;padding:10px 24px 90px}
+h1{font-family:var(--display);font-size:clamp(24px,5vw,30px);font-weight:700;letter-spacing:-.02em;margin:0 0 26px}
+.q{font-family:var(--display);font-size:17.5px;font-weight:700;letter-spacing:-.015em;margin:0 0 12px}
+.blk{margin:0 0 30px}
+.yn{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:340px}
+.yn label{display:grid;place-items:center;padding:14px 10px;border-radius:999px;background:rgba(28,26,22,.06);font-weight:600;font-size:15.5px;cursor:pointer;transition:background .15s,color .15s}
+.yn input{display:none}
+.yn input:checked+label{background:var(--btn);color:#FBF9F4}
+.scale{display:grid;gap:7px}
+.scale input{display:none}
+.scale label{display:grid;place-items:center;height:42px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:13.5px;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.scale input:checked+label{background:var(--btn);color:#FBF9F4;border-color:var(--btn)}
+.anch{display:flex;justify-content:space-between;color:var(--muted);font-size:12.5px;margin-top:7px}
+textarea,input[type=email],input[type=text]{width:100%;border:1px solid var(--line);border-radius:14px;background:#fff;padding:13px 15px;font-family:var(--sf);font-size:15px;color:var(--ink);resize:vertical}
+textarea:focus,input:focus{outline:none;border-color:rgba(28,26,22,.35)}
+.hint{color:var(--muted);font-size:13px;margin-top:6px}
+.actions{display:flex;justify-content:flex-end;margin-top:6px}
+.btn{padding:14px 30px;border-radius:999px;border:0;background:var(--btn);color:#FBF9F4;font-family:var(--sf);font-weight:600;font-size:15.5px;cursor:pointer;letter-spacing:-.01em;transition:opacity .18s}
+.btn:hover{opacity:.88}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:560px){.scale label{height:36px;font-size:12px;border-radius:9px}.scale{gap:4px}}
+</style>
+</head>
+<body>
+<div class="top"><a href="/">ReWire</a><span class="step" id="stepN">1 of 2</span></div>
+<main>
+  <form action="/submit" method="post" id="f">
+    <input type="hidden" name="id" value="{{ id }}" />
+    <input type="hidden" name="stimulus_id" value="{{ stimulus_id }}" />
+    <input type="hidden" name="stimulus_name" value="{{ stimulus_name }}" />
+    <input type="hidden" name="url" value="{{ url }}" />
+    <input type="hidden" name="send_token" value="{{ send_token }}" />
 
-      .scale{--count:11; display:grid; grid-template-columns:repeat(var(--count),minmax(0,1fr)); gap:10px; align-items:center; width:100%}
-      .scale input{display:none}
-      .scale label{
-        display:grid; place-items:center; width:100%; height:44px;
-        border:1px solid #e2e8f0; border-radius:.75rem; background:#fff; font-size:13px
-      }
-      .scale input:checked + label{background:#ec4899;color:#fff;border-color:#ec4899}
+    <section id="s1">
+      <h1>Tell us about the chills</h1>
 
-      .anchors{position:relative; margin-top:6px; height:16px; color:#0B0F19; font-size:12px}
-      .anchors .l{position:absolute; left:0}
-      .anchors .r{position:absolute; right:0}
-
-      .q{color:#0B0F19; font-weight:600}
-    </style>
-  </head>
-  <body class="min-h-screen bg-app text-slate-900">
-    <header class="bg-white/80 backdrop-blur border-b">
-      <div class="max-w-4xl mx-auto px-4 py-3">
-        <div class="flex items-center justify-between">
-          <div></div>
-          <div class="text-xs text-slate-600">Step 4 of 4</div>
+      <div class="blk">
+        <div class="q">Did you experience chills?</div>
+        <div class="yn">
+          <input id="exp_yes" type="radio" name="experienced" value="yes" /><label for="exp_yes">Yes</label>
+          <input id="exp_no" type="radio" name="experienced" value="no" /><label for="exp_no">No</label>
         </div>
-        <div class="bar mt-2 rounded"></div>
       </div>
-    </header>
 
-    <main class="max-w-4xl mx-auto px-4 py-8">
-      <form action="/submit" method="post" id="f" class="space-y-6">
-        <input type="hidden" name="id" value="{{ id }}" />
-        <input type="hidden" name="stimulus_id" value="{{ stimulus_id }}" />
-        <input type="hidden" name="stimulus_name" value="{{ stimulus_name }}" />
-        <input type="hidden" name="url" value="{{ url }}" />
-        <input type="hidden" name="send_token" value="{{ send_token }}" />
-
-        <!-- STEP 1: chills feedback -->
-        <section id="s1" class="card rounded-2xl border p-6 space-y-6">
-          <div>
-            <div class="block mb-2 font-medium">Did you experience chills?</div>
-            <div class="flex gap-6">
-              <label class="radio">
-                <input type="radio" name="experienced" value="yes" />
-                <span>Yes</span>
-              </label>
-              <label class="radio">
-                <input type="radio" name="experienced" value="no" />
-                <span>No</span>
-              </label>
-            </div>
+      <div id="yesFields" style="display:none">
+        <div class="blk">
+          <div class="q">How intense were the chills you experienced?</div>
+          <div class="scale" data-count="11">
+            {% for val in range(0, 11) %}<input id="intensity_{{ val }}" type="radio" name="chills_amount" value="{{ val }}" /><label for="intensity_{{ val }}">{{ val }}</label>
+            {% endfor %}
           </div>
+          <div class="anch"><span>No chills</span><span>Chills all over my spine</span></div>
+        </div>
 
-          <div id="yesFields" class="space-y-6" style="display:none">
-            <div>
-              <div class="q mb-1">How intense were the chills you experienced?</div>
-              <div class="scale mt-2" data-count="11">
-                {% for val in range(0, 11) %}
-                  <input id="intensity_{{ val }}" type="radio" name="chills_amount" value="{{ val }}" />
-                  <label for="intensity_{{ val }}">{{ val }}</label>
-                {% endfor %}
-              </div>
-              <div class="anchors">
-                <span class="l">No chills</span>
-                <span class="r">Chills all over my spine</span>
-              </div>
-            </div>
-
-            <div>
-              <div class="q mb-1">How long were the chills that you experienced?</div>
-              <div class="scale mt-2" data-count="7">
-                {% for val in range(0, 7) %}
-                  <input id="length_{{ val }}" type="radio" name="chills_length" value="{{ val }}" />
-                  <label for="length_{{ val }}">{{ val }}</label>
-                {% endfor %}
-              </div>
-              <div class="anchors">
-                <span class="l">Very short</span>
-                <span class="r">More than 5 seconds</span>
-              </div>
-            </div>
-
-            <div>
-              <div class="q mb-1">How many waves of chills did you experience?</div>
-              <div class="scale mt-2" data-count="11">
-                {% for val in range(0, 11) %}
-                  <input id="waves_{{ val }}" type="radio" name="chills_waves" value="{{ val }}" />
-                  <label for="waves_{{ val }}">{{ val }}</label>
-                {% endfor %}
-              </div>
-              <div class="anchors">
-                <span class="l">No waves</span>
-                <span class="r">Many waves</span>
-              </div>
-            </div>
-
-            <div>
-              <label class="block mb-2 font-medium">
-                Please describe what in the video gave you chills and why.
-              </label>
-              <textarea
-                name="description"
-                rows="5"
-                class="w-full rounded-xl border px-3 py-2 bg-white/70"
-                placeholder="Your answer (optional)…"
-              ></textarea>
-            </div>
+        <div class="blk">
+          <div class="q">How long were the chills that you experienced?</div>
+          <div class="scale" data-count="7">
+            {% for val in range(0, 7) %}<input id="length_{{ val }}" type="radio" name="chills_length" value="{{ val }}" /><label for="length_{{ val }}">{{ val }}</label>
+            {% endfor %}
           </div>
+          <div class="anch"><span>Very short</span><span>More than 5 seconds</span></div>
+        </div>
 
-          <div class="flex items-center justify-end">
-            <button
-              id="toEmail"
-              class="btn rounded-xl text-white px-5 py-3"
-              type="button"
-            >
-              Continue
-            </button>
+        <div class="blk">
+          <div class="q">How many waves of chills did you experience?</div>
+          <div class="scale" data-count="11">
+            {% for val in range(0, 11) %}<input id="waves_{{ val }}" type="radio" name="chills_waves" value="{{ val }}" /><label for="waves_{{ val }}">{{ val }}</label>
+            {% endfor %}
           </div>
-        </section>
+          <div class="anch"><span>No waves</span><span>Many waves</span></div>
+        </div>
 
-        <!-- STEP 2: email + Prolific ID (frontend only, no backend change) -->
-        <section id="s2" class="card rounded-2xl border p-6 space-y-4" style="display:none">
-          <div>
-            <label class="block mb-2 font-medium">
-              If you wish to be contacted for future studies, please indicate your email.
-            </label>
-            <input
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              class="w-full rounded-xl border px-3 py-2 bg-white/70"
-            />
-          </div>
+        <div class="blk">
+          <div class="q">Please describe what in the video gave you chills and why.</div>
+          <textarea name="description" rows="5" placeholder="Your answer (optional)…"></textarea>
+        </div>
+      </div>
 
-          <div>
-            <label class="block mb-2 font-medium">
-              Prolific ID
-              <span class="text-xs text-slate-500">(optional, not required)</span>
-            </label>
-            
-            <input
-              name="prolific_id"
-              type="text"
-              placeholder="Enter your Prolific ID (optional)"
-              class="w-full rounded-xl border px-3 py-2 bg-white/70"
-            />
-          </div>
+      <div class="actions"><button id="toEmail" class="btn" type="button">Continue</button></div>
+    </section>
 
-          <div class="flex items-center justify-end">
-            <button
-              id="btn"
-              class="btn inline-flex items-center justify-center rounded-xl text-white px-5 py-3 disabled:opacity-60 disabled:cursor-not-allowed transition"
-            >
-              Submit
-            </button>
-          </div>
-        </section>
-      </form>
-    </main>
+    <section id="s2" style="display:none">
+      <h1>Almost done</h1>
 
-    <script>
-      // Show/hide chills detail fields
-      const yesWrap = document.getElementById("yesFields");
-      const radios = [...document.querySelectorAll('input[name="experienced"]')];
-      const toggle = () => {
-        const r = document.querySelector('input[name="experienced"]:checked');
-        yesWrap.style.display = (r && r.value === "yes") ? "block" : "none";
-      };
-      radios.forEach(r => r.addEventListener("change", toggle));
-      toggle();
+      <div class="blk">
+        <div class="q">If you wish to be contacted for future studies, please indicate your email.</div>
+        <input name="email" type="email" placeholder="you@example.com" />
+      </div>
 
-      // Step 1 -> Step 2
-      const s1 = document.getElementById("s1"),
-            s2 = document.getElementById("s2");
-      document.getElementById("toEmail").addEventListener("click", () => {
-        s1.style.display = "none";
-        s2.style.display = "block";
-      });
+      <div class="blk">
+        <div class="q">Prolific ID</div>
+        <input name="prolific_id" type="text" placeholder="Enter your Prolific ID (optional)" />
+        <div class="hint">Optional, not required.</div>
+      </div>
 
-      // Dynamic scale column count
-      document.querySelectorAll(".scale").forEach(el => {
-        const c = parseInt(el.dataset.count || "0", 10);
-        if (c > 0) el.style.setProperty("--count", c);
-      });
+      <div class="actions"><button id="btn" class="btn">Submit</button></div>
+    </section>
+  </form>
+</main>
 
-      // Disable submit on form post
-      const f = document.getElementById("f"),
-            b = document.getElementById("btn");
-      f.addEventListener("submit", () => {
-        if (b) {
-          b.disabled = true;
-          b.textContent = "Submitting…";
-        }
-      });
-    </script>
-  </body>
+<script>
+  // Show/hide chills detail fields
+  var yesWrap = document.getElementById("yesFields");
+  var radios = [].slice.call(document.querySelectorAll('input[name="experienced"]'));
+  var toggle = function(){
+    var r = document.querySelector('input[name="experienced"]:checked');
+    yesWrap.style.display = (r && r.value === "yes") ? "block" : "none";
+  };
+  radios.forEach(function(r){ r.addEventListener("change", toggle); });
+  toggle();
+
+  // Dynamic scale column count
+  document.querySelectorAll(".scale").forEach(function(el){
+    var c = parseInt(el.dataset.count || "0", 10);
+    if (c > 0) el.style.gridTemplateColumns = "repeat(" + c + ",minmax(0,1fr))";
+  });
+
+  // Step 1 -> Step 2
+  var s1 = document.getElementById("s1"), s2 = document.getElementById("s2");
+  document.getElementById("toEmail").addEventListener("click", function(){
+    s1.style.display = "none";
+    s2.style.display = "block";
+    document.getElementById("stepN").textContent = "2 of 2";
+    window.scrollTo(0, 0);
+  });
+
+  // Disable submit on form post
+  var f = document.getElementById("f"), b = document.getElementById("btn");
+  f.addEventListener("submit", function(){
+    if (b){ b.disabled = true; b.textContent = "Submitting…"; }
+  });
+</script>
+</body>
 </html>
-
