@@ -60,6 +60,19 @@ CREATE TABLE IF NOT EXISTS sends (
     revealed_at REAL
 );
 
+CREATE TABLE IF NOT EXISTS send_responses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    send_token TEXT NOT NULL,
+    respondent_user_id INTEGER,
+    respondent_name TEXT DEFAULT '',
+    experienced INTEGER,
+    intensity INTEGER,
+    chills_length INTEGER,
+    chills_waves INTEGER,
+    description TEXT DEFAULT '',
+    created_at REAL NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS duo_pairs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     token TEXT UNIQUE NOT NULL,
@@ -204,6 +217,9 @@ def _migrate(conn):
         ("beta_requested_at", "REAL"),
         ("edge_code", "TEXT DEFAULT ''"),
         ("edge_granted_at", "REAL"),
+        ("terms_version", "TEXT DEFAULT ''"),
+        ("privacy_version", "TEXT DEFAULT ''"),
+        ("consent_boxes", "TEXT DEFAULT ''"),
     ]:
         if col not in existing:
             conn.execute(f"ALTER TABLE users ADD COLUMN {col} {decl}")
@@ -362,6 +378,60 @@ def record_reveal_gate(token: str, closeness: int, relationship: str):
                sender_seen=1, revealed_at=? WHERE token=?""",
             (closeness, relationship, time.time(), token),
         )
+
+
+# ── send responses (one row per friend on a bet link) ────────────────
+def create_send_response(send_token: str, experienced: bool, intensity: int = 0,
+                          chills_length: int = None, chills_waves: int = None,
+                          description: str = "", respondent_name: str = "",
+                          respondent_user_id: int = None):
+    with get_conn() as conn:
+        conn.execute(
+            """INSERT INTO send_responses (send_token, respondent_user_id, respondent_name,
+               experienced, intensity, chills_length, chills_waves, description, created_at)
+               VALUES (?,?,?,?,?,?,?,?,?)""",
+            (send_token, respondent_user_id, (respondent_name or "").strip(),
+             int(bool(experienced)), intensity, chills_length, chills_waves,
+             (description or "").strip(), time.time()),
+        )
+
+
+def responses_for_send(send_token: str):
+    with get_conn() as conn:
+        return conn.execute(
+            "SELECT * FROM send_responses WHERE send_token=? ORDER BY created_at ASC",
+            (send_token,),
+        ).fetchall()
+
+
+def responses_for_sender(sender_user_id: int):
+    """All responses on this sender's links, newest first, joined to the send."""
+    with get_conn() as conn:
+        return conn.execute(
+            """SELECT r.*, s.stimulus_id, s.stimulus_name, s.stimulus_url, s.mode
+               FROM send_responses r JOIN sends s ON s.token = r.send_token
+               WHERE s.sender_user_id=? ORDER BY r.created_at DESC""",
+            (sender_user_id,),
+        ).fetchall()
+
+
+def response_counts_map(sender_user_id: int) -> dict:
+    """send_token -> number of responses, for the bets list."""
+    with get_conn() as conn:
+        rows = conn.execute(
+            """SELECT r.send_token, COUNT(*) AS n
+               FROM send_responses r JOIN sends s ON s.token = r.send_token
+               WHERE s.sender_user_id=? GROUP BY r.send_token""",
+            (sender_user_id,),
+        ).fetchall()
+    return {r["send_token"]: r["n"] for r in rows}
+
+
+def responses_all():
+    with get_conn() as conn:
+        return conn.execute(
+            "SELECT * FROM send_responses ORDER BY created_at DESC"
+        ).fetchall()
 
 
 # ── duo (chills compatibility) ────────────────────────────────────────
@@ -640,6 +710,22 @@ def set_consented(user_id: int):
         )
 
 
+def record_consent(user_id: int, terms_version: str = "", privacy_version: str = "",
+                    consent_boxes: str = ""):
+    """Stamp acceptance with the versions shown, per the terms. Timestamp only
+    stamps once, versions update to the latest accepted."""
+    with get_conn() as conn:
+        conn.execute(
+            """UPDATE users SET terms_version=?, privacy_version=?, consent_boxes=?
+               WHERE id=?""",
+            (terms_version or "", privacy_version or "", consent_boxes or "", user_id),
+        )
+        conn.execute(
+            "UPDATE users SET consented_at=? WHERE id=? AND consented_at IS NULL",
+            (time.time(), user_id),
+        )
+
+
 def set_beta_status(user_id: int, status: str):
     assert status in ("none", "listed", "granted")
     with get_conn() as conn:
@@ -656,6 +742,52 @@ def clear_pending_after(user_id: int):
         conn.execute("UPDATE users SET pending_after_sid='' WHERE id=?", (user_id,))
 
 
+def export_user_data(user_id: int) -> dict:
+    """Everything stored about one user, for the download my data setting."""
+    with get_conn() as conn:
+        user = conn.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+        if not user:
+            return {}
+        def rows(q, args):
+            return [dict(r) for r in conn.execute(q, args).fetchall()]
+        u = dict(user)
+        u.pop("password_hash", None)
+        return {
+            "account": u,
+            "after_answers": rows("SELECT * FROM after_answers WHERE user_id=?", (user_id,)),
+            "video_watches": rows("SELECT * FROM video_watches WHERE user_id=?", (user_id,)),
+            "video_comments": rows("SELECT * FROM video_comments WHERE user_id=?", (user_id,)),
+            "sends": rows("SELECT * FROM sends WHERE sender_user_id=?", (user_id,)),
+            "send_responses": rows("SELECT * FROM send_responses WHERE respondent_user_id=?", (user_id,)),
+            "duo_pairs": rows("SELECT * FROM duo_pairs WHERE user_id=? OR partner_user_id=?", (user_id, user_id)),
+            "contributions": rows("SELECT * FROM contributions WHERE submitted_by=?", (user_id,)),
+            "events": rows("SELECT * FROM events WHERE user_id=?", (user_id,)),
+        }
+
+
+def delete_user_account(user_id: int):
+    """Delete the account and every row tied to it, per the privacy policy.
+    Sends they created lose their responses too. Duo pairs they are in are
+    removed on both sides because the pair data is about them."""
+    with get_conn() as conn:
+        tokens = [r["token"] for r in conn.execute(
+            "SELECT token FROM sends WHERE sender_user_id=?", (user_id,)).fetchall()]
+        for t in tokens:
+            conn.execute("DELETE FROM send_responses WHERE send_token=?", (t,))
+        conn.execute("DELETE FROM sends WHERE sender_user_id=?", (user_id,))
+        conn.execute("DELETE FROM send_responses WHERE respondent_user_id=?", (user_id,))
+        conn.execute("DELETE FROM duo_pairs WHERE user_id=? OR partner_user_id=?", (user_id, user_id))
+        conn.execute("DELETE FROM after_answers WHERE user_id=?", (user_id,))
+        conn.execute("DELETE FROM video_watches WHERE user_id=?", (user_id,))
+        conn.execute("DELETE FROM video_comments WHERE user_id=?", (user_id,))
+        conn.execute("DELETE FROM contributions WHERE submitted_by=?", (user_id,))
+        conn.execute("DELETE FROM user_tags WHERE user_id=?", (user_id,))
+        conn.execute("DELETE FROM admin_notes WHERE user_id=?", (user_id,))
+        conn.execute("DELETE FROM auth_sessions WHERE user_id=?", (user_id,))
+        conn.execute("DELETE FROM events WHERE user_id=?", (user_id,))
+        conn.execute("DELETE FROM users WHERE id=?", (user_id,))
+
+
 # ── after the video answers ──────────────────────────────────
 def record_after_answers(user_id: int, stimulus_id: str, chills: bool,
                           what_text: str = "", why_text: str = ""):
@@ -668,6 +800,21 @@ def record_after_answers(user_id: int, stimulus_id: str, chills: bool,
             (user_id, stimulus_id, int(bool(chills)), (what_text or "").strip(),
              (why_text or "").strip(), time.time()),
         )
+
+
+def chills_by_video(user_id: int) -> dict:
+    """stimulus_id -> latest chills answer for this user. Compat screen rows."""
+    if not user_id:
+        return {}
+    with get_conn() as conn:
+        rows = conn.execute(
+            "SELECT stimulus_id, chills FROM after_answers WHERE user_id=? ORDER BY created_at ASC",
+            (user_id,),
+        ).fetchall()
+    out = {}
+    for r in rows:
+        out[r["stimulus_id"]] = bool(r["chills"])
+    return out
 
 
 def after_answers_for_user(user_id: int, limit: int = 100):
