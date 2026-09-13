@@ -1,56 +1,123 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="screen" id="screen-bets">
-  <div class="col">
-    <a class="back" href="/hub">‹ Profile</a>
-    <h1 class="pg-title">Beat the algorithm</h1>
-    <p class="pg-lede">Pick a video for a friend. If it gives them chills, the point is yours. If the algorithm's pick does better, the point goes to the machine.</p>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Beat the algorithm · ReWire</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Inter:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{--sf:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;--display:'Familjen Grotesk','Inter',sans-serif;--ink:#1C1A16;--muted:#9C968A;--bg:#FBF9F4;--btn:#1C1A16;--line:rgba(28,26,22,.12)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:var(--sf);font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%}
+.top{padding:18px 24px;display:flex;align-items:center;justify-content:space-between}
+.top a{color:var(--ink);text-decoration:none;font-weight:600;letter-spacing:-.01em}
+.top a.back{font-weight:500;color:var(--muted);font-size:14.5px}
+main{max-width:600px;margin:0 auto;padding:10px 24px 90px}
+h1{font-family:var(--display);font-size:clamp(26px,5.4vw,34px);font-weight:700;letter-spacing:-.02em;margin:0 0 10px}
+.lede{color:var(--muted);font-size:15px;margin:0 0 24px}
+.boardcard{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;margin-bottom:34px}
+.board{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile2{display:flex;align-items:center;gap:10px;padding:14px 16px;border-radius:16px;background:rgba(28,26,22,.045)}
+.tile2.win{background:rgba(28,26,22,.09)}
+.tile2 span{color:var(--muted);font-size:14px;flex:1}
+.tile2 b{font-family:var(--display);font-size:22px;font-weight:700}
+.av{width:34px;height:34px;border-radius:50%;background:var(--btn);color:#FBF9F4;display:grid;place-content:center;font-weight:600;font-size:14px;flex:none}
+.av.bot svg{width:18px;height:18px;stroke:#FBF9F4;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.av.a1{background:#7A5C50}.av.a2{background:#4E5D6C}.av.a3{background:#5C6B4F}
+.lead{color:var(--muted);font-size:14.5px;margin:14px 2px}
+.btn{display:inline-block;padding:14px 26px;border-radius:999px;border:0;background:var(--btn);color:#FBF9F4;font-family:var(--sf);font-weight:600;font-size:15px;cursor:pointer;text-decoration:none;letter-spacing:-.01em;transition:opacity .18s}
+.btn:hover{opacity:.88}
+.btn-s{padding:9px 16px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink);font-family:var(--sf);font-weight:600;font-size:13.5px;cursor:pointer;transition:background .15s}
+.btn-s:hover{background:rgba(28,26,22,.05)}
+.sec{margin-bottom:30px}
+.sec h2{font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:-.015em;margin:0 0 12px}
+.sec h2 span{color:var(--muted);font-weight:600;font-size:15px;margin-left:6px}
+.door{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px 14px;margin-bottom:10px}
+.door.tap{cursor:pointer}
+.door .th{width:74px;height:46px;border-radius:11px;background:#2a2622;flex:none}
+.door .t{flex:1;min-width:0}
+.door .t b{display:block;font-size:15px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.door .t b em{font-style:normal;color:var(--muted);font-weight:500}
+.door .t span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.won{color:var(--muted);font-size:13.5px;font-weight:600;white-space:nowrap}
+.won.you{color:var(--ink)}
+.cnt{display:inline-block;margin-left:6px;padding:2px 9px;border-radius:999px;background:rgba(28,26,22,.07);color:var(--ink);font-size:12px;font-weight:600}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(12px);background:var(--ink);color:#FBF9F4;padding:11px 20px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9}
+.toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+<div class="top"><a href="/">ReWire</a><a class="back" href="/hub">‹ Profile</a></div>
+<main>
+  <h1>Beat the algorithm</h1>
+  <p class="lede">Pick a video for a friend. If it gives them chills, the point is yours. If the algorithm's pick does better, the point goes to the machine.</p>
 
-    <div class="boardcard">
-<div class="board">
-  <div class="tile2{% if you_points > algo_points %} win{% endif %}"><div class="av me">{{ avatar_letter }}</div><span>You</span><b>{{ you_points }}</b></div>
-  <div class="tile2{% if algo_points > you_points %} win{% endif %}"><div class="av bot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.2"/></svg></div><span>Algorithm</span><b>{{ algo_points }}</b></div>
-</div>
-      <div class="lead">{{ lead_line }}</div>
-      <button class="btn btn-p" onclick="location.href='/send'">Pick a video</button>
+  <div class="boardcard">
+    <div class="board">
+      <div class="tile2{% if you_points > algo_points %} win{% endif %}"><div class="av">{{ avatar_letter }}</div><span>You</span><b>{{ you_points }}</b></div>
+      <div class="tile2{% if algo_points > you_points %} win{% endif %}"><div class="av bot"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.2"/></svg></div><span>Algorithm</span><b>{{ algo_points }}</b></div>
     </div>
-
-    {% if ready %}<div class="sec">
-      <div class="sec-h"><h2>Ready to reveal <span>{{ ready|length }}</span></h2></div>
-      <div class="doors">
-        {% for s in ready %}<div class="door tap" onclick="location.href='/reveal/{{ s.token }}'">
-          <div class="th" data-pl="{{ loop.index0 }}"></div>
-          <div class="t"><b>{{ s.recipient_name or 'Someone' }} <em>&middot; {{ s.stimulus_name }}</em></b><span>Watched and answered</span></div>
-          <button class="btn btn-p" style="height:38px;padding:0 18px;font-size:14px">Reveal</button>
-        </div>
-        {% endfor %}</div>
-    </div>{% endif %}
-
-    {% if unopened %}<div class="sec">
-      <div class="sec-h"><h2>Not opened yet <span>{{ unopened|length }}</span></h2></div>
-      <div class="doors">
-        {% for s in unopened %}<div class="door">
-          <div class="th" data-pl="{{ ready|length + loop.index0 }}"></div>
-          <div class="t"><b>{{ s.stimulus_name }}</b><span>Link sent {{ s.sent_ago }}</span></div>
-          <button class="btn-s" onclick="resendLink('{{ s.token }}')">Resend link</button>
-        </div>
-        {% endfor %}</div>
-    </div>{% endif %}
-
-    {% if done %}<div class="sec">
-      <div class="sec-h"><h2>Rounds played <span>{{ done|length }}</span></h2></div>
-      <div class="doors">
-        {% for s in done %}<div class="door"><div class="av a{{ loop.index0 % 3 + 1 }}">{{ s.avatar_letter }}</div><div class="t"><b>{{ s.recipient_name or 'Someone' }}</b><span>{{ s.stimulus_name }} &middot; {% if s.experienced %}{{ s.intensity }}/10{% else %}no chills{% endif %}</span></div><span class="won{% if s.outcome == 'you' %} you{% endif %}">{% if s.outcome == 'you' %}You won{% else %}Algorithm won{% endif %}</span></div>
-        {% endfor %}</div>
-    </div>{% endif %}
+    <div class="lead">{{ lead_line }}</div>
+    <a class="btn" href="/send">Pick a video</a>
   </div>
-</div>
-{% endblock %}
-{% block page_data %}
+
+  {% if ready %}<div class="sec">
+    <h2>Ready to reveal <span>{{ ready|length }}</span></h2>
+    {% for s in ready %}<div class="door tap" onclick="location.href='/reveal/{{ s.token }}'">
+      <div class="th" data-pl="{{ loop.index0 }}"></div>
+      <div class="t"><b>{{ s.recipient_name or 'Someone' }} <em>&middot; {{ s.stimulus_name }}</em></b><span>Watched and answered{% if resp_counts.get(s.token, 0) > 1 %}<span class="cnt">{{ resp_counts.get(s.token) }} answers</span>{% endif %}</span></div>
+      <button class="btn-s">Reveal</button>
+    </div>
+    {% endfor %}
+  </div>{% endif %}
+
+  {% if unopened %}<div class="sec">
+    <h2>Not opened yet <span>{{ unopened|length }}</span></h2>
+    {% for s in unopened %}<div class="door">
+      <div class="th" data-pl="{{ ready|length + loop.index0 }}"></div>
+      <div class="t"><b>{{ s.stimulus_name }}</b><span>Link sent {{ s.sent_ago }}</span></div>
+      <button class="btn-s" onclick="resendLink('{{ s.token }}')">Resend link</button>
+    </div>
+    {% endfor %}
+  </div>{% endif %}
+
+  {% if done %}<div class="sec">
+    <h2>Rounds played <span>{{ done|length }}</span></h2>
+    {% for s in done %}<div class="door">
+      <div class="av a{{ loop.index0 % 3 + 1 }}">{{ s.avatar_letter }}</div>
+      <div class="t"><b>{{ s.recipient_name or 'Someone' }}</b><span>{{ s.stimulus_name }} &middot; {% if s.experienced %}{{ s.intensity }}/10{% else %}no chills{% endif %}{% if resp_counts.get(s.token, 0) > 1 %}<span class="cnt">{{ resp_counts.get(s.token) }} answers</span>{% endif %}</span></div>
+      <span class="won{% if s.outcome == 'you' %} you{% endif %}">{% if s.outcome == 'you' %}You won{% else %}Algorithm won{% endif %}</span>
+    </div>
+    {% endfor %}
+  </div>{% endif %}
+</main>
+<div class="toast" id="toast"></div>
+
 <script>window.VIDEOS = {{ video_urls|tojson }};</script>
-{% endblock %}
-{% block page_js %}
 <script>
+function vidAt(i){
+  var u = (window.VIDEOS || [])[i] || '';
+  var m = u.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : '';
+}
+function thumbOf(id, big){ return "'https://i.ytimg.com/vi/" + id + "/" + (big ? "hqdefault" : "mqdefault") + ".jpg'"; }
+function paintThumbs(){
+  document.querySelectorAll('[data-pl]').forEach(function(el){
+    var id = vidAt(parseInt(el.getAttribute('data-pl'), 10));
+    el.style.backgroundImage = 'url(' + thumbOf(id, el.hasAttribute('data-big')) + ')';
+    el.style.backgroundColor = '#2a2622';
+    el.style.backgroundSize = 'cover';
+    el.style.backgroundPosition = 'center';
+  });
+}
+var toastT;
+function toast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+}
 var INVITE_TEXT2 = 'I bet this gives you chills \u2014 try it';
 function resendLink(token){
   var u = location.origin + '/b/' + token;
@@ -59,5 +126,7 @@ function resendLink(token){
            .then(function(){ toast('Message copied \u2014 send it again'); })
            .catch(function(){ toast('Copy failed'); }); }
 }
+document.addEventListener('DOMContentLoaded', paintThumbs);
 </script>
-{% endblock %}
+</body>
+</html>
