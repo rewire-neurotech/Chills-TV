@@ -2760,7 +2760,7 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
         <div class="t"><b>No one yet</b><span>The link has not been opened</span></div>
         <button class="btn-s" onclick="shareDuo()">Send again</button>
       </div>
-      {% endfor %}<span class="cl-see" onclick="toast('Preview of the test your friend receives')">See what they receive</span>
+      {% endfor %}<span class="cl-see" onclick="window.open('/us/' + (CTX.duo_link || ''), '_blank')">See what they receive</span>
     </div>
   </div>
 </div>
@@ -2834,7 +2834,7 @@ function gameShow(i){
   document.getElementById('gPrev').disabled = gi===0;
   document.getElementById('gNext').disabled = gi===cards.length-1;
 }
-function same(name){ var m = {'About':'/about','How it works':'/method','Chills compatibility':'/duo/new','Beat the algorithm':'/bets','Add a chills video':'/contribute'}; if(m[name]) location.href = m[name]; }
+function same(name){ if(name==='Chills compatibility'){ go('compatlist'); return; } var m = {'About':'/about','How it works':'/method','Beat the algorithm':'/bets','Add a chills video':'/contribute'}; if(m[name]) location.href = m[name]; }
 function toast(t){ var el=document.getElementById('ctvToast'); el.textContent=t; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(function(){ el.classList.remove('show'); },2200); }
 
 /* menu */
@@ -3335,6 +3335,7 @@ function route(){
   document.documentElement.classList.remove('bootctv');
 }
 window.addEventListener('hashchange',route);
+window.addEventListener('pageshow', function(e){ if(e.persisted){ location.reload(); } });
 var noMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 function countUp(el){
   var to=parseFloat(el.dataset.to),suf=el.dataset.suffix||'',start=null,dur=1500;
