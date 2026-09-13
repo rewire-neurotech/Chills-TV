@@ -70,6 +70,9 @@ CREATE TABLE IF NOT EXISTS send_responses (
     chills_length INTEGER,
     chills_waves INTEGER,
     description TEXT DEFAULT '',
+    closeness INTEGER,
+    relationship TEXT DEFAULT '',
+    revealed_at REAL,
     created_at REAL NOT NULL
 );
 
@@ -227,6 +230,16 @@ def _migrate(conn):
     existing = {row["name"] for row in conn.execute("PRAGMA table_info(duo_pairs)")}
     if "opened_at" not in existing:
         conn.execute("ALTER TABLE duo_pairs ADD COLUMN opened_at REAL")
+
+    existing = {row["name"] for row in conn.execute("PRAGMA table_info(send_responses)")}
+    if existing:
+        for col, decl in [
+            ("closeness", "INTEGER"),
+            ("relationship", "TEXT DEFAULT ''"),
+            ("revealed_at", "REAL"),
+        ]:
+            if col not in existing:
+                conn.execute(f"ALTER TABLE send_responses ADD COLUMN {col} {decl}")
 
     existing = {row["name"] for row in conn.execute("PRAGMA table_info(video_comments)")}
     if "user_id" not in existing:
@@ -402,6 +415,36 @@ def responses_for_send(send_token: str):
             "SELECT * FROM send_responses WHERE send_token=? ORDER BY created_at ASC",
             (send_token,),
         ).fetchall()
+
+
+def reveal_send_response(response_id: int, closeness: int, relationship: str):
+    """Stamp the sender's gate answers on one response and mark it revealed.
+    Each respondent is a different person, so the gate runs per response."""
+    with get_conn() as conn:
+        conn.execute(
+            "UPDATE send_responses SET closeness=?, relationship=?, revealed_at=? WHERE id=?",
+            (int(closeness or 0), (relationship or "").strip(), time.time(), response_id),
+        )
+
+
+def get_send_response(response_id: int):
+    with get_conn() as conn:
+        return conn.execute(
+            "SELECT * FROM send_responses WHERE id=?", (response_id,)
+        ).fetchone()
+
+
+def unrevealed_counts_map(sender_user_id: int) -> dict:
+    """send_token -> responses the sender has not yet revealed."""
+    with get_conn() as conn:
+        rows = conn.execute(
+            """SELECT r.send_token, COUNT(*) AS n
+               FROM send_responses r JOIN sends s ON s.token = r.send_token
+               WHERE s.sender_user_id=? AND r.revealed_at IS NULL
+               GROUP BY r.send_token""",
+            (sender_user_id,),
+        ).fetchall()
+    return {r["send_token"]: r["n"] for r in rows}
 
 
 def responses_for_sender(sender_user_id: int):
