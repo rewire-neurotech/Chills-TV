@@ -1,31 +1,49 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>ReWire | Thank you</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      :root{--ok:#22c55e}
-      *:focus{outline:none!important;box-shadow:none!important}
-      @keyframes pop{0%{transform:scale(.7);opacity:.3}100%{transform:scale(1);opacity:1}}
-    </style>
-  </head>
-  <body class="min-h-screen bg-gradient-to-b from-slate-50 to-white text-slate-900">
-    <main class="max-w-3xl mx-auto px-4 py-20 text-center">
-      <div class="mx-auto max-w-md bg-white border rounded-2xl shadow-sm p-10" style="animation:pop .28s ease-out both">
-        <div class="mx-auto h-12 w-12 rounded-full bg-green-100 grid place-content-center mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-green-600" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-        </div>
-        <h2 class="text-2xl font-semibold mb-2">Thank you!</h2>
-        <p class="text-slate-600">
-          Your response has been recorded for <b>{{ id }}</b>.
-          {% if email %}<br/>We’ll reach out at <b>{{ email }}</b> for future studies or developments.{% endif %}
-        </p>
-        <div class="mt-6">
-          <a href="/hub" class="inline-block rounded-xl border px-5 py-3 text-pink-600 border-pink-400 hover:bg-pink-50">Back to your hub</a>
-        </div>
-      </div>
-    </main>
-  </body>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Thank you · ReWire</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=Inter:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{--sf:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;--display:'Familjen Grotesk','Inter',sans-serif;--ink:#1C1A16;--muted:#9C968A;--bg:#FBF9F4;--btn:#1C1A16}
+*{margin:0;padding:0;box-sizing:border-box}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:var(--sf);font-size:16px;line-height:1.55;display:flex;flex-direction:column;-webkit-text-size-adjust:100%}
+.top{padding:18px 24px}
+.top a{color:var(--ink);text-decoration:none;font-weight:600;letter-spacing:-.01em}
+main{flex:1;display:flex;align-items:center;justify-content:center;padding:32px 24px 64px}
+.card{max-width:420px;width:100%;text-align:center;animation:pop .28s ease-out both}
+@keyframes pop{0%{transform:scale(.94);opacity:0}100%{transform:scale(1);opacity:1}}
+.ok{width:52px;height:52px;border-radius:50%;background:rgba(28,26,22,.06);display:grid;place-content:center;margin:0 auto 18px}
+.ok svg{width:26px;height:26px;stroke:var(--ink);stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+h1{font-family:var(--display);font-size:30px;font-weight:700;letter-spacing:-.02em;margin:0 0 10px}
+p{color:var(--muted);font-size:15px;margin:0 0 6px}
+p b{color:var(--ink);font-weight:600}
+.actions{margin-top:28px;display:flex;flex-direction:column;gap:12px;align-items:center}
+.btn{display:inline-block;width:100%;max-width:320px;padding:15px 22px;border-radius:999px;background:var(--btn);color:#FBF9F4;font-weight:600;font-size:15.5px;text-decoration:none;letter-spacing:-.01em;transition:opacity .18s}
+.btn:hover{opacity:.88}
+.sub{color:var(--muted);font-size:14px;text-decoration:underline;text-underline-offset:3px}
+</style>
+</head>
+<body>
+<div class="top"><a href="/">ReWire</a></div>
+<main>
+  <div class="card">
+    <div class="ok"><svg viewBox="0 0 24 24"><polyline points="4.5 12.5 9.5 17.5 19.5 7.5"/></svg></div>
+    <h1>Thank you!</h1>
+    <p>Your response has been recorded for <b>{{ id }}</b>.</p>
+    {% if email %}<p>We’ll reach out at <b>{{ email }}</b> for future studies or developments.</p>{% endif %}
+    <div class="actions">
+      {% if has_profile %}
+      <a class="btn" href="/#/profile">Back to your profile</a>
+      {% else %}
+      <a class="btn" href="/#/account">Find what gives you chills</a>
+      <a class="sub" href="/">Back to home</a>
+      {% endif %}
+    </div>
+  </div>
+</main>
+</body>
 </html>
