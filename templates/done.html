@@ -11,8 +11,20 @@
 :root{--sf:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;--display:'Familjen Grotesk','Inter',sans-serif;--ink:#1C1A16;--muted:#9C968A;--bg:#FBF9F4;--btn:#1C1A16}
 *{margin:0;padding:0;box-sizing:border-box}
 body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:var(--sf);font-size:16px;line-height:1.55;display:flex;flex-direction:column;-webkit-text-size-adjust:100%}
-.top{padding:18px 24px}
-.top a{color:var(--ink);text-decoration:none;font-weight:600;letter-spacing:-.01em}
+.pnav{position:sticky;top:10px;z-index:20;max-width:960px;margin:10px auto 0;padding:0 12px}
+.pnav-in{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);border:1px solid rgba(28,26,22,.08);border-radius:999px;padding:10px 10px 10px 18px;box-shadow:0 10px 30px rgba(28,26,22,.08)}
+.pnav .brand{display:inline-flex;align-items:center;gap:8px;color:var(--ink);text-decoration:none;font-weight:600;letter-spacing:-.01em;font-size:15.5px}
+.pnav .brand svg{width:17px;height:17px}
+.avatar-btn{width:36px;height:36px;border-radius:50%;border:0;background:linear-gradient(135deg,#C9A0DC,#E8A87C);color:#fff;font-weight:600;font-size:14.5px;cursor:pointer}
+.pmenu{position:absolute;right:12px;top:calc(100% + 8px);min-width:230px;padding:8px;border-radius:20px;background:rgba(255,255,255,.97);border:1px solid rgba(28,26,22,.08);box-shadow:0 22px 50px rgba(28,26,22,.16);opacity:0;transform:translateY(-6px);pointer-events:none;transition:opacity .18s,transform .18s}
+.pnav.open .pmenu{opacity:1;transform:none;pointer-events:auto}
+.pmenu a{display:block;padding:12px 15px;border-radius:13px;color:var(--ink);text-decoration:none;font-weight:600;font-size:14.5px;cursor:pointer}
+.pmenu a:hover{background:rgba(28,26,22,.05)}
+.pmenu hr{border:0;border-top:1px solid rgba(28,26,22,.08);margin:6px 8px}
+.pveil{position:fixed;inset:0;z-index:15;display:none}
+body.menu-open .pveil{display:block}
+.back{display:inline-flex;align-items:center;gap:4px;font-size:13.5px;font-weight:500;color:var(--muted);text-decoration:none;cursor:pointer;margin-bottom:20px;transition:color .2s}
+.back:hover{color:var(--ink)}
 main{flex:1;display:flex;align-items:center;justify-content:center;padding:32px 24px 64px}
 .card{max-width:420px;width:100%;text-align:center;animation:pop .28s ease-out both}
 @keyframes pop{0%{transform:scale(.94);opacity:0}100%{transform:scale(1);opacity:1}}
@@ -25,25 +37,53 @@ p b{color:var(--ink);font-weight:600}
 .btn{display:inline-block;width:100%;max-width:320px;padding:15px 22px;border-radius:999px;background:var(--btn);color:#FBF9F4;font-weight:600;font-size:15.5px;text-decoration:none;letter-spacing:-.01em;transition:opacity .18s}
 .btn:hover{opacity:.88}
 .sub{color:var(--muted);font-size:14px;text-decoration:underline;text-underline-offset:3px}
+.back{justify-content:flex-start}
 </style>
 </head>
 <body>
-<div class="top"><a href="/">ReWire</a></div>
+<nav class="pnav">
+  <div class="pnav-in">
+    <a class="brand" href="/hub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.8 2.8M15.2 15.2 18 18M18 6l-2.8 2.8M8.8 15.2 6 18"/></svg><span>ReWire</span></a>
+    {% if has_profile %}
+    <button class="avatar-btn" id="pAv" aria-haspopup="true" aria-label="Menu">{{ avatar_letter }}</button>
+    {% endif %}
+  </div>
+  {% if has_profile %}
+  <div class="pmenu" id="pMenu" role="menu">
+    <a role="menuitem" href="/hub">Profile</a>
+    <a role="menuitem" href="/#/beta">Edge</a>
+    <a role="menuitem" href="/about">About</a>
+    <hr>
+    <a role="menuitem" onclick="pSignOut()">Sign out</a>
+  </div>
+  {% endif %}
+</nav>
+<div class="pveil" id="pVeil"></div>
+
 <main>
   <div class="card">
+    {% if has_profile %}<div style="text-align:left"><a class="back" href="/hub">‹ Profile</a></div>{% endif %}
     <div class="ok"><svg viewBox="0 0 24 24"><polyline points="4.5 12.5 9.5 17.5 19.5 7.5"/></svg></div>
     <h1>Thank you!</h1>
     <p>Your response has been recorded for <b>{{ id }}</b>.</p>
     {% if email %}<p>We’ll reach out at <b>{{ email }}</b> for future studies or developments.</p>{% endif %}
-    <div class="actions">
-      {% if has_profile %}
-      <a class="btn" href="/#/profile">Back to your profile</a>
-      {% else %}
+    {% if not has_profile %}<div class="actions">
       <a class="btn" href="/#/account">Find what gives you chills</a>
       <a class="sub" href="/">Back to home</a>
-      {% endif %}
-    </div>
+    </div>{% endif %}
   </div>
 </main>
+<script>
+(function(){
+  var nav = document.querySelector('.pnav'), av = document.getElementById('pAv'), veil = document.getElementById('pVeil');
+  if(av){
+    av.addEventListener('click', function(e){ e.stopPropagation(); nav.classList.toggle('open'); document.body.classList.toggle('menu-open', nav.classList.contains('open')); });
+    veil.addEventListener('click', function(){ nav.classList.remove('open'); document.body.classList.remove('menu-open'); });
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ nav.classList.remove('open'); document.body.classList.remove('menu-open'); } });
+  }
+})();
+function pSignOut(){ fetch('/auth/logout', {method:'POST'}).then(function(){ location.href='/'; }).catch(function(){ location.href='/'; }); }
+
+</script>
 </body>
 </html>
