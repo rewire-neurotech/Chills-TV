@@ -31,6 +31,9 @@ async def security_gate(req: Request, call_next):
 
 b = os.path.dirname(__file__)
 t = Jinja2Templates(directory=os.path.join(b, "templates"))
+# felix css contains "{#" sequences, so jinja comments move to a token that never appears
+t.env.comment_start_string = "<%#"
+t.env.comment_end_string = "#%>"
 if os.path.isdir(os.path.join(b, "images")):
     a.mount("/images", StaticFiles(directory=os.path.join(b, "images")), name="images")
     a.mount("/static", StaticFiles(directory=os.path.join(b, "static"), check_dir=False), name="static")
@@ -941,6 +944,46 @@ def _lab_items(user_id: int) -> list:
     return out
 
 
+def _duo_cv(row, initiator=None, partner=None):
+    """Joint top five for a duo pair with per person chills flags. Entries
+    carry the same fields as profile videos so the SPA can play them."""
+    initiator = initiator or chillsdb.get_user_by_id(row["user_id"])
+    partner = partner or (chillsdb.get_user_by_id(row["partner_user_id"]) if row["partner_user_id"] else None)
+    a_map = chillsdb.chills_by_video(row["user_id"])
+    b_map = chillsdb.chills_by_video(row["partner_user_id"] or 0)
+    try:
+        va = json.loads(initiator["vector_json"] or "[]") if initiator else []
+        vb = json.loads(partner["vector_json"] or "[]") if partner else []
+    except Exception:
+        va, vb = [], []
+    res = chills_match(va, vb)
+    pool = []
+    if res is not None:
+        for rank, jdx in enumerate(res[2]):
+            e = stim_entry(jdx, 0.0)
+            pool.append({"sid": e.get("stimulus_id", ""), "t": e.get("name", ""),
+                         "d": e.get("desc", ""), "len": e.get("dur", ""), "kind": "Picked for you",
+                         "bg": FLOW_GRADIENTS[rank % len(FLOW_GRADIENTS)],
+                         "url": e.get("url", ""), "yt": ytid(e.get("url", ""))})
+    else:
+        try:
+            top5 = json.loads(initiator["top5_json"] or "[]") if initiator else []
+        except Exception:
+            top5 = []
+        for rank, e in enumerate(top5[:5]):
+            v0 = video_by_sid(e.get("stimulus_id", "")) or {}
+            url = e.get("url", "") or v0.get("url", "")
+            pool.append({"sid": e.get("stimulus_id", ""), "t": e.get("name", "") or v0.get("name", ""),
+                         "d": v0.get("desc", ""), "len": v0.get("dur", ""), "kind": "Picked for you",
+                         "bg": FLOW_GRADIENTS[rank % len(FLOW_GRADIENTS)], "url": url, "yt": ytid(url)})
+    cv = []
+    for e in pool[:5]:
+        sid0 = e["sid"]
+        cv.append({**e, "a": bool(a_map.get(sid0)), "b": bool(b_map.get(sid0)),
+                    "both": bool(a_map.get(sid0)) and bool(b_map.get(sid0))})
+    return cv
+
+
 def unified_context(req: Request, user) -> dict:
     """Everything unified.html needs, for both jinja and the CTX json."""
     has_profile = _user_has_profile(user)
@@ -964,11 +1007,13 @@ def unified_context(req: Request, user) -> dict:
             else:
                 initiator0 = chillsdb.get_user_by_id(d0["user_id"])
                 other = (initiator0["pid"] if initiator0 else "") or "A friend"
+            cv0 = _duo_cv(d0)
             duo_results.append({
                 "token": d0["token"], "partner_name": other,
                 "partner_letter": avatar_of(other or "?"),
                 "match_pct": float(d0["match_pct"] or 0),
                 "date_str": datetime.utcfromtimestamp(d0["completed_at"] or d0["created_at"]).strftime("%b %d"),
+                "matches": sum(1 for e in cv0 if e["both"]), "cv": cv0,
             })
         if duo_results:
             latest_duo = duo_results[0]
@@ -995,6 +1040,7 @@ def unified_context(req: Request, user) -> dict:
         "email": (user["email"] or "") if user else "",
         "initial": _user_initial(user),
         "app_access": (user["beta_status"] or "none") if user else "none",
+        "edge_code": (user["edge_code"] or "") if user else "",
         "pending_after": bool(pending_sid),
         "pending_sid": pending_sid,
         "likely_pct": likely,
@@ -1137,7 +1183,7 @@ def _resolve_duo_now(req: Request, user, token: str) -> str:
         "token": result_token, "link_token": token, "match_pct": float(match_pct),
         "joint_video": video_name, "initiator_id": row["user_id"], "instant": True,
     })
-    return f"/duo/{result_token}"
+    return "/#/match"
 
 
 # ═══════════════════════════════════════════════════
