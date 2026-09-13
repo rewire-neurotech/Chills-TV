@@ -33,6 +33,7 @@ b = os.path.dirname(__file__)
 t = Jinja2Templates(directory=os.path.join(b, "templates"))
 if os.path.isdir(os.path.join(b, "images")):
     a.mount("/images", StaticFiles(directory=os.path.join(b, "images")), name="images")
+    a.mount("/static", StaticFiles(directory=os.path.join(b, "static"), check_dir=False), name="static")
 
 ff = os.path.join(b, "new_features.json")
 pf = os.path.join(b, "new_preprocessor.joblib")
