@@ -2810,7 +2810,11 @@ function go(id, mode, silent){
   var el = document.getElementById('screen-'+id); if(!el) return;
   el.classList.add('active'); cur = id;
   document.body.classList.add('ctv-on');
-  if(!silent){ history.replaceState(null, '', '#/' + (id==='auth' && mode==='in' ? 'signin' : ROUTE[id])); }
+  if(!silent){
+    var h2 = '#/' + (id==='auth' && mode==='in' ? 'signin' : ROUTE[id]);
+    if(location.hash !== h2){ history.pushState(null, '', h2); }
+    else { history.replaceState(null, '', h2); }
+  }
   CTV.classList.toggle('nonav', !!NONAV[id]);
   document.body.classList.toggle('ctv-auth', id==='auth');   /* the site nav stays visible while creating an account */
   if(id!=='play'){ clearInterval(vT); document.getElementById('playscr').classList.remove('ended','playing','ending'); }
@@ -3335,6 +3339,7 @@ function route(){
   setMenu(false);
   if(h==='/app'){ location.hash='#/'; return; }
   var key=h.slice(1);
+  if(key==='play'){ document.body.classList.remove('home','dk'); go('video', undefined, true); document.documentElement.classList.remove('bootctv'); return; }
   if(CTV_ROUTES[key]){ document.body.classList.remove('home','dk'); go(CTV_ROUTES[key], key==='signin'?'in':undefined, true); document.documentElement.classList.remove('bootctv'); return; }
   document.body.classList.remove('ctv-on');
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on')});
