@@ -174,22 +174,96 @@ CREATE TABLE IF NOT EXISTS admin_settings (
 """
 
 
+# ── backend selection ─────────────────────────────────────────────────
+# DATABASE_URL set -> PostgreSQL (production). Unset -> SQLite file (dev),
+# byte-for-byte the old behavior. Same query text runs on both: the pg
+# wrapper translates "?" placeholders and int-ifies booleans.
+PG_URL = os.environ.get("DATABASE_URL", "").strip()
+IS_PG = bool(PG_URL)
+_pg_pool = None
+_pg_gate = None  # makes callers queue for a connection instead of erroring
+
+
+def _pool():
+    global _pg_pool, _pg_gate
+    if _pg_pool is None:
+        import psycopg2.pool
+        import threading as _th
+        _pg_pool = psycopg2.pool.ThreadedConnectionPool(1, 10, PG_URL)
+        _pg_gate = _th.Semaphore(10)
+    return _pg_pool
+
+
+class _PgConn:
+    """Duck-types the two sqlite3 calls the rest of this file uses:
+    conn.execute(sql, params) returning a cursor, and conn.executescript."""
+
+    def __init__(self, raw):
+        self.raw = raw
+
+    def execute(self, sql, params=()):
+        import psycopg2.extras
+        cur = self.raw.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(sql.replace("?", "%s"),
+                    tuple(int(p) if isinstance(p, bool) else p for p in params))
+        return cur
+
+    def executescript(self, sql):
+        cur = self.raw.cursor()
+        cur.execute(sql)
+        return cur
+
+
 @contextmanager
 def get_conn():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    try:
-        yield conn
-        conn.commit()
-    finally:
-        conn.close()
+    if IS_PG:
+        pool = _pool()
+        _pg_gate.acquire()
+        try:
+            raw = pool.getconn()
+            try:
+                yield _PgConn(raw)
+                raw.commit()
+            except Exception:
+                raw.rollback()
+                raise
+            finally:
+                pool.putconn(raw)
+        finally:
+            _pg_gate.release()
+    else:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys = ON")
+        try:
+            yield conn
+            conn.commit()
+        finally:
+            conn.close()
+
+
+def _pg_schema(sql):
+    """The one dialect gap in our schema: id + float column types."""
+    import re as _re
+    sql = sql.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "BIGSERIAL PRIMARY KEY")
+    return _re.sub(r"\bREAL\b", "DOUBLE PRECISION", sql)
+
+
+def _table_columns(conn, table):
+    if IS_PG:
+        rows = conn.execute(
+            "SELECT column_name AS name FROM information_schema.columns WHERE table_name=?",
+            (table,)).fetchall()
+    else:
+        rows = conn.execute(f"PRAGMA table_info({table})").fetchall()
+    return {r["name"] for r in rows}
 
 
 def init_db():
-    os.makedirs(DB_DIR, exist_ok=True)
+    if not IS_PG:
+        os.makedirs(DB_DIR, exist_ok=True)
     with get_conn() as conn:
-        conn.executescript(SCHEMA)
+        conn.executescript(_pg_schema(SCHEMA) if IS_PG else SCHEMA)
         _migrate(conn)
         conn.execute(
             "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email) WHERE email != ''"
@@ -200,7 +274,7 @@ def _migrate(conn):
     """CREATE TABLE IF NOT EXISTS doesn't add new columns to an existing table
     (e.g. on Render's already-populated database), so new columns are added
     here, guarded against already existing."""
-    existing = {row["name"] for row in conn.execute("PRAGMA table_info(sends)")}
+    existing = _table_columns(conn, "sends")
     for col, decl in [
         ("chills_length", "INTEGER"),
         ("chills_waves", "INTEGER"),
@@ -209,7 +283,7 @@ def _migrate(conn):
         if col not in existing:
             conn.execute(f"ALTER TABLE sends ADD COLUMN {col} {decl}")
 
-    existing = {row["name"] for row in conn.execute("PRAGMA table_info(users)")}
+    existing = _table_columns(conn, "users")
     if "answers_json" not in existing:
         conn.execute("ALTER TABLE users ADD COLUMN answers_json TEXT DEFAULT '{}'")
     for col, decl in [
@@ -229,7 +303,7 @@ def _migrate(conn):
         if col not in existing:
             conn.execute(f"ALTER TABLE users ADD COLUMN {col} {decl}")
 
-    existing = {row["name"] for row in conn.execute("PRAGMA table_info(duo_pairs)")}
+    existing = _table_columns(conn, "duo_pairs")
     if "opened_at" not in existing:
         conn.execute("ALTER TABLE duo_pairs ADD COLUMN opened_at REAL")
     if "initiator_seen_at" not in existing:
@@ -237,7 +311,7 @@ def _migrate(conn):
     if "partner_seen_at" not in existing:
         conn.execute("ALTER TABLE duo_pairs ADD COLUMN partner_seen_at REAL")
 
-    existing = {row["name"] for row in conn.execute("PRAGMA table_info(send_responses)")}
+    existing = _table_columns(conn, "send_responses")
     if existing:
         for col, decl in [
             ("closeness", "INTEGER"),
@@ -247,7 +321,7 @@ def _migrate(conn):
             if col not in existing:
                 conn.execute(f"ALTER TABLE send_responses ADD COLUMN {col} {decl}")
 
-    existing = {row["name"] for row in conn.execute("PRAGMA table_info(video_comments)")}
+    existing = _table_columns(conn, "video_comments")
     if "user_id" not in existing:
         conn.execute("ALTER TABLE video_comments ADD COLUMN user_id INTEGER")
 
@@ -635,7 +709,7 @@ def record_watch(user_id: int, stimulus_id: str):
         return
     with get_conn() as conn:
         conn.execute(
-            "INSERT OR IGNORE INTO video_watches (user_id, stimulus_id, watched_at) VALUES (?,?,?)",
+            ("INSERT INTO video_watches (user_id, stimulus_id, watched_at) VALUES (?,?,?) ON CONFLICT DO NOTHING" if IS_PG else "INSERT OR IGNORE INTO video_watches (user_id, stimulus_id, watched_at) VALUES (?,?,?)"),
             (user_id, stimulus_id, time.time()),
         )
 
@@ -957,7 +1031,7 @@ def add_tag(user_id: int, tag: str):
         return
     with get_conn() as conn:
         conn.execute(
-            "INSERT OR IGNORE INTO user_tags (user_id, tag, created_at) VALUES (?,?,?)",
+            ("INSERT INTO user_tags (user_id, tag, created_at) VALUES (?,?,?) ON CONFLICT DO NOTHING" if IS_PG else "INSERT OR IGNORE INTO user_tags (user_id, tag, created_at) VALUES (?,?,?)"),
             (user_id, tag, time.time()),
         )
 
