@@ -1780,7 +1780,8 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
 </head>
 <body>
 <script>(function(){var h=(location.hash||'').replace('#/','');var R={account:1,signin:1,consent:1,test:1,finding:1,again:1,video:1,play:1,after:1,profile:1,compatibility:1,match:1,beta:1};if(R[h]){document.documentElement.classList.add('bootctv');}})();</script>
-<style>html.bootctv nav.top,html.bootctv .nav-veil,html.bootctv .page,html.bootctv footer{display:none!important}</style>
+<style>html.bootctv nav.top,html.bootctv .nav-veil,html.bootctv .page,html.bootctv footer{display:none!important}
+#ctv .newpill{display:inline-block;vertical-align:middle;margin-left:6px;padding:2px 9px;border-radius:999px;background:#6a3f37;color:#fff;font-size:11px;font-weight:600;letter-spacing:.01em}</style>
 
 <nav class="top">
   <div class="nav-inner">
@@ -2618,7 +2619,7 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
           <div class="body center">
             {% if latest_duo %}<div class="pair"><div class="av me">{{ initial }}</div><div class="av a1">{{ latest_duo.partner_letter }}</div></div>
             <div class="gpct">{{ latest_duo.match_pct|round|int }}%</div>
-            <div class="gwho">You and {{ latest_duo.partner_name }}</div>
+            <div class="gwho">You and {{ latest_duo.partner_name }}{% if duo_unseen %} <span class="newpill" id="gNew">{{ duo_unseen }} new</span>{% endif %}</div>
             {% else %}<div class="pair"><div class="av me">{{ initial }}</div><div class="av a1">?</div></div>
             {% endif %}
           </div>
@@ -2747,7 +2748,7 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
       {% if duo_results %}<div class="sec-h"><h2>Your results <span>{{ duo_results|length }}</span></h2></div>
       {% for d in duo_results %}<div class="row cl-row" onclick="openCompat({{ loop.index0 }})">
         <div class="pair sm"><div class="av me">{{ initial }}</div><div class="av a{{ loop.index0 % 4 + 1 }}">{{ d.partner_letter }}</div></div>
-        <div class="t"><b>{{ d.partner_name }}</b><span>{{ d.date_str }} · {{ d.matches }} matches</span></div>
+        <div class="t"><b>{{ d.partner_name }}{% if not d.seen %} <span class="newpill" data-newpill="{{ d.token }}">New</span>{% endif %}</b><span>{{ d.date_str }} · {{ d.matches }} matches</span></div>
         <div class="v">{{ d.match_pct|round|int }}%</div>
       </div>
       {% endfor %}{% endif %}
@@ -2821,7 +2822,12 @@ function go(id, mode, silent){
   if(id==='auth') authMode(mode||'up');
   if(id==='finding') runFinding();
   if(id==='finding2') runFinding2();
-  if(id==='compat' && window._cvIdx === undefined) fillCompat(0);
+  if(id==='compat' && window._cvIdx === undefined){
+    var dtok = new URLSearchParams(location.search).get('duo');
+    var di = 0;
+    if(dtok){ (CTX.duo_results || []).forEach(function(d, k){ if(d.token === dtok) di = k; }); }
+    fillCompat(di);
+  }
   if(id==='profile'){ renderProducts(); if(CTX.pending_after && !window._afterDone){ window._afterDone = true; window._afterSid = CTX.pending_sid || ''; setTimeout(startAfter, 600); } }
   if(id==='app') renderApp();
 }
@@ -3251,6 +3257,13 @@ function shareCompat(){
 function fillCompat(i){
   var d = (CTX.duo_results || [])[i]; if(!d) return;
   window._cvIdx = i;
+  if(!d.seen){
+    d.seen = true;
+    CTX.duo_unseen = Math.max(0, (CTX.duo_unseen || 1) - 1);
+    fetch('/duo/' + d.token + '/seen', {method:'POST'}).catch(function(){});
+    document.querySelectorAll('[data-newpill="' + d.token + '"]').forEach(function(el){ el.remove(); });
+    var gp = document.getElementById('gNew'); if(gp && !CTX.duo_unseen) gp.remove();
+  }
   document.getElementById('cvAv').textContent = d.partner_letter || '?';
   document.getElementById('cvWho').textContent = 'You and ' + d.partner_name;
   document.getElementById('cvPct').textContent = Math.round(d.match_pct) + '%';
@@ -3259,8 +3272,8 @@ function fillCompat(i){
   document.getElementById('cvHint').textContent = both + ' of ' + cv.length + ' give you both chills';
   list.innerHTML = cv.map(function(e, k){
     var th = e.yt ? "background-image:url('https://i.ytimg.com/vi/" + e.yt + "/hqdefault.jpg')," + (e.bg || 'none') + ";background-size:cover;background-position:center" : 'background:' + (e.bg || 'none');
-    var tag = e.both ? '<span class="cvt">Chills match!</span>' : '<span class="cvt off">No match \ud83d\ude41</span>';
-    return '<div class="cv-row' + (e.both ? '' : ' nomatch') + '" onclick="watchCv(' + k + ')">'
+    var tag = e.both ? '<span class="cvt">Chills match!</span>' : '<span class="cvt off">Potential match</span>';
+    return '<div class="cv-row" onclick="watchCv(' + k + ')">'
       + '<div class="th" style="' + th + '">' + tag + '</div>'
       + '<div><b>' + escL(e.t || '') + '</b><div class="m"><span>' + (e.len || '') + '</span></div></div>'
       + '<button class="btn-s" onclick="event.stopPropagation(); watchCv(' + k + ')">Watch</button>'
