@@ -1008,12 +1008,14 @@ def unified_context(req: Request, user) -> dict:
                 initiator0 = chillsdb.get_user_by_id(d0["user_id"])
                 other = (initiator0["pid"] if initiator0 else "") or "A friend"
             cv0 = _duo_cv(d0)
+            seen_at = d0["initiator_seen_at"] if d0["user_id"] == user["id"] else d0["partner_seen_at"]
             duo_results.append({
                 "token": d0["token"], "partner_name": other,
                 "partner_letter": avatar_of(other or "?"),
                 "match_pct": float(d0["match_pct"] or 0),
                 "date_str": datetime.utcfromtimestamp(d0["completed_at"] or d0["created_at"]).strftime("%b %d"),
                 "matches": sum(1 for e in cv0 if e["both"]), "cv": cv0,
+                "seen": bool(seen_at),
             })
         if duo_results:
             latest_duo = duo_results[0]
@@ -1045,6 +1047,7 @@ def unified_context(req: Request, user) -> dict:
         "lab_items": _lab_items(user["id"]) if user else [],
         "you_points": you_points, "algo_points": algo_points,
         "duo_results": duo_results, "duo_waiting": duo_waiting, "duo_link": duo_link,
+        "duo_unseen": sum(1 for d0 in duo_results if not d0.get("seen")),
     }
     return {
         "request": req, "ctx": ctx, "initial": _user_initial(user) or "?",
@@ -1052,6 +1055,7 @@ def unified_context(req: Request, user) -> dict:
         "hist_bars": bars, "marker_x": marker_x, "videos": videos,
         "latest_duo": latest_duo, "you_points": you_points, "algo_points": algo_points,
         "duo_results": duo_results, "duo_waiting": duo_waiting, "duo_link": duo_link,
+        "duo_unseen": sum(1 for d0 in duo_results if not d0.get("seen")),
     }
 
 def _persist_flow(req: Request, user, sess_data):
@@ -2287,11 +2291,24 @@ def duo_recipient(req: Request, token: str):
     })
 
 
+@a.post("/duo/{token}/seen")
+def duo_seen(req: Request, token: str):
+    user = chillsauth.get_current_user(req)
+    if not user:
+        return JSONResponse({"ok": False}, status_code=401)
+    chillsdb.mark_duo_seen(token, user["id"])
+    return {"ok": True}
+
+
 @a.get("/duo/{token}", response_class=HTMLResponse)
 def duo_result(req: Request, token: str):
     row = chillsdb.get_duo_by_token(token)
     if not row or row["status"] != "completed":
         return RedirectResponse("/")
+    _viewer0 = chillsauth.get_current_user(req)
+    if _viewer0 and _viewer0["id"] in (row["user_id"], row["partner_user_id"]):
+        # a party of this duo lives in the app now; the legacy page stays for outsiders
+        return RedirectResponse(f"/?duo={token}#/match")
     initiator = chillsdb.get_user_by_id(row["user_id"])
     partner = chillsdb.get_user_by_id(row["partner_user_id"])
     a_name = (initiator["pid"] if initiator and initiator["pid"] else "You") or "You"
