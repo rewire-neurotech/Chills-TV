@@ -88,7 +88,9 @@ CREATE TABLE IF NOT EXISTS duo_pairs (
     video_stimulus_name TEXT,
     created_at REAL NOT NULL,
     completed_at REAL,
-    opened_at REAL
+    opened_at REAL,
+    initiator_seen_at REAL,
+    partner_seen_at REAL
 );
 
 CREATE TABLE IF NOT EXISTS video_watches (
@@ -230,6 +232,10 @@ def _migrate(conn):
     existing = {row["name"] for row in conn.execute("PRAGMA table_info(duo_pairs)")}
     if "opened_at" not in existing:
         conn.execute("ALTER TABLE duo_pairs ADD COLUMN opened_at REAL")
+    if "initiator_seen_at" not in existing:
+        conn.execute("ALTER TABLE duo_pairs ADD COLUMN initiator_seen_at REAL")
+    if "partner_seen_at" not in existing:
+        conn.execute("ALTER TABLE duo_pairs ADD COLUMN partner_seen_at REAL")
 
     existing = {row["name"] for row in conn.execute("PRAGMA table_info(send_responses)")}
     if existing:
@@ -510,6 +516,21 @@ def duos_for_user(user_id: int):
             "SELECT * FROM duo_pairs WHERE user_id=? ORDER BY created_at DESC",
             (user_id,),
         ).fetchall()
+
+
+def mark_duo_seen(token: str, viewer_user_id: int):
+    """Stamp the viewer's side of a completed duo as seen. Which side the
+    viewer is on decides the column; a stranger stamps nothing."""
+    with get_conn() as conn:
+        row = conn.execute("SELECT * FROM duo_pairs WHERE token=?", (token,)).fetchone()
+        if not row:
+            return
+        if row["user_id"] == viewer_user_id:
+            conn.execute("UPDATE duo_pairs SET initiator_seen_at=? WHERE token=? AND initiator_seen_at IS NULL",
+                         (time.time(), token))
+        elif row["partner_user_id"] == viewer_user_id:
+            conn.execute("UPDATE duo_pairs SET partner_seen_at=? WHERE token=? AND partner_seen_at IS NULL",
+                         (time.time(), token))
 
 
 def duos_involving_user(user_id: int):
