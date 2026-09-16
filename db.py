@@ -1113,6 +1113,16 @@ def grant_all_edge() -> int:
     return len(rows)
 
 
+def get_user_by_edge_code(code: str):
+    """The users row for a /go/ code, or None. Only granted users keep a code."""
+    if not code:
+        return None
+    with get_conn() as conn:
+        return conn.execute(
+            "SELECT * FROM users WHERE edge_code=? AND edge_code!=''", (code,)
+        ).fetchone()
+
+
 def set_contribution_status(cid: int, status: str):
     assert status in ("pending", "approved", "declined")
     with get_conn() as conn:
