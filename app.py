@@ -20,14 +20,33 @@ chillsdb.init_db()
 # ═══════════════════════════════════════════════════
 a = FastAPI()
 
+CSP = (
+    "default-src 'self'; "
+    "script-src 'self' 'unsafe-inline' https://www.youtube.com https://s.ytimg.com; "
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+    "font-src https://fonts.gstatic.com; "
+    "img-src 'self' data: https://*.ytimg.com; "
+    "frame-src https://www.youtube-nocookie.com https://www.youtube.com; "
+    "connect-src 'self'; base-uri 'self'; form-action 'self'; "
+    "frame-ancestors 'none'; object-src 'none'"
+)
+
 @a.middleware("http")
 async def security_gate(req: Request, call_next):
     path = req.url.path
     if path in ("/legacy-start", "/intake", "/start"):
         return JSONResponse({"error": "not found"}, status_code=404)
-    if (path.startswith("/_debug/") or path == "/download-logs") and not chillsauth.is_admin(req):
+    if (path.startswith("/_debug/") or path.startswith("/_dev/") or path == "/download-logs") and not chillsauth.is_admin(req):
         return RedirectResponse("/admin/login")
-    return await call_next(req)
+    resp = await call_next(req)
+    h = resp.headers
+    h.setdefault("X-Content-Type-Options", "nosniff")
+    h.setdefault("X-Frame-Options", "DENY")
+    h.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    h.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    h.setdefault("Content-Security-Policy", CSP)
+    h.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+    return resp
 
 b = os.path.dirname(__file__)
 t = Jinja2Templates(directory=os.path.join(b, "templates"))
@@ -321,13 +340,57 @@ def flow_slot_free(user):
     try:
         with chillsdb.get_conn() as conn:
             row = conn.execute(
-                "SELECT COUNT(DISTINCT user_id) FROM events WHERE event IN ('consent_given','questionnaire_completed') AND created_at > ? AND user_id IS NOT NULL AND user_id != ?",
+                "SELECT COUNT(DISTINCT user_id) AS n FROM events WHERE event IN ('consent_given','questionnaire_completed') AND created_at > ? AND user_id IS NOT NULL AND user_id != ?",
                 (since, uid if uid is not None else -1),
             ).fetchone()
-        active = int(row[0] or 0)
+        active = int(row["n"] or 0)
     except Exception:
         return True, 0, cap
     return active < cap, active, cap
+
+LOGIN_WINDOW = 600
+LOGIN_MAX_FAILURES = 8
+ADMIN_LOGIN_MAX_FAILURES = 5
+SIGNUP_MAX_PER_IP = 60
+
+def _client_ip(req):
+    fwd = (req.headers.get("x-forwarded-for") or "").split(",")[0].strip()
+    if fwd:
+        return fwd
+    return req.client.host if req.client else ""
+
+def _ensure_throttle_table():
+    try:
+        with chillsdb.get_conn() as conn:
+            conn.execute("CREATE TABLE IF NOT EXISTS login_attempts (key TEXT NOT NULL, created_at REAL NOT NULL)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_login_attempts ON login_attempts (key, created_at)")
+    except Exception:
+        pass
+
+_ensure_throttle_table()
+
+def throttled(key, window, limit):
+    try:
+        with chillsdb.get_conn() as conn:
+            row = conn.execute("SELECT COUNT(*) AS n FROM login_attempts WHERE key=? AND created_at>?", (key, time.time() - window)).fetchone()
+        return int(row["n"] or 0) >= limit
+    except Exception:
+        return False
+
+def note_attempt(key):
+    try:
+        with chillsdb.get_conn() as conn:
+            conn.execute("INSERT INTO login_attempts (key, created_at) VALUES (?,?)", (key, time.time()))
+            conn.execute("DELETE FROM login_attempts WHERE created_at < ?", (time.time() - 86400,))
+    except Exception:
+        pass
+
+def clear_attempts(key):
+    try:
+        with chillsdb.get_conn() as conn:
+            conn.execute("DELETE FROM login_attempts WHERE key=?", (key,))
+    except Exception:
+        pass
 
 def percentile_against(ref, value):
     """Share of the reference distribution this value beats, 0 to 100."""
@@ -1231,7 +1294,7 @@ def index(req: Request, send: str = "", us: str = ""):
         resp = RedirectResponse("/#/account")
         kind = "send" if send else "duo"
         resp.set_cookie("pending_link", json.dumps({"type": kind, "token": send or us}),
-                         max_age=3600, httponly=True, samesite="lax")
+                         max_age=3600, httponly=True, samesite="lax", secure=chillsauth.secure_cookies(req))
         return resp
     uctx = unified_context(req, user)
     if uctx["ctx"]["logged_in"] and uctx["ctx"]["has_profile"]:
@@ -1260,6 +1323,11 @@ async def auth_signup(req: Request):
         body = {}
     email = (body.get("email") or "").strip().lower()
     password = body.get("password") or ""
+    ip = _client_ip(req)
+    if throttled("signup:" + ip, LOGIN_WINDOW, SIGNUP_MAX_PER_IP):
+        log_ev("signup_throttled", detail={"ip": ip})
+        return JSONResponse({"ok": False, "error": "Too many signups from this network. Please wait a few minutes."}, status_code=429)
+    note_attempt("signup:" + ip)
     if not EMAIL_RE.match(email):
         return JSONResponse({"ok": False, "error": "That email does not look right."})
     if len(password) < 6:
@@ -1286,8 +1354,15 @@ async def auth_signin(req: Request):
         body = {}
     email = (body.get("email") or "").strip().lower()
     password = body.get("password") or ""
+    ip = _client_ip(req)
+    key = "signin:" + ip + ":" + email
+    if throttled(key, LOGIN_WINDOW, LOGIN_MAX_FAILURES):
+        log_ev("login_throttled", detail={"ip": ip})
+        return JSONResponse({"ok": False, "error": "Too many attempts. Please wait a few minutes and try again."}, status_code=429)
     user = chillsdb.get_user_by_email(email)
     if not user or not chillsauth.verify_password(password, user["password_hash"] or ""):
+        note_attempt(key)
+        log_ev("login_failed", detail={"ip": ip, "method": "password"})
         return JSONResponse({"ok": False, "error": "Wrong email or password."})
     resp = JSONResponse({
         "ok": True,
@@ -1295,6 +1370,7 @@ async def auth_signin(req: Request):
         "pending_after": bool(user["pending_after_sid"] or ""),
         "pending_sid": user["pending_after_sid"] or "",
     })
+    clear_attempts(key)
     chillsauth.start_session(resp, req, user["id"])
     log_ev("signed_in", user=user, detail={"method": "password"})
     return resp
@@ -1320,7 +1396,7 @@ def google_start(req: Request):
         "prompt": "select_account",
     })
     resp = RedirectResponse("https://accounts.google.com/o/oauth2/v2/auth?" + params)
-    resp.set_cookie("g_state", state, max_age=600, httponly=True, samesite="lax")
+    resp.set_cookie("g_state", state, max_age=600, httponly=True, samesite="lax", secure=chillsauth.secure_cookies(req))
     return resp
 
 @a.get("/auth/google/callback")
@@ -1878,7 +1954,7 @@ def _finalize_paid_session(req: Request, sid: str, session_label: str = ""):
 
     resp = RedirectResponse(dest, status_code=303)
     resp.set_cookie(chillsauth.VISITOR_COOKIE, visitor_token, max_age=60*60*24*365,
-                     httponly=True, samesite="lax")
+                     httponly=True, samesite="lax", secure=chillsauth.secure_cookies(req))
     resp.delete_cookie("pending_link")
     return resp
 
@@ -1946,7 +2022,7 @@ def resume_profile(req: Request, token: str):
     log_ev("profile_resumed", user=user)
     resp = RedirectResponse("/hub", status_code=303)
     resp.set_cookie(chillsauth.VISITOR_COOKIE, token, max_age=60*60*24*365,
-                     httponly=True, samesite="lax")
+                     httponly=True, samesite="lax", secure=chillsauth.secure_cookies(req))
     return resp
 
 
@@ -2199,7 +2275,7 @@ async def bet_respond(req: Request, token: str):
         chillsdb.record_send_response(token, experienced, recipient_name=rname)
     log_ev("bet_answered", user=viewer, detail={"token": token, "experienced": experienced})
     resp = RedirectResponse(f"/b/{token}", status_code=303)
-    resp.set_cookie("br_" + token, "1", max_age=60*60*24*365, httponly=True, samesite="lax")
+    resp.set_cookie("br_" + token, "1", max_age=60*60*24*365, httponly=True, samesite="lax", secure=chillsauth.secure_cookies(req))
     return resp
 
 
@@ -2472,11 +2548,20 @@ def admin_login_page(req: Request, error: int = 0):
 @a.post("/admin/login")
 async def admin_login_submit(req: Request):
     f = await req.form()
-    if not chillsauth.check_admin_login(f.get("email", ""), f.get("password", "")):
+    ip = _client_ip(req)
+    key = "admin:" + ip
+    if throttled(key, LOGIN_WINDOW, ADMIN_LOGIN_MAX_FAILURES):
+        log_ev("admin_login_throttled", detail={"ip": ip})
         return RedirectResponse("/admin/login?error=1", status_code=303)
+    if not chillsauth.check_admin_login(f.get("email", ""), f.get("password", "")):
+        note_attempt(key)
+        log_ev("admin_login_failed", detail={"ip": ip})
+        return RedirectResponse("/admin/login?error=1", status_code=303)
+    clear_attempts(key)
+    log_ev("admin_signed_in", detail={"ip": ip})
     token = chillsdb.create_admin_session()
     resp = RedirectResponse("/admin", status_code=303)
-    resp.set_cookie(chillsauth.ADMIN_COOKIE, token, max_age=60*60*12, httponly=True, samesite="lax")
+    resp.set_cookie(chillsauth.ADMIN_COOKIE, token, max_age=60*60*12, httponly=True, samesite="lax", secure=chillsauth.secure_cookies(req))
     return resp
 
 
