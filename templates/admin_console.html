@@ -310,6 +310,11 @@ Your access to Edge is ready. Open this link on your phone and it signs you in:
 Félix</textarea></div>
       <div class="acts"><button class="btn btn-p" onclick="toast('Saved')">Save</button></div>
     </div>
+    <div class="card">
+      <h2>ChillsTV</h2>
+      <div class="field"><label>People in the experience at the same time</label><input value="10" type="number"></div>
+      <p class="note">New people see a short wait message when this many are already inside. 0 removes the limit. A person holds their spot for 10 minutes from starting.</p>
+    </div>
   </div>
   <div class="card" style="margin-top:14px">
     <h2>Admins</h2>
@@ -371,10 +376,12 @@ function applySettings(){
   if(document.activeElement!==f[1]) f[1].value=SETTINGS.link_expiry||'They never expire';
   if(document.activeElement!==f[2]) f[2].value=SETTINGS.grant_subject||'';
   if(document.activeElement!==f[3]) f[3].value=SETTINGS.grant_message||'';
+  if(f[4] && document.activeElement!==f[4]) f[4].value=SETTINGS.max_concurrent||'10';
   if(!vs._wired){
     vs._wired=true;
     f[0].onchange=function(){ post('/admin/settings',{beta_weekly:f[0].value}).then(function(){ toast('Saved'); }); };
     f[1].onchange=function(){ post('/admin/settings',{link_expiry:f[1].value}).then(function(){ toast('Saved'); }); };
+    if(f[4]) f[4].onchange=function(){ post('/admin/settings',{max_concurrent:f[4].value}).then(function(){ toast('Saved'); }); };
     var save=vs.querySelector('.btn.btn-p');
     if(save) save.onclick=function(){ post('/admin/settings',{grant_subject:f[2].value,grant_message:f[3].value}).then(function(){ toast('Saved'); }); };
     var btns=vs.querySelectorAll('.btn.btn-o');
