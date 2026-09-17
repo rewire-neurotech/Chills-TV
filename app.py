@@ -304,6 +304,31 @@ def log_ev(event: str, user=None, detail: dict = None, pid: str = ""):
         detail=json.dumps(detail or {}),
     )
 
+ACTIVE_FLOW_MINUTES = 10
+DEFAULT_MAX_CONCURRENT = 10
+
+def flow_slot_free(user):
+    """Concurrency cap for the guided flow. Counts users active in the last
+    ACTIVE_FLOW_MINUTES, excluding the caller. Setting 0 disables the cap."""
+    try:
+        cap = int(chillsdb.get_setting("max_concurrent", str(DEFAULT_MAX_CONCURRENT)) or DEFAULT_MAX_CONCURRENT)
+    except Exception:
+        cap = DEFAULT_MAX_CONCURRENT
+    if cap <= 0:
+        return True, 0, cap
+    since = time.time() - ACTIVE_FLOW_MINUTES * 60
+    uid = user["id"] if user else None
+    try:
+        with chillsdb.get_conn() as conn:
+            row = conn.execute(
+                "SELECT COUNT(DISTINCT user_id) FROM events WHERE event IN ('consent_given','questionnaire_completed') AND created_at > ? AND user_id IS NOT NULL AND user_id != ?",
+                (since, uid if uid is not None else -1),
+            ).fetchone()
+        active = int(row[0] or 0)
+    except Exception:
+        return True, 0, cap
+    return active < cap, active, cap
+
 def percentile_against(ref, value):
     """Share of the reference distribution this value beats, 0 to 100."""
     try:
@@ -1349,6 +1374,10 @@ async def flow_consent(req: Request):
     user = chillsauth.get_session_user(req)
     if not user:
         return JSONResponse({"ok": False, "error": "Please sign in first."})
+    free, active, cap = flow_slot_free(user)
+    if not free:
+        log_ev("flow_busy", user=user, detail={"at": "consent", "active": active, "cap": cap})
+        return JSONResponse({"ok": False, "busy": True, "error": "A few people are ahead of you. Please try again in a minute."})
     try:
         body = await req.json()
     except Exception:
@@ -1367,6 +1396,10 @@ async def flow_submit(req: Request):
         user = chillsauth.get_session_user(req)
         if not user:
             return JSONResponse({"ok": False, "error": "Please sign in first."})
+        free, active, cap = flow_slot_free(user)
+        if not free:
+            log_ev("flow_busy", user=user, detail={"at": "submit", "active": active, "cap": cap})
+            return JSONResponse({"ok": False, "busy": True, "error": "The experience is busy right now. Please wait a minute and try again."})
         try:
             body = await req.json()
         except Exception:
@@ -2749,7 +2782,7 @@ def _admin_json_guard(req: Request):
     return None
 
 
-ADMIN_SETTING_KEYS = ("beta_weekly", "link_expiry", "grant_subject", "grant_message")
+ADMIN_SETTING_KEYS = ("beta_weekly", "link_expiry", "grant_subject", "grant_message", "max_concurrent")
 ADMIN_SETTING_DEFAULTS = {
     "beta_weekly": "0",
     "link_expiry": "They never expire",
