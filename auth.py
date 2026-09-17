@@ -53,6 +53,18 @@ def verify_password(password: str, stored: str) -> bool:
 
 
 # -- account sessions --------------------------------------------------
+def secure_cookies(request) -> bool:
+    """True when the request arrived over https. Render terminates TLS and
+    forwards the scheme in x-forwarded-proto. Plain http local testing keeps
+    working because the flag is simply left off there."""
+    proto = (request.headers.get("x-forwarded-proto") or "").lower()
+    if proto:
+        return proto == "https"
+    try:
+        return (request.url.scheme or "").lower() == "https"
+    except Exception:
+        return True
+
 def _use_domain(request) -> bool:
     host = (request.headers.get("host", "") or "").split(":")[0].lower()
     root = COOKIE_DOMAIN.lstrip(".")
@@ -63,15 +75,14 @@ def start_session(response, request, user_id: int):
     the account, and the legacy visitor cookie pointed at the same users row
     so every v49 endpoint sees the same person."""
     token = db.create_auth_session(user_id, SESSION_TTL)
-    kw = dict(max_age=SESSION_TTL, httponly=True, samesite="lax")
+    kw = dict(max_age=SESSION_TTL, httponly=True, samesite="lax", secure=secure_cookies(request))
     if _use_domain(request):
         kw["domain"] = COOKIE_DOMAIN
-        kw["secure"] = True
     response.set_cookie(SESSION_COOKIE, token, **kw)
     user = db.get_user_by_id(user_id)
     if user:
         response.set_cookie(VISITOR_COOKIE, user["token"], max_age=SESSION_TTL,
-                            httponly=True, samesite="lax")
+                            httponly=True, samesite="lax", secure=secure_cookies(request))
     return token
 
 def end_session(response, request):
