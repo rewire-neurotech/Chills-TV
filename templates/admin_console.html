@@ -526,13 +526,34 @@ function openInvite(){
 function sendInvite(){ var n=document.getElementById('invName').value.trim(), m=document.getElementById('invMail').value.trim(); if(!n||!m){ toast('Name and email, please'); return; } post('/admin/invite',{name:n, email:m, tag:document.getElementById('invTag').value, note:document.getElementById('invNote').value.trim()}).then(function(r){ if(!r.ok){ toast(r.error||'Failed'); return; } closeDrawer(); toast('Access granted to '+n.split(' ')[0]); loadData(); }); }
 
 /* ═══════════ edge access ═══════════ */
+var rSort='asked', rDir=1, gSort='sessions', gDir=-1;
+function sortR(k){ if(rSort===k) rDir*=-1; else { rSort=k; rDir=(k==='name'||k==='email')?1:-1; } renderEdge(); }
+function sortG(k){ if(gSort===k) gDir*=-1; else { gSort=k; gDir=(k==='name')?1:-1; } renderEdge(); }
 function renderEdge(){
-  var req=people.filter(function(p){return p.edge.status==='requested';}).sort(function(a,b){return a.edge.requested-b.edge.requested;});
-  var gr=people.filter(function(p){return p.edge.status==='granted';}).sort(function(a,b){return (b.edge.sessions||[]).length-(a.edge.sessions||[]).length;});
+  var rVal=function(p,k){ var e=p.edge;
+    if(k==='email') return (p.email||'').toLowerCase();
+    if(k==='asked') return +e.requested||0;
+    if(k==='chills') return p.chills?1:0;
+    if(k==='inv') return p.invites||0;
+    if(k==='score') return p.score||0;
+    return (p.name||'').toLowerCase(); };
+  var req=people.filter(function(p){return p.edge.status==='requested';}).sort(function(a,b){ var va=rVal(a,rSort), vb=rVal(b,rSort); return (va>vb?1:va<vb?-1:0)*rDir; });
+  var gVal=function(p,k){ var e=p.edge, ss=e.sessions||[];
+    if(k==='granted') return +e.granted||0;
+    if(k==='opened') return e.opened?(+e.signedIn||1):0;
+    if(k==='sessions') return ss.length;
+    if(k==='completed') return ss.filter(function(x){return x.completed;}).length;
+    if(k==='chills') return ss.filter(function(x){return x.chills;}).length;
+    if(k==='days') return ss.filter(function(x){return (TODAY-x.date)/864e5<=14;}).length;
+    if(k==='last') return ss.length?+ss[0].date:0;
+    return (p.name||'').toLowerCase(); };
+  var gr=people.filter(function(p){return p.edge.status==='granted';}).sort(function(a,b){ var va=gVal(a,gSort), vb=gVal(b,gSort); return (va>vb?1:va<vb?-1:0)*gDir; });
   var opened=gr.filter(function(p){return p.edge.opened;}), played=gr.filter(function(p){return p.edge.opened&&p.edge.sessions.length;});
-  document.getElementById('edgeKpis').innerHTML=[['Waiting',req.length,req.length?'oldest asked '+fmtD(req[0].edge.requested):''],['Granted',gr.length,opened.length+' opened the link'],['Played a session',played.length,pct(played.length,gr.length)+'% of granted'],['Active this week',gr.filter(function(p){return p.edge.opened&&p.edge.sessions.some(function(s){return (TODAY-s.date)/864e5<=7;});}).length,'a session in the last 7 days']].map(function(x){return '<div class="kpi"><div class="k">'+x[0]+'</div><div class="n num">'+x[1]+'</div><div class="d">'+x[2]+'</div></div>';}).join('');
-  document.getElementById('reqTable').innerHTML='<thead><tr><th>Name</th><th>Email</th><th>Asked</th><th>Chills</th><th>Invites</th><th>Score</th><th></th></tr></thead><tbody>'+(req.length?req.map(function(p){return '<tr onclick="openPerson('+p.id+')"><td class="em">'+p.name+' '+tagHtml(p)+'</td><td>'+mailHtml(p.email)+'</td><td class="num">'+fmtD(p.edge.requested)+'</td><td>'+(p.chills?'<span class="pill yes">yes</span>':'<span class="pill no">no</span>')+'</td><td class="num">'+p.invites+'</td><td class="num">top '+(100-p.score)+'%</td><td style="text-align:right"><button class="btn btn-p btn-s" onclick="event.stopPropagation();grant('+p.id+')">Grant</button></td></tr>';}).join(''):'<tr><td colspan="7" class="empty">Nobody is waiting.</td></tr>')+'</tbody>';
-  document.getElementById('grantTable').innerHTML='<thead><tr><th>Name</th><th>Granted</th><th>Opened</th><th>Sessions</th><th>Completed</th><th>Chills</th><th>Last 14 days</th><th>Last session</th><th></th></tr></thead><tbody>'+gr.map(function(p){var e=p.edge, ss=e.sessions||[]; return '<tr onclick="openPerson('+p.id+')"><td class="em">'+p.name+' '+tagHtml(p)+'</td><td class="num">'+fmtD(e.granted)+'</td><td>'+(e.opened?'<span class="pill yes">'+fmtD(e.signedIn)+'</span>':'<span class="pill warn">not yet</span>')+'</td><td class="num">'+ss.length+'</td><td class="num">'+ss.filter(function(s){return s.completed;}).length+'</td><td class="num">'+ss.filter(function(s){return s.chills;}).length+'</td><td>'+daysHtml(p)+'</td><td class="num">'+(ss.length?fmtD(ss[0].date):'')+'</td><td style="text-align:right"><button class="btn btn-o btn-s" onclick="event.stopPropagation();copyText(\'https://'+e.link+'\',\'Link copied\')">Link</button></td></tr>';}).join('')+'</tbody>';
+  document.getElementById('edgeKpis').innerHTML=[['Waiting',req.length,req.length?'oldest asked '+fmtD(req.reduce(function(a,p){return +p.edge.requested<+a.edge.requested?p:a;}).edge.requested):''],['Granted',gr.length,opened.length+' opened the link'],['Played a session',played.length,pct(played.length,gr.length)+'% of granted'],['Active this week',gr.filter(function(p){return p.edge.opened&&p.edge.sessions.some(function(s){return (TODAY-s.date)/864e5<=7;});}).length,'a session in the last 7 days']].map(function(x){return '<div class="kpi"><div class="k">'+x[0]+'</div><div class="n num">'+x[1]+'</div><div class="d">'+x[2]+'</div></div>';}).join('');
+  var thR=function(k,l){ return '<th class="'+(rSort===k?'on':'')+'" onclick="sortR(\''+k+'\')">'+l+(rSort===k?'<span class="car">'+(rDir<0?'\u25bc':'\u25b2')+'</span>':'')+'</th>'; };
+  var thG=function(k,l){ return '<th class="'+(gSort===k?'on':'')+'" onclick="sortG(\''+k+'\')">'+l+(gSort===k?'<span class="car">'+(gDir<0?'\u25bc':'\u25b2')+'</span>':'')+'</th>'; };
+  document.getElementById('reqTable').innerHTML='<thead><tr>'+thR('name','Name')+thR('email','Email')+thR('asked','Asked')+thR('chills','Chills')+thR('inv','Invites')+thR('score','Score')+'<th></th></tr></thead><tbody>'+(req.length?req.map(function(p){return '<tr onclick="openPerson('+p.id+')"><td class="em">'+p.name+' '+tagHtml(p)+'</td><td>'+mailHtml(p.email)+'</td><td class="num">'+fmtD(p.edge.requested)+'</td><td>'+(p.chills?'<span class="pill yes">yes</span>':'<span class="pill no">no</span>')+'</td><td class="num">'+p.invites+'</td><td class="num">top '+(100-p.score)+'%</td><td style="text-align:right"><button class="btn btn-p btn-s" onclick="event.stopPropagation();grant('+p.id+')">Grant</button></td></tr>';}).join(''):'<tr><td colspan="7" class="empty">Nobody is waiting.</td></tr>')+'</tbody>';
+  document.getElementById('grantTable').innerHTML='<thead><tr>'+thG('name','Name')+thG('granted','Granted')+thG('opened','Opened')+thG('sessions','Sessions')+thG('completed','Completed')+thG('chills','Chills')+thG('days','Last 14 days')+thG('last','Last session')+'<th></th></tr></thead><tbody>'+gr.map(function(p){var e=p.edge, ss=e.sessions||[]; return '<tr onclick="openPerson('+p.id+')"><td class="em">'+p.name+' '+tagHtml(p)+'</td><td class="num">'+fmtD(e.granted)+'</td><td>'+(e.opened?'<span class="pill yes">'+fmtD(e.signedIn)+'</span>':'<span class="pill warn">not yet</span>')+'</td><td class="num">'+ss.length+'</td><td class="num">'+ss.filter(function(s){return s.completed;}).length+'</td><td class="num">'+ss.filter(function(s){return s.chills;}).length+'</td><td>'+daysHtml(p)+'</td><td class="num">'+(ss.length?fmtD(ss[0].date):'')+'</td><td style="text-align:right"><button class="btn btn-o btn-s" onclick="event.stopPropagation();copyText(\'https://'+e.link+'\',\'Link copied\')">Link</button></td></tr>';}).join('')+'</tbody>';
 }
 
 /* ═══════════ edge usage ═══════════ */
