@@ -760,6 +760,7 @@ body.dk .legal{border-color:rgba(255,255,255,.1)}
 #ctv .screen{display:none}
 #ctv .screen.active{display:block;animation:ctvRise .55s var(--ease) both}
 @keyframes ctvRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes ctvFade{from{opacity:0}to{opacity:1}}
 #ctv .hub{max-width:1040px;margin:0 auto;padding:112px 32px 40px}
 #ctv .col{max-width:680px;margin:0 auto;padding:104px 24px 90px}
 #ctv .col.wide{max-width:1040px}
@@ -780,6 +781,7 @@ body.dk .legal{border-color:rgba(255,255,255,.1)}
 #ctv .sec-h a.hint:hover{color:var(--ink)}
 #ctv .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:46px;padding:0 24px;border-radius:999px;font-size:16px;font-weight:500;cursor:pointer;border:0;font-family:inherit;transition:.2s;letter-spacing:-.005em;white-space:nowrap}
 #ctv .btn-p{background:var(--ink);color:#fff}
+#ctv .btn[disabled]{opacity:.3;cursor:default;transform:none}
 #ctv .btn-p:hover{opacity:.86}
 #ctv .btn-p:active{transform:scale(.97)}
 #ctv .btn-p[disabled]{opacity:.3;cursor:default;transform:none}
@@ -1347,18 +1349,27 @@ body.dk .legal{border-color:rgba(255,255,255,.1)}
 #ctv .tq-ins{font-size:14px;color:var(--muted);margin-bottom:12px;min-height:21px}
 #ctv .tq-q{font-family:var(--display);font-size:clamp(27px,4vw,38px);font-weight:600;letter-spacing:-.022em;line-height:1.12;padding-bottom:.06em;min-height:2.3em;display:flex;align-items:flex-end}
 #ctv .tq-a{margin-top:34px}
-#ctv .bigin{width:100%;height:60px;font-family:inherit;font-size:20px;color:var(--ink);background:#fff;border:1px solid var(--rule2);border-radius:999px;padding:0 24px}
+#ctv .intro{justify-content:center}
+#ctv .intro h1{font-family:var(--display);font-size:clamp(34px,5.4vw,50px);font-weight:600;letter-spacing:-.028em;line-height:1.04;padding-bottom:.06em}
+#ctv .intro p{font-size:18px;line-height:1.5;color:var(--ink2);margin-top:16px;max-width:44ch}
+#ctv .intro .actions{margin-top:34px}
+#ctv .prog{position:fixed;left:0;right:0;top:0;height:3px;background:transparent;z-index:60}
+#ctv .prog i{display:block;height:100%;width:0;background:var(--ink);transition:width .4s var(--ease)}
+#ctv .bigin{width:100%;height:60px;font-family:inherit;font-size:20px;color:var(--ink);background:#fff;border:1px solid var(--rule2);border-radius:14px;padding:0 22px}
 #ctv .bigin:focus{outline:none;border-color:var(--ink2)}
 #ctv .opts{display:grid;grid-template-columns:1fr;gap:10px}
 #ctv .opts.two{grid-template-columns:1fr 1fr}
-#ctv .opt{height:54px;padding:0 22px;border-radius:999px;border:1px solid var(--rule2);background:#fff;font-size:16.5px;font-weight:500;color:var(--ink);text-align:left;display:flex;align-items:center;transition:.15s}
+#ctv .opt{height:56px;padding:0 20px;border-radius:14px;border:1px solid var(--rule2);background:#fff;font-size:16.5px;font-weight:500;color:var(--ink);text-align:left;display:flex;align-items:center;transition:.15s}
 #ctv .opt:hover{background:rgba(28,26,22,.03)}
 #ctv .opt.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-#ctv .scale{display:grid;gap:8px}
+#ctv .scale{display:grid;gap:8px;grid-template-columns:repeat(var(--n,5),1fr)}
+#ctv .scale .l{display:none}
+#ctv .rail{display:none}
 #ctv .scale button{height:66px;border-radius:14px;border:1.5px solid var(--rule);background:#fff;font-size:18px;font-weight:500;color:var(--ink);transition:.15s;font-variant-numeric:tabular-nums}
 #ctv .scale button:hover{border-color:var(--rule2)}
 #ctv .scale button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-#ctv .anch{display:flex;justify-content:space-between;gap:16px;font-size:13.5px;color:var(--ink2);margin-top:12px}
+#ctv .anch{display:flex;justify-content:space-between;gap:16px;font-size:14px;color:var(--ink2);margin-top:12px}
+#ctv .anch span:last-child{text-align:right}
 #ctv .anch span:last-child{text-align:right}
 #ctv .tq .actions{margin-top:22px}
 #ctv .tq textarea{width:100%;min-height:150px;font-family:inherit;font-size:17px;line-height:1.5;color:var(--ink);background:#fff;border:1px solid var(--rule2);padding:16px 20px;border-radius:20px;resize:vertical}
@@ -1424,12 +1435,7 @@ body.dk .legal{border-color:rgba(255,255,255,.1)}
 #ctv .site{padding:0 18px 40px}
 
 }
-@media(max-width:520px){#ctv .tq{padding:88px 18px 110px}
-#ctv .opts.two{grid-template-columns:1fr}
-#ctv .scale button{height:56px;font-size:16px;border-radius:12px}
-#ctv .scale{gap:6px}
-#ctv .anch{font-size:12.5px}
-#ctv .donerow{flex-direction:column;align-items:flex-start}
+@media(max-width:520px){#ctv .donerow{flex-direction:column;align-items:flex-start}
 #ctv .donerow .btn{width:100%}
 #ctv .fact{grid-template-columns:1fr;gap:4px}
 #ctv .deck3{grid-template-columns:1fr 1fr}
@@ -1685,26 +1691,51 @@ body.dk .legal{border-color:rgba(255,255,255,.1)}
 #ctv .btn{height:60px;border-radius:16px;font-size:17px;width:100%;padding:0 22px}
 #ctv .btn-l{height:auto;width:auto;padding:12px 6px;font-size:16px}
 #ctv .gbtn{height:58px;border-radius:16px}
-#ctv .field input,#ctv .bigin{border-radius:16px;height:58px}
+#ctv .field input{border-radius:16px;height:58px}
+#ctv .bigin{border-radius:16px;height:60px;font-size:21px}
 #ctv .acard .btn-w{margin-top:16px}
 #ctv .segt{border-radius:16px;width:100%}
 #ctv .segt button{border-radius:12px;flex:1;padding:12px 10px;font-size:15px}
-#ctv .opt{height:60px;border-radius:16px;font-size:17px}
-#ctv .scale button{height:60px;border-radius:14px}
+#ctv .opt{height:62px;border-radius:16px;font-size:18px}
+#ctv .opts.two{grid-template-columns:1fr}
+#ctv .sw{display:flex;gap:12px;align-items:stretch}
+#ctv .sw .scale{flex:1;min-width:0}
+#ctv .rail{display:flex;flex-direction:column;align-items:center;width:16px;padding:21px 0;color:var(--ink2)}
+#ctv .scale.seven + .rail,#ctv .sw.seven .rail{padding:18px 0}
+#ctv .rail svg{display:block;width:16px;height:9px;flex:none}
+#ctv .rail i{flex:1;width:1.5px;background:currentColor;margin:-1px 0}
+#ctv .rail b{flex:none;height:22px}
+#ctv .rail i.solo{margin-bottom:0}
+#ctv .rail i:first-of-type{margin-bottom:0}
+#ctv .rail i:last-of-type{margin-top:0}
+#ctv .scale{display:flex;flex-direction:column-reverse;gap:8px}
+#ctv .scale button{height:58px;border-radius:16px;border:1px solid var(--rule2);font-size:17px;text-align:left;padding:0 20px;display:flex;align-items:center}
+#ctv .scale .n{display:none}
+#ctv .scale .l{display:block}
+#ctv .scale.seven{gap:6px}
+#ctv .scale.seven button{height:52px;border-radius:14px;font-size:16.5px}
+#ctv .anch{display:none}
+#ctv .tq-body{margin-top:clamp(24px,6vh,60px)}
+#ctv .tq-ins{font-size:16px}
+#ctv .tq-q{font-size:30px;line-height:1.14;min-height:3.45em}
+#ctv .tq-n{font-size:14px}
+#ctv .back{font-size:15px}
+#ctv .intro p{font-size:18.5px}
+#ctv .tq{padding:84px 20px 130px}
 #ctv .yn2 button{height:72px;border-radius:16px}
 #ctv .btn-s{height:40px;border-radius:12px;padding:0 16px;font-size:14px}
 #ctv .btn-c{width:100%}
 #ctv .chip{border-radius:12px}
 #ctv .tq textarea{border-radius:16px}
-#ctv #screen-consent .actions,#ctv #screen-test .actions,#ctv #screen-video .actions,#ctv #screen-after .actions{position:fixed;left:18px;right:18px;bottom:calc(16px + env(safe-area-inset-bottom) + var(--kb,0px));z-index:30;margin:0;flex-direction:column;transition:bottom .15s;gap:6px;align-items:stretch;background:linear-gradient(180deg,rgba(251,249,244,0),rgba(251,249,244,.96) 30%);padding-top:14px}
-#ctv #screen-consent .actions .btn,#ctv #screen-test .actions .btn,#ctv #screen-video .actions .btn,#ctv #screen-after .actions .btn-p{width:100%}
+#ctv #screen-tintro .actions,#ctv #screen-consent .actions,#ctv #screen-test .actions,#ctv #screen-video .actions,#ctv #screen-after .actions{position:fixed;left:18px;right:18px;bottom:calc(16px + env(safe-area-inset-bottom) + var(--kb,0px));z-index:30;margin:0;flex-direction:column;transition:bottom .15s;gap:6px;align-items:stretch;background:linear-gradient(180deg,rgba(251,249,244,0),rgba(251,249,244,.96) 30%);padding-top:14px}
+#ctv #screen-tintro .actions .btn,#ctv #screen-consent .actions .btn,#ctv #screen-test .actions .btn,#ctv #screen-video .actions .btn,#ctv #screen-after .actions .btn-p{width:100%}
 #ctv #screen-after .actions .btn-l{align-self:center}
 #ctv #screen-video .actions .hint{text-align:center}
 #ctv .cons,#ctv .tq,#ctv .vintro{padding-bottom:150px}
 #ctv .vintro{min-height:0;padding-top:104px;justify-content:flex-start}
 #ctv .tq{min-height:0}
 #ctv .mk{bottom:calc(104px + env(safe-area-inset-bottom))}
-#ctv .tq-body.swap-in{animation:none}
+#ctv .tq-body.swap-in{animation:ctvFade .35s var(--ease) both}
 
 }
 #ctv .mk .x{margin-left:4px;color:#fff;opacity:.6;font-size:15px}
@@ -2511,8 +2542,18 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
   </div>
 </div>
 
+<!-- ═══════ 3b. INTRO ═══════ -->
+<div class="screen" id="screen-tintro">
+  <div class="tq intro">
+    <h1>Let’s find what<br>gives you chills.</h1>
+    <p>In the next two minutes, we will ask you a few questions about yourself, then match you to the video most likely to give you chills. There are no right answers so go with your first reaction.</p>
+    <div class="actions"><button class="btn btn-p" onclick="startTest()">Start</button></div>
+  </div>
+</div>
+
 <!-- ═══════ 4. THE TEST ═══════ -->
 <div class="screen" id="screen-test">
+  <div class="prog" id="prog"><i></i></div>
   <div class="tq">
     <div class="tq-top"><a class="back" id="tqBack" onclick="prevQ()">‹ Back</a><span class="tq-n" id="tqN">1 of 37</span></div>
     <div class="tq-body" id="tqBody"></div>
@@ -2522,9 +2563,9 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
 <!-- ═══════ 5. FINDING YOUR VIDEO ═══════ -->
 <div class="screen" id="screen-finding">
   <div class="find">
-    <h1>Finding your chills video.</h1>
+    <h1>We are finding your chills video.</h1>
     <div class="fbar"><i id="findBar"></i></div>
-    <div class="fs" id="findS">Matching you to a video</div>
+    <div class="fs" id="findS">Reading your answers</div>
   </div>
 </div>
 
@@ -2798,7 +2839,7 @@ var CTX = window.CTX || {logged_in:false};
 var CTV = document.getElementById('ctv');
 var firstVisit = false, cur = 'profile';
 var NONAV = {auth:1, play:1};
-var ROUTE = {auth:'account', consent:'consent', test:'test', finding:'finding', finding2:'again', video:'video', play:'play', after:'after', profile:'profile', app:'beta', compatlist:'compatibility', compat:'match'};
+var ROUTE = {auth:'account', consent:'consent', tintro:'start', test:'test', finding:'finding', finding2:'again', video:'video', play:'play', after:'after', profile:'profile', app:'beta', compatlist:'compatibility', compat:'match'};
 function go(id, mode, silent){
   if(id==='auth' && CTX.logged_in){ id = CTX.has_profile ? 'profile' : 'consent'; }
   /* no profile means no profile pages: guests are routed to start instead */
@@ -2816,7 +2857,7 @@ function go(id, mode, silent){
   document.body.classList.toggle('ctv-auth', id==='auth');   /* the site nav stays visible while creating an account */
   if(id!=='play'){ clearInterval(vT); document.getElementById('playscr').classList.remove('ended','playing','ending'); }
   /* no menu until the first video has been reported: the nav must never ask a user to take the test */
-  var guest = (id==='auth'||id==='consent'||id==='test'||id==='finding'||id==='finding2') || (firstVisit && (id==='video'||id==='play'||id==='after'));
+  var guest = (id==='auth'||id==='consent'||id==='tintro'||id==='test'||id==='finding'||id==='finding2') || (firstVisit && (id==='video'||id==='play'||id==='after'));
   CTV.classList.toggle('guest', guest);
   closeMenu();
   window.scrollTo({top:0, behavior:'instant'});
@@ -2881,7 +2922,7 @@ function authGo(){
 }
 function googleGo(){ location.href = '/auth/google/start'; }
 function signOut(){ fetch('/auth/logout', {method:'POST'}).then(function(){ location.href = '/'; }).catch(function(){ location.href = '/'; }); }
-function consentGo(){ fetch('/flow/consent', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({boxes:{age_terms:true, not_medical:true, research:true}})}).catch(function(){}); startTest(); }
+function consentGo(){ fetch('/flow/consent', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({boxes:{age_terms:true, not_medical:true, research:true}})}).catch(function(){}); go('tintro'); }
 function betaJoin(){ fetch('/flow/beta', {method:'POST'}).catch(function(){}); var bb = document.getElementById('betaBanner'); if(bb) bb.classList.add('off'); setApp('listed'); renderProducts(); renderApp(); toast('You are on the list'); }
 function share(){
   var txt = '\u26a1 More likely to get chills than ' + (CTX.likely_pct || '') + '% of people. I found it on ChillsTV \u2014 @rewire_protocols';
@@ -2894,6 +2935,18 @@ function share(){
 function chk(el){ el.classList.toggle('on'); var c=document.querySelectorAll('#ctv .chk'); var all=true; c.forEach(function(x){ if(!x.classList.contains('on')) all=false; }); document.getElementById('consBtn').disabled = !all; }
 
 /* ───────── the test ───────── */
+var LABELS = {
+  'Never|Very often': ['Never','Rarely','Sometimes','Often','Very often'],
+  'Never|Every day': ['Never','A few times a year','A few times a month','A few times a week','Every day'],
+  'Completely untrue for me|Describes me perfectly|5': ['Completely untrue for me','Mostly untrue for me','Neutral','Mostly true for me','Describes me perfectly'],
+  'Completely untrue for me|Describes me perfectly|7': ['Completely untrue for me','Mostly untrue for me','Slightly untrue for me','Neutral','Slightly true for me','Mostly true for me','Describes me perfectly'],
+  'Very calm|Very excited': ['Very calm','Somewhat calm','Neutral','Somewhat excited','Very excited'],
+  'Very unpleasant|Very pleasant': ['Very unpleasant','Somewhat unpleasant','Neutral','Somewhat pleasant','Very pleasant']
+};
+function scaleLabels(q){
+  var k = q.a[0]+'|'+q.a[1];
+  return LABELS[k+'|'+q.n] || LABELS[k] || [];
+}
 var Q = [
   {k:'name', ins:'First, a few things about you.', q:'What is your name?', t:'text'},
   {k:'Age', ins:'First, a few things about you.', q:'How old are you?', t:'choice', o:['18 to 24','25 to 34','35 to 44','45 to 54','55 to 64','65 and over']},
@@ -2935,40 +2988,56 @@ var Q = [
 ];
 var qi = 0, ans = {};
 function startTest(){ firstVisit = true; qi = 0; go('test'); renderQ(); }
+function setProg(){ var p = document.querySelector('#prog i'); if(p){ p.style.width = (qi/Q.length*100)+'%'; } }
 function renderQ(){
   var q = Q[qi], body = document.getElementById('tqBody');
   document.getElementById('tqN').textContent = (qi+1)+' of '+Q.length;
   document.getElementById('tqBack').style.visibility = qi===0 ? 'hidden' : 'visible';
-  var h = '';
-  var ins = q.ins || (q.t==='scale' ? 'How well does this describe you?' : '');
-  h += '<div class="tq-ins">'+ins+'</div><div class="tq-q">'+q.q+'</div><div class="tq-a">';
+  setProg();
+  var h = '<div class="tq-q">'+q.q+'</div><div class="tq-a">';
   if(q.t==='text'){
-    h += '<input class="bigin" id="qText" autocomplete="off" enterkeyhint="next" value="'+(ans[qi]||'')+'">';
-    h += '</div><div class="actions"><button class="btn btn-p" onclick="answer(document.getElementById(\'qText\').value)">Continue</button></div>';
+    h += '<input class="bigin" id="qText" autocomplete="off" enterkeyhint="next" value="'+(ans[qi]||'')+'" placeholder="Your name">';
+    h += '</div><div class="actions"><button class="btn btn-p" id="qTextBtn" disabled onclick="answer(document.getElementById(\'qText\').value)">Continue</button>';
   } else if(q.t==='choice'){
-    h += '<div class="opts'+(q.o.length>4?' two':'')+'">';
-    q.o.forEach(function(o){ h += '<button class="opt'+(ans[qi]===o?' on':'')+'" onclick="pick(this,\''+o.replace(/'/g,"\\'")+'\')">'+o+'</button>'; });
-    h += '</div></div>';
+    h += '<div class="opts'+(q.o.length>5?' two':'')+'">';
+    q.o.forEach(function(o){ h += '<button class="opt'+(ans[qi]===o?' on':'')+'" onclick="pick(this,\''+o.replace(/'/g,"\\\'")+'\')">'+o+'</button>'; });
+    h += '</div>';
   } else {
     var a = q.a || ['Completely untrue for me','Describes me perfectly'];
-    h += '<div class="scale" style="grid-template-columns:repeat('+q.n+',1fr)">';
-    for(var i=1;i<=q.n;i++){ h += '<button class="'+(ans[qi]===i?'on':'')+'" onclick="pick(this,'+i+')" aria-label="'+i+' of '+q.n+'">'+i+'</button>'; }
-    h += '</div><div class="anch"><span>'+a[0]+'</span><span>'+a[1]+'</span></div></div>';
+    var L = scaleLabels({a:a, n:q.n});
+    var hd = '<svg viewBox="0 0 16 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">';
+    var up = hd+'<path d="M2 8L8 1.5L14 8M8 1.5V9"/></svg>';
+    var rail = a[0]==='Never'
+      ? up+'<i class="solo"></i>'
+      : up+'<i></i><b></b><i></i>'+hd+'<path d="M2 1L8 7.5L14 1M8 7.5V0"/></svg>';
+    h += '<div class="sw'+(q.n===7?' seven':'')+'"><div class="rail" aria-hidden="true">'+rail+'</div>';
+    h += '<div class="scale'+(q.n===7?' seven':'')+'" style="--n:'+q.n+'">';
+    for(var i=1;i<=q.n;i++){
+      var lab = L[i-1] || String(i);
+      h += '<button class="'+(ans[qi]===i?'on':'')+'" onclick="pick(this,'+i+')" aria-label="'+i+' of '+q.n+', '+lab+'"><span class="n">'+i+'</span><span class="l">'+lab+'</span></button>';
+    }
+    h += '</div></div><div class="anch"><span>'+a[0]+'</span><span>'+a[1]+'</span></div>';
   }
+  h += '</div>';
   body.innerHTML = h;
   body.classList.remove('swap-in'); void body.offsetWidth; body.classList.add('swap-in');
   var t = document.getElementById('qText');
-  if(t){ t.focus(); t.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); answer(t.value); } }); }
+  if(t){
+    var tb = document.getElementById('qTextBtn');
+    var tchk = function(){ tb.disabled = t.value.trim().length < 2; };
+    tchk(); t.addEventListener('input', tchk); t.focus();
+    t.addEventListener('keydown', function(e){ if(e.key==='Enter' && !tb.disabled){ e.preventDefault(); answer(t.value); } });
+  }
 }
 function pick(btn, v){
   btn.parentNode.querySelectorAll('button').forEach(function(b){ b.classList.remove('on'); });
   btn.classList.add('on');
-  setTimeout(function(){ answer(v); }, 260);
+  setTimeout(function(){ answer(v); }, 220);
 }
 function answer(v){
   ans[qi] = v;
   if(qi < Q.length-1){ qi++; renderQ(); }
-  else { submitTest(); go('finding'); }
+  else { qi = Q.length; setProg(); submitTest(); go('finding'); }
 }
 function prevQ(){ if(qi>0){ qi--; renderQ(); } }
 
@@ -3006,8 +3075,10 @@ var findT = [];
 function runFinding(){
   findT.forEach(clearTimeout); findT = [];
   var bar = document.getElementById('findBar'), s = document.getElementById('findS');
+  var lines = ['Reading your answers', 'Comparing them with 2,937 tested participants', 'Choosing the video most likely to give you chills'];
   bar.style.transition = 'none'; bar.style.width = '0'; void bar.offsetWidth; bar.style.transition = '';
-  s.style.opacity = 1;
+  s.textContent = lines[0]; s.style.opacity = 1;
+  [1500,3000].forEach(function(t,i){ findT.push(setTimeout(function(){ s.style.opacity = 0; findT.push(setTimeout(function(){ s.textContent = lines[i+1]; s.style.opacity = 1; }, 350)); }, t)); });
   var stops = [[200,'18%'],[1400,'46%'],[2900,'78%'],[4300,'100%']];
   stops.forEach(function(st){ findT.push(setTimeout(function(){ bar.style.width = st[1]; }, st[0])); });
   findT.push(setTimeout(function(){ waitResult(0); }, 5300));
@@ -3350,7 +3421,7 @@ if(prodBtn){
   document.getElementById('navVeil').addEventListener('click',function(){setMenu(false)});
   document.addEventListener('keydown',function(e){if(e.key==='Escape')setMenu(false)});
 }
-var CTV_ROUTES={account:'auth',signin:'auth',consent:'consent',test:'test',finding:'finding',again:'finding2',video:'video',after:'after',profile:'profile',compatibility:'compatlist',match:'compat',beta:'app'};
+var CTV_ROUTES={account:'auth',signin:'auth',consent:'consent',start:'tintro',test:'test',finding:'finding',again:'finding2',video:'video',after:'after',profile:'profile',compatibility:'compatlist',match:'compat',beta:'app'};
 function route(){
   var h=location.hash.replace('#','')||'/';
   if(h.charAt(0)!=='/')return;
