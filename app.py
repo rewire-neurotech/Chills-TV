@@ -3075,6 +3075,25 @@ async def admin_sub_decline(req: Request, cid: int):
     return JSONResponse({"ok": True})
 
 
+@a.post("/admin/user/{user_id}/delete")
+async def admin_user_delete(req: Request, user_id: int):
+    guard = _admin_json_guard(req)
+    if guard:
+        return guard
+    try:
+        body = await req.json()
+    except Exception:
+        body = {}
+    if not body.get("confirm"):
+        return JSONResponse({"ok": False, "error": "Confirmation required."})
+    user = chillsdb.get_user_by_id(user_id)
+    if not user:
+        return JSONResponse({"ok": False, "error": "No such account."})
+    log_ev("admin_deleted_user", detail={"user_id": user_id, "email": user["email"] or "", "pid": user["pid"] or ""})
+    chillsdb.delete_user_account(user_id)
+    return JSONResponse({"ok": True})
+
+
 @a.post("/admin/settings")
 async def admin_settings_save(req: Request):
     guard = _admin_json_guard(req)
