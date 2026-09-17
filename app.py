@@ -351,7 +351,7 @@ def flow_slot_free(user):
 LOGIN_WINDOW = 600
 LOGIN_MAX_FAILURES = 8
 ADMIN_LOGIN_MAX_FAILURES = 5
-SIGNUP_MAX_PER_IP = 60
+SIGNUP_MAX_PER_IP = 150
 
 def _client_ip(req):
     fwd = (req.headers.get("x-forwarded-for") or "").split(",")[0].strip()
