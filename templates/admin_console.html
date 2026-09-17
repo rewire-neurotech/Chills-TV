@@ -461,15 +461,26 @@ function renderPeople(){
   var q=document.getElementById('pSearch').value.trim().toLowerCase();
   var f=FILTERS.filter(function(x){return x[0]===pFilter;})[0][2];
   var list=people.filter(function(p){return f(p)&&(!q||(p.name+' '+p.email).toLowerCase().indexOf(q)>-1);});
-  list.sort(function(a,b){ var va=pSort==='created'?a.created:pSort==='last'?a.lastActive:pSort==='inv'?a.invites:a.name, vb=pSort==='created'?b.created:pSort==='last'?b.lastActive:pSort==='inv'?b.invites:b.name; return (va>vb?1:va<vb?-1:0)*pDir; });
+  var pVal=function(p,k){
+    if(k==='email') return (p.email||'').toLowerCase();
+    if(k==='created') return p.created||0;
+    if(k==='last') return p.lastActive||0;
+    if(k==='inv') return p.invites||0;
+    if(k==='test') return p.test?1:0;
+    if(k==='chills') return p.test?(p.chills?2:1):0;
+    if(k==='video') return (p.test&&p.video?String(p.video):'').toLowerCase();
+    if(k==='edge') return p.edge?(p.edge.status==='granted'?2:p.edge.status==='requested'?1:0):0;
+    return (p.name||'').toLowerCase();
+  };
+  list.sort(function(a,b){ var va=pVal(a,pSort), vb=pVal(b,pSort); return (va>vb?1:va<vb?-1:0)*pDir; });
   var per=25, pages=Math.max(1,Math.ceil(list.length/per)); pPage=Math.min(pPage,pages-1);
   var rows=list.slice(pPage*per,pPage*per+per);
   var th=function(k,l){ return '<th class="'+(pSort===k?'on':'')+'" onclick="sortP(\''+k+'\')">'+l+(pSort===k?'<span class="car">'+(pDir<0?'\u25bc':'\u25b2')+'</span>':'')+'</th>'; };
-  document.getElementById('pTable').innerHTML='<thead><tr>'+th('name','Name')+'<th>Email</th>'+th('created','Signed up')+'<th>Test</th><th>Chills</th><th>Video</th>'+th('inv','Invites')+'<th>Edge</th>'+th('last','Last active')+'</tr></thead><tbody>'+
+  document.getElementById('pTable').innerHTML='<thead><tr>'+th('name','Name')+th('email','Email')+th('created','Signed up')+th('test','Test')+th('chills','Chills')+th('video','Video')+th('inv','Invites')+th('edge','Edge')+th('last','Last active')+'</tr></thead><tbody>'+
     (rows.length?rows.map(function(p){return '<tr onclick="openPerson('+p.id+')"><td class="em">'+p.name+' '+tagHtml(p)+'</td><td>'+mailHtml(p.email)+'</td><td class="num">'+fmtD(p.created)+'</td><td>'+(p.test?'<span class="pill yes">done</span>':'<span class="pill no">no</span>')+'</td><td>'+(p.test?(p.chills?'<span class="pill yes">yes</span>':'<span class="pill no">no</span>'):'')+'</td><td>'+(p.test?p.video:'')+'</td><td class="num">'+(p.invites||'')+'</td><td>'+edgeStatus(p)+'</td><td class="num">'+fmtD(p.lastActive)+'</td></tr>';}).join(''):'<tr><td colspan="9" class="empty">Nobody matches.</td></tr>')+'</tbody>';
   document.getElementById('pPager').innerHTML='<span>'+list.length.toLocaleString()+' people</span><span><button class="btn btn-o btn-s" '+(pPage===0?'disabled':'')+' onclick="pPage--;renderPeople()">Previous</button> <span class="num" style="margin:0 8px">'+(pPage+1)+' of '+pages+'</span> <button class="btn btn-o btn-s" '+(pPage>=pages-1?'disabled':'')+' onclick="pPage++;renderPeople()">Next</button></span>';
 }
-function sortP(k){ if(pSort===k) pDir*=-1; else { pSort=k; pDir=k==='name'?1:-1; } renderPeople(); }
+function sortP(k){ if(pSort===k) pDir*=-1; else { pSort=k; pDir=(k==='name'||k==='email'||k==='video')?1:-1; } renderPeople(); }
 
 /* ═══════════ person drawer ═══════════ */
 var curP=null;
@@ -481,7 +492,7 @@ function openPerson(id){
      (e.status==='requested'?'<button class="btn btn-p" onclick="grant('+p.id+')">Grant Edge access</button>':'')+
      (e.status==='none'?'<button class="btn btn-p" onclick="grant('+p.id+')">Send Edge</button>':'')+
      (e.status==='granted'?'<button class="btn btn-o" onclick="copyText(\'https://'+e.link+'\',\'Link copied\')">Copy their link</button><button class="btn btn-o btn-d" onclick="revoke('+p.id+')">Revoke</button>':'')+
-     '<button class="btn btn-o" onclick="addTag('+p.id+')">Tag</button><button class="btn btn-o" onclick="addNote('+p.id+')">Note</button></div>';
+     '<button class="btn btn-o" onclick="addTag('+p.id+')">Tag</button><button class="btn btn-o" onclick="addNote('+p.id+')">Note</button><button class="btn btn-o btn-d" onclick="delUser('+p.id+')">Delete account</button></div>';
   if(e.status==='granted') h+='<div class="linkbox"><span>https://'+e.link+'</span><button onclick="copyText(\'https://'+e.link+'\',\'Link copied\')" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/></svg></button></div><p class="note">A personal link. It signs them in on their phone. '+(e.opened?'Opened '+fmtD(e.signedIn)+'.':'Not opened yet.')+'</p>';
   h+='<div class="rows"><div class="row"><b>Signed up</b><span>'+fmtDT(p.created)+'</span></div><div class="row"><b>Last active</b><span>'+fmtD(p.lastActive)+'</span></div><div class="row"><b>Test</b><span>'+(p.test?'Completed. Chills score top '+(100-p.score)+'%.':'Not taken.')+'</span></div><div class="row"><b>Matched video</b><span>'+(p.test?p.video:'')+'</span></div><div class="row"><b>Invites</b><span>'+p.invites+' sent'+(p.compat?', '+p.compat+' compatibility tests':'')+'</span></div><div class="row"><b>Edge</b><span>'+(e.status==='none'?'Never asked.':e.status==='requested'?'Asked on '+fmtD(e.requested)+'.':'Granted '+fmtD(e.granted)+(e.invited?', you sent it':'')+'. '+(e.sessions?e.sessions.length+' sessions, '+e.sessions.filter(function(s){return s.completed;}).length+' completed, chills in '+e.sessions.filter(function(s){return s.chills;}).length+'.':''))+'</span></div></div>';
   if(p.notes.length) h+='<div class="sec-h" style="margin-top:22px"><h2>Notes</h2></div><div class="feed">'+p.notes.map(function(n){return '<div class="fitem"><div class="m">'+fmtD(n.date)+'</div><p>'+n.text+'</p></div>';}).join('')+'</div>';
@@ -496,6 +507,16 @@ function revoke(id){ post('/admin/revoke',{user_id:id}).then(function(r){ if(!r.
 function grantAll(){ post('/admin/grant-all').then(function(r){ if(!r.ok){ toast('Failed'); return; } toast('Everyone waiting now has access'); loadData(); }); }
 function addTag(id){ var t=prompt('Tag (friend, investor, clinician, press, creator)'); if(t){ post('/admin/tag',{user_id:id, tag:t.trim().toLowerCase()}).then(function(){ reloadInto(id); }); } }
 function addNote(id){ var t=prompt('Note'); if(t){ post('/admin/note',{user_id:id, text:t}).then(function(){ reloadInto(id); }); } }
+function delUser(id){
+  var p=PBI[id]; if(!p) return;
+  var who=(p.email||p.name||'this account');
+  if(!confirm('Delete '+who+' permanently?\n\nEverything about them is removed: account, answers, results, invites. This cannot be undone.')) return;
+  post('/admin/user/'+id+'/delete',{confirm:true}).then(function(r){
+    if(!r.ok){ toast(r.error||'Failed'); return; }
+    toast('Account deleted');
+    closeDrawer(); loadData();
+  });
+}
 function openInvite(){
   document.getElementById('drawer').innerHTML='<div class="top"><div><h2>Send Edge to someone</h2><div class="sub">They get a personal link by email. If they have no account yet, one is created for them and the test is skipped.</div></div><button class="xb" onclick="closeDrawer()" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'+
     '<div class="field"><label>Name</label><input id="invName" placeholder="Adam McGuire"></div><div class="field"><label>Email</label><input id="invMail" placeholder="adam@example.com"></div><div class="field"><label>Tag</label><select id="invTag"><option>friend</option><option>investor</option><option>clinician</option><option>press</option><option>creator</option></select></div><div class="field"><label>A line in the email, optional</label><textarea id="invNote"></textarea></div>'+
