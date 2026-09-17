@@ -1457,8 +1457,6 @@ body.dk .legal{border-color:rgba(255,255,255,.1)}
 #ctv .playscr .poster{cursor:pointer}
 #ctv .playscr.playing .poster .pl{opacity:0}
 #ctv .playscr.playing .poster .bar span:first-child{opacity:0}
-#ctv .playscr .prog{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.14)}
-#ctv .playscr .prog i{display:block;height:100%;width:0;background:#fff;transition:width 1s linear}
 #ctv .playscr.ended .poster::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.35)}
 #ctv .beta-banner{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 18px 16px 24px;margin-bottom:34px;border-radius:22px;background:linear-gradient(118deg,var(--l1),var(--l2) 34%,var(--l3) 64%,var(--l4));color:var(--ink);box-shadow:var(--shadow-soft)}
 #ctv .beta-banner.off{display:none}
@@ -2559,7 +2557,6 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
     <div class="stage">
       <div class="frame" id="frame">
         <div class="poster" id="poster"><div class="pl">▶</div><div class="bar"><span>YouTube embed, official player only</span><span id="plen">6:26</span></div></div>
-        <div class="prog"><i id="vprog"></i></div>
         <button class="done" onclick="startAfter()">I'm done</button>
       </div>
     </div>
@@ -3048,9 +3045,30 @@ var _yttag = document.createElement('script'); _yttag.src = 'https://www.youtube
 var _ytcss = document.createElement('style'); _ytcss.textContent = '#poster{position:relative}#ytmount,#poster iframe{position:absolute;inset:0;width:100%;height:100%;border:0}'; document.head.appendChild(_ytcss);
 function onYouTubeIframeAPIReady(){ ytReady = true; if(_ytWaiting){ _ytWaiting = false; realPlay(); } }
 function markWatched(){ var v = V[vi]; if(v && v.sid){ fetch('/video/' + v.sid + '/watched', {method:'POST'}).catch(function(){}); } }
+function enterFsLandscape(){
+  if(!window.matchMedia || !matchMedia('(pointer:coarse)').matches) return;
+  var el = document.getElementById('playscr');
+  var req = el.requestFullscreen || el.webkitRequestFullscreen;
+  if(req){
+    try {
+      var p = req.call(el);
+      if(p && p.then){
+        p.then(function(){
+          try { if(screen.orientation && screen.orientation.lock){ screen.orientation.lock('landscape').catch(function(){}); } } catch(x){}
+        }).catch(function(){});
+      }
+    } catch(x){}
+  }
+}
+function exitFsQuiet(){
+  try { if(screen.orientation && screen.orientation.unlock){ screen.orientation.unlock(); } } catch(x){}
+  try {
+    if(document.fullscreenElement && document.exitFullscreen){ document.exitFullscreen().catch(function(){}); }
+    else if(document.webkitFullscreenElement && document.webkitExitFullscreen){ document.webkitExitFullscreen(); }
+  } catch(x){}
+}
 function playVideo(){
   go('play'); vp = 0; clearInterval(vT);
-  document.getElementById('vprog').style.width = '0';
   var ps = document.getElementById('playscr');
   ps.classList.remove('ended','playing','ending');
   var v = V[vi];
@@ -3067,6 +3085,7 @@ function realPlay(){
   if(!ytReady){ _ytWaiting = true; return; }
   var v = V[vi]; if(!v || !v.yt){ return; }
   sc.classList.add('playing');
+  enterFsLandscape();
   var poster = document.getElementById('poster');
   poster.onclick = null;
   poster.innerHTML = '<div id="ytmount"></div>';
@@ -3087,7 +3106,6 @@ function realPlay(){
       var d = ytPlayer && ytPlayer.getDuration ? ytPlayer.getDuration() : 0;
       var c = ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
       if(d > 0){
-        document.getElementById('vprog').style.width = Math.min(100, 100 * c / d) + '%';
         if(d - c <= 5){ sc.classList.add('ending'); }
       }
     } catch(x){}
@@ -3100,7 +3118,7 @@ function ytFallback(v){
 
 /* ───────── after the video ───────── */
 var ai = 0, aAns = {};
-function startAfter(){ clearInterval(vT); try { if(ytPlayer && ytPlayer.destroy){ ytPlayer.destroy(); ytPlayer = null; } } catch(x){} ai = 0; aAns = {}; go('after'); renderA(); }
+function startAfter(){ exitFsQuiet(); clearInterval(vT); try { if(ytPlayer && ytPlayer.destroy){ ytPlayer.destroy(); ytPlayer = null; } } catch(x){} ai = 0; aAns = {}; go('after'); renderA(); }
 function renderA(){
   var body = document.getElementById('afBody'); var h = '';
   if(ai===0){
