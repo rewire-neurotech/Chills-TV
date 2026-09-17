@@ -2581,6 +2581,14 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
   </div>
 </div>
 
+<!-- ═══════ 5c. BUSY: the concurrency cap fired ═══════ -->
+<div class="screen" id="screen-busy">
+  <div class="find">
+    <h1>A few people are ahead of you.</h1>
+    <div class="fs">This page will keep trying on its own.</div>
+  </div>
+</div>
+
 <!-- ═══════ 6. VIDEO: the description, then Play ═══════ -->
 <div class="screen" id="screen-video">
   <div class="col vintro">
@@ -2842,7 +2850,7 @@ var CTX = window.CTX || {logged_in:false};
 var CTV = document.getElementById('ctv');
 var firstVisit = false, cur = 'profile';
 var NONAV = {auth:1, play:1};
-var ROUTE = {auth:'account', consent:'consent', tintro:'start', test:'test', finding:'finding', finding2:'again', video:'video', play:'play', after:'after', profile:'profile', app:'beta', compatlist:'compatibility', compat:'match'};
+var ROUTE = {auth:'account', consent:'consent', tintro:'start', busy:'wait', test:'test', finding:'finding', finding2:'again', video:'video', play:'play', after:'after', profile:'profile', app:'beta', compatlist:'compatibility', compat:'match'};
 function go(id, mode, silent){
   if(id==='auth' && CTX.logged_in){ id = CTX.has_profile ? 'profile' : 'consent'; }
   /* no profile means no profile pages: guests are routed to start instead */
@@ -2860,7 +2868,7 @@ function go(id, mode, silent){
   document.body.classList.toggle('ctv-auth', id==='auth');   /* the site nav stays visible while creating an account */
   if(id!=='play'){ clearInterval(vT); document.getElementById('playscr').classList.remove('ended','playing','ending'); }
   /* no menu until the first video has been reported: the nav must never ask a user to take the test */
-  var guest = (id==='auth'||id==='consent'||id==='tintro'||id==='test'||id==='finding'||id==='finding2') || (firstVisit && (id==='video'||id==='play'||id==='after'));
+  var guest = (id==='auth'||id==='consent'||id==='tintro'||id==='busy'||id==='test'||id==='finding'||id==='finding2') || (firstVisit && (id==='video'||id==='play'||id==='after'));
   CTV.classList.toggle('guest', guest);
   closeMenu();
   window.scrollTo({top:0, behavior:'instant'});
@@ -2925,7 +2933,30 @@ function authGo(){
 }
 function googleGo(){ location.href = '/auth/google/start'; }
 function signOut(){ fetch('/auth/logout', {method:'POST'}).then(function(){ location.href = '/'; }).catch(function(){ location.href = '/'; }); }
-function consentGo(){ fetch('/flow/consent', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({boxes:{age_terms:true, not_medical:true, research:true}})}).catch(function(){}); go('tintro'); }
+function consentGo(){
+  go('tintro');
+  fetch('/flow/consent', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({boxes:{age_terms:true, not_medical:true, research:true}})})
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if(d && d.busy){ runBusy('consent'); } })
+    .catch(function(){});
+}
+var busyT = null;
+function runBusy(kind){
+  clearInterval(busyT);
+  go('busy');
+  busyT = setInterval(function(){
+    if(cur !== 'busy'){ clearInterval(busyT); return; }
+    if(kind === 'consent'){
+      fetch('/flow/consent', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({boxes:{age_terms:true, not_medical:true, research:true}})})
+        .then(function(r){ return r.json(); })
+        .then(function(d){ if(!(d && d.busy)){ clearInterval(busyT); go('tintro'); } })
+        .catch(function(){});
+    } else {
+      if(window._flowState === 'done'){ clearInterval(busyT); openVideo(0, true); return; }
+      if(window._flowState === 'error'){ submitTest(); }
+    }
+  }, 10000);
+}
 function betaJoin(){ fetch('/flow/beta', {method:'POST'}).catch(function(){}); var bb = document.getElementById('betaBanner'); if(bb) bb.classList.add('off'); setApp('listed'); renderProducts(); renderApp(); toast('You are on the list'); }
 function share(){
   var txt = '\u26a1 More likely to get chills than ' + (CTX.likely_pct || '') + '% of people. I found it on ChillsTV \u2014 @rewire_protocols';
@@ -3059,7 +3090,7 @@ function submitTest(){
     .then(function(r){ return r.json(); })
     .then(function(d){
       if(d && d.ok){ CTX.videos = d.videos || []; V = CTX.videos; CTX.has_profile = true; CTX.likely_pct = d.likely_pct; window._flowState = 'done'; }
-      else { window._flowError = (d && d.error) || ''; window._flowState = 'error'; }
+      else { window._flowError = (d && d.error) || ''; window._flowBusy = !!(d && d.busy); window._flowState = 'error'; }
     })
     .catch(function(){ window._flowState = 'error'; });
 }
@@ -3067,6 +3098,7 @@ function waitResult(n){
   if(cur !== 'finding') return;
   if(window._flowState === 'done'){ openVideo(0, true); return; }
   if(window._flowState === 'error'){
+    if(window._flowBusy){ runBusy('submit'); return; }
     if(n === 0){ toast('Connection hiccup, retrying'); submitTest(); }
     if(n > 20){ toast(window._flowError || 'Something went wrong. Please refresh and try again.'); return; }
   }
@@ -3424,7 +3456,7 @@ if(prodBtn){
   document.getElementById('navVeil').addEventListener('click',function(){setMenu(false)});
   document.addEventListener('keydown',function(e){if(e.key==='Escape')setMenu(false)});
 }
-var CTV_ROUTES={account:'auth',signin:'auth',consent:'consent',start:'tintro',test:'test',finding:'finding',again:'finding2',video:'video',after:'after',profile:'profile',compatibility:'compatlist',match:'compat',beta:'app'};
+var CTV_ROUTES={account:'auth',signin:'auth',consent:'consent',start:'tintro',wait:'busy',test:'test',finding:'finding',again:'finding2',video:'video',after:'after',profile:'profile',compatibility:'compatlist',match:'compat',beta:'app'};
 function route(){
   var h=location.hash.replace('#','')||'/';
   if(h.charAt(0)!=='/')return;
