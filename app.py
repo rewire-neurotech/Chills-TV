@@ -978,15 +978,17 @@ def flow_videos_for(user) -> list:
         sid = e.get("stimulus_id", "")
         cat = video_by_sid(sid) or {}
         url = e.get("url", "") or cat.get("url", "")
+        title = e.get("name", "") or cat.get("name", "")
         out.append({
             "sid": sid,
-            "t": e.get("name", "") or cat.get("name", ""),
+            "t": title,
             "d": cat.get("desc", ""),
             "len": cat.get("dur", ""),
             "kind": "Picked for you",
             "bg": FLOW_GRADIENTS[i % len(FLOW_GRADIENTS)],
             "url": url,
             "yt": ytid(url),
+            "audio": "audio" in title.lower(),
         })
     return out
 
@@ -1011,11 +1013,13 @@ def next_unseen_pick(user, exclude_sid: str = ""):
         url = e.get("url", "") or cat.get("url", "")
         if not sid or sid in seen or not url.startswith("http"):
             continue
+        title = e.get("name", "") or cat.get("name", "")
         return {
-            "sid": sid, "t": e.get("name", "") or cat.get("name", ""), "d": cat.get("desc", ""),
+            "sid": sid, "t": title, "d": cat.get("desc", ""),
             "len": cat.get("dur", ""), "kind": "Another pick for you",
             "bg": FLOW_GRADIENTS[rank % len(FLOW_GRADIENTS)],
             "url": url, "yt": ytid(url),
+            "audio": "audio" in title.lower(),
         }
     return None
 
@@ -1052,7 +1056,8 @@ def _duo_cv(row, initiator=None, partner=None):
             pool.append({"sid": e.get("stimulus_id", ""), "t": e.get("name", ""),
                          "d": e.get("desc", ""), "len": e.get("dur", ""), "kind": "Picked for you",
                          "bg": FLOW_GRADIENTS[rank % len(FLOW_GRADIENTS)],
-                         "url": e.get("url", ""), "yt": ytid(e.get("url", ""))})
+                         "url": e.get("url", ""), "yt": ytid(e.get("url", "")),
+                         "audio": "audio" in (e.get("name", "") or "").lower()})
     else:
         try:
             top5 = json.loads(initiator["top5_json"] or "[]") if initiator else []
@@ -1061,9 +1066,11 @@ def _duo_cv(row, initiator=None, partner=None):
         for rank, e in enumerate(top5[:5]):
             v0 = video_by_sid(e.get("stimulus_id", "")) or {}
             url = e.get("url", "") or v0.get("url", "")
-            pool.append({"sid": e.get("stimulus_id", ""), "t": e.get("name", "") or v0.get("name", ""),
+            title = e.get("name", "") or v0.get("name", "")
+            pool.append({"sid": e.get("stimulus_id", ""), "t": title,
                          "d": v0.get("desc", ""), "len": v0.get("dur", ""), "kind": "Picked for you",
-                         "bg": FLOW_GRADIENTS[rank % len(FLOW_GRADIENTS)], "url": url, "yt": ytid(url)})
+                         "bg": FLOW_GRADIENTS[rank % len(FLOW_GRADIENTS)], "url": url, "yt": ytid(url),
+                         "audio": "audio" in title.lower()})
     cv = []
     for e in pool[:5]:
         sid0 = e["sid"]
