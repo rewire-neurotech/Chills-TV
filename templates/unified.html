@@ -2595,6 +2595,7 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
     <span class="vkind" id="vkind">Matched to your answers</span>
     <h1 class="vtitle" id="vtitle">Hallelujah Choir</h1>
     <p class="vp" id="vdesc"></p>
+    <p class="vp" id="vaud" style="display:none">Audio only. The screen stays dark while it plays.</p>
     <div class="actions"><button class="btn btn-p" onclick="playVideo()"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Play</button><span class="hint" id="vlen">6:26</span></div>
   </div>
 </div>
@@ -3070,10 +3071,16 @@ function pick(btn, v){
 }
 function answer(v){
   ans[qi] = v;
-  if(qi < Q.length-1){ qi++; renderQ(); }
+  if(qi < Q.length-1){ qi++; history.pushState({q: qi}, '', '#/test'); renderQ(); }
   else { qi = Q.length; setProg(); submitTest(); go('finding'); }
 }
-function prevQ(){ if(qi>0){ qi--; renderQ(); } }
+function prevQ(){ if(qi>0){ history.back(); } }
+window.addEventListener('popstate', function(e){
+  if(cur === 'test' && location.hash === '#/test'){
+    var s = e.state; qi = (s && typeof s.q === 'number') ? s.q : 0;
+    renderQ();
+  }
+});
 
 /* ───────── submit ───────── */
 var AGEV = {'18 to 24':'18-24','25 to 34':'25-34','35 to 44':'35-44','45 to 54':'45-54','55 to 64':'55-64','65 and over':'65+'};
@@ -3138,6 +3145,7 @@ function openVideo(i, matched){
   if(seen.indexOf(i)<0) seen.push(i);
   document.getElementById('vtitle').textContent = v.t;
   document.getElementById('vdesc').textContent = v.d || '';
+  var va = document.getElementById('vaud'); if(va){ va.style.display = v.audio ? '' : 'none'; }
   document.getElementById('vlen').textContent = v.len;
   var plenEl = document.getElementById('plen'); if(plenEl) plenEl.textContent = v.len;
   document.getElementById('vkind').textContent = matched==='again' ? 'Another pick for you' : (matched ? 'Matched to your answers' : v.kind);
@@ -3180,7 +3188,7 @@ function playVideo(){
   var v = V[vi];
   if(v){
     var p0 = document.getElementById('poster');
-    p0.innerHTML = '<div class="pl">\u25b6</div><div class="bar"><span>Plays on YouTube</span><span id="plen">' + (v.len || '') + '</span></div>';
+    p0.innerHTML = '<div class="pl">\u25b6</div><div class="bar"><span>' + (v.audio ? 'Audio only, plays on YouTube' : 'Plays on YouTube') + '</span><span id="plen">' + (v.len || '') + '</span></div>';
     p0.onclick = realPlay;
     if(v.yt){ p0.style.backgroundImage = "url('https://i.ytimg.com/vi/" + v.yt + "/hqdefault.jpg')," + (v.bg || 'none'); p0.style.backgroundSize = 'cover'; p0.style.backgroundPosition = 'center'; }
   }
@@ -3231,8 +3239,10 @@ function renderA(){
     h = '<div class="tq-ins"></div><div class="tq-q">Did you get chills?</div><div class="tq-a"><div class="yn2"><button onclick="aPick(this,false)">No</button><button onclick="aPick(this,true)">Yes</button></div></div>';
   } else if(ai===1){
     h = '<div class="tq-ins"></div><div class="tq-q">What gave you chills?</div><div class="tq-a"><textarea id="aT" enterkeyhint="done"></textarea></div><div class="actions"><button class="btn btn-p" onclick="aNext()">Continue</button></div>';
-  } else {
+  } else if(ai===2){
     h = '<div class="tq-ins"></div><div class="tq-q">Why do you think this gave you chills?</div><div class="tq-a"><textarea id="aT" enterkeyhint="done"></textarea></div><div class="actions"><button class="btn btn-p" onclick="aDone()">Continue</button><button class="btn btn-l" onclick="aDone()">Skip</button></div>';
+  } else {
+    h = '<div class="tq-ins"></div><div class="tq-q">Do you want to try another video?</div><div class="tq-a"><div class="yn2"><button onclick="askPick(this,false)">No</button><button onclick="askPick(this,true)">Yes</button></div></div>';
   }
   body.innerHTML = h;
   body.classList.remove('swap-in'); void body.offsetWidth; body.classList.add('swap-in');
@@ -3250,8 +3260,13 @@ function aDone(){
   try { if(ytPlayer && ytPlayer.destroy){ ytPlayer.destroy(); ytPlayer = null; } } catch(x){}
   var sid = window._afterSid || (V[vi] && V[vi].sid) || '';
   fetch('/flow/after', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sid: sid, chills: !!aAns.chills, what: aAns.what || '', why: aAns.why || ''})}).catch(function(){});
-  if(!aAns.chills && loopOn){ nextPick(sid); return; }
+  if(!aAns.chills && loopOn){ ai = 3; renderA(); return; }
   toProfile();
+}
+function askPick(btn, yes){
+  btn.parentNode.querySelectorAll('button').forEach(function(b){ b.classList.remove('on'); }); btn.classList.add('on');
+  var sid = window._afterSid || (V[vi] && V[vi].sid) || '';
+  setTimeout(function(){ if(yes){ nextPick(sid); } else { toProfile(); } }, 260);
 }
 function toProfile(){
   var first = firstVisit; firstVisit = false;
