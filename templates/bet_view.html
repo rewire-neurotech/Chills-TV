@@ -34,6 +34,7 @@ h1{font-family:var(--display);font-size:clamp(26px,5.4vw,34px);font-weight:700;l
 .ytfall-play{font-size:44px;color:#fff;text-decoration:none;text-shadow:0 4px 18px rgba(0,0,0,.5)}
 .ytfall-bar{position:absolute;left:0;right:0;bottom:0;padding:10px 16px;color:rgba(255,255,255,.85);font-size:13px;background:linear-gradient(transparent,rgba(0,0,0,.55))}
 .vname{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.015em;margin:16px 4px 26px}
+.anote{color:var(--muted);font-size:14px;margin:-18px 4px 26px}
 .ask .lbl{font-family:var(--display);font-size:22px;font-weight:700;letter-spacing:-.015em;text-align:center;margin:6px 0 16px}
 .yn{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .yn button{padding:16px 10px;border-radius:999px;border:0;font-family:var(--sf);font-weight:600;font-size:16px;cursor:pointer;letter-spacing:-.01em;transition:opacity .18s,background .18s}
@@ -75,6 +76,7 @@ h1{font-family:var(--display);font-size:clamp(26px,5.4vw,34px);font-weight:700;l
   <h1>{{ sender_name }} sent you chills</h1>
   <div class="player"><div id="ytplayer"></div></div>
   <div class="vname">{{ send.stimulus_name }}</div>
+  {% if send.stimulus_name and 'audio' in send.stimulus_name|lower %}<div class="anote">Audio only. The screen stays dark while it plays.</div>{% endif %}
 
   {% if not answered %}
   <div class="ask" id="bv-q">
