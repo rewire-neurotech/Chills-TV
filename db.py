@@ -299,6 +299,7 @@ def _migrate(conn):
         ("terms_version", "TEXT DEFAULT ''"),
         ("privacy_version", "TEXT DEFAULT ''"),
         ("consent_boxes", "TEXT DEFAULT ''"),
+        ("score_hidden", "INTEGER DEFAULT 0"),
     ]:
         if col not in existing:
             conn.execute(f"ALTER TABLE users ADD COLUMN {col} {decl}")
@@ -991,6 +992,15 @@ def user_has_chills(user_id: int) -> bool:
             (user_id,),
         ).fetchone()
     return row is not None
+
+
+def set_score_hidden(user_id: int):
+    # permanent no score flag, set once when the first visit ends with no chills
+    with get_conn() as conn:
+        conn.execute(
+            "UPDATE users SET score_hidden=1 WHERE id=?",
+            (user_id,),
+        )
 
 
 # ── auth sessions (account sign in) ───────────────────────────
