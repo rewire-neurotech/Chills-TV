@@ -1730,9 +1730,9 @@ body.dk .legal{border-color:rgba(255,255,255,.1)}
 #ctv .btn-c{width:100%}
 #ctv .chip{border-radius:12px}
 #ctv .tq textarea{border-radius:16px}
-#ctv #screen-tintro .actions,#ctv #screen-consent .actions,#ctv #screen-test .actions,#ctv #screen-video .actions,#ctv #screen-after .actions{position:fixed;left:18px;right:18px;bottom:calc(16px + env(safe-area-inset-bottom) + var(--kb,0px));z-index:30;margin:0;flex-direction:column;transition:bottom .15s;gap:6px;align-items:stretch;background:linear-gradient(180deg,rgba(251,249,244,0),rgba(251,249,244,.96) 30%);padding-top:14px}
-#ctv #screen-tintro .actions .btn,#ctv #screen-consent .actions .btn,#ctv #screen-test .actions .btn,#ctv #screen-video .actions .btn,#ctv #screen-after .actions .btn-p{width:100%}
-#ctv #screen-after .actions .btn-l{align-self:center}
+#ctv #screen-tintro .actions,#ctv #screen-consent .actions,#ctv #screen-test .actions,#ctv #screen-video .actions,#ctv #screen-after .actions,#ctv #screen-luck .actions{position:fixed;left:18px;right:18px;bottom:calc(16px + env(safe-area-inset-bottom) + var(--kb,0px));z-index:30;margin:0;flex-direction:column;transition:bottom .15s;gap:6px;align-items:stretch;background:linear-gradient(180deg,rgba(251,249,244,0),rgba(251,249,244,.96) 30%);padding-top:14px}
+#ctv #screen-tintro .actions .btn,#ctv #screen-consent .actions .btn,#ctv #screen-test .actions .btn,#ctv #screen-video .actions .btn,#ctv #screen-after .actions .btn-p,#ctv #screen-luck .actions .btn-p{width:100%}
+#ctv #screen-after .actions .btn-l,#ctv #screen-luck .actions .btn-l{align-self:center}
 #ctv #screen-video .actions .hint{text-align:center}
 #ctv .cons,#ctv .tq,#ctv .vintro{padding-bottom:150px}
 #ctv .vintro{min-height:0;padding-top:104px;justify-content:flex-start}
@@ -2624,6 +2624,15 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
   </div>
 </div>
 
+<!-- ═══════ 7. BETTER LUCK: no chills this time ═══════ -->
+<div class="screen" id="screen-luck">
+  <div class="tq intro">
+    <h1>Better luck<br>next time.</h1>
+    <p>No chills from this one. That is completely normal, most people only get chills from a few videos. Your answers still count toward the research.</p>
+    <div class="actions"><button class="btn btn-p" id="luckAgain" style="display:none" onclick="luckAgain()">Try another video</button><button class="btn btn-l" onclick="toProfile()">Go to my profile</button></div>
+  </div>
+</div>
+
 <!-- ═══════ 8. PROFILE ═══════ -->
 <div class="screen" id="screen-profile">
   <div class="hub">
@@ -2632,6 +2641,7 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
       <button class="btn btn-p" onclick="betaJoin()">Join the beta</button>
     </div>
 
+    {% if has_chills %}
     <div class="sec">
       <div class="sec-h">
         <h2>Your chills score</h2>
@@ -2655,6 +2665,18 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
         </div>
       </div>
     </div>
+    {% else %}
+    <div class="sec">
+      <div class="sec-h">
+        <h2>Your chills score</h2>
+      </div>
+      <div class="score">
+        <div style="grid-column:1/-1">
+          <div class="s"><b>No chills yet.</b> Your score will appear here once a video gives you chills.</div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
 
     <div class="sec games-sec">
       <div class="sec-h">
@@ -2851,7 +2873,7 @@ var CTX = window.CTX || {logged_in:false};
 var CTV = document.getElementById('ctv');
 var firstVisit = false, cur = 'profile';
 var NONAV = {auth:1, play:1};
-var ROUTE = {auth:'account', consent:'consent', tintro:'start', busy:'wait', test:'test', finding:'finding', finding2:'again', video:'video', play:'play', after:'after', profile:'profile', app:'beta', compatlist:'compatibility', compat:'match'};
+var ROUTE = {auth:'account', consent:'consent', tintro:'start', busy:'wait', test:'test', finding:'finding', finding2:'again', video:'video', play:'play', after:'after', luck:'luck', profile:'profile', app:'beta', compatlist:'compatibility', compat:'match'};
 function go(id, mode, silent){
   if(id==='auth' && CTX.logged_in){ id = CTX.has_profile ? 'profile' : 'consent'; }
   /* no profile means no profile pages: guests are routed to start instead */
@@ -2869,7 +2891,7 @@ function go(id, mode, silent){
   document.body.classList.toggle('ctv-auth', id==='auth');   /* the site nav stays visible while creating an account */
   if(id!=='play'){ clearInterval(vT); document.getElementById('playscr').classList.remove('ended','playing','ending'); }
   /* no menu until the first video has been reported: the nav must never ask a user to take the test */
-  var guest = (id==='auth'||id==='consent'||id==='tintro'||id==='busy'||id==='test'||id==='finding'||id==='finding2') || (firstVisit && (id==='video'||id==='play'||id==='after'));
+  var guest = (id==='auth'||id==='consent'||id==='tintro'||id==='busy'||id==='test'||id==='finding'||id==='finding2') || (firstVisit && (id==='video'||id==='play'||id==='after'||id==='luck'));
   CTV.classList.toggle('guest', guest);
   closeMenu();
   window.scrollTo({top:0, behavior:'instant'});
@@ -3260,7 +3282,7 @@ function aDone(){
   try { if(ytPlayer && ytPlayer.destroy){ ytPlayer.destroy(); ytPlayer = null; } } catch(x){}
   var sid = window._afterSid || (V[vi] && V[vi].sid) || '';
   fetch('/flow/after', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sid: sid, chills: !!aAns.chills, what: aAns.what || '', why: aAns.why || ''})}).catch(function(){});
-  if(!aAns.chills && loopOn){ ai = 3; renderA(); return; }
+  if(!aAns.chills){ goLuck(); return; }
   toProfile();
 }
 function askPick(btn, yes){
@@ -3268,6 +3290,11 @@ function askPick(btn, yes){
   var sid = window._afterSid || (V[vi] && V[vi].sid) || '';
   setTimeout(function(){ if(yes){ nextPick(sid); } else { toProfile(); } }, 260);
 }
+function goLuck(){
+  var b = document.getElementById('luckAgain'); if(b){ b.style.display = loopOn ? '' : 'none'; }
+  go('luck');
+}
+function luckAgain(){ var sid = window._afterSid || (V[vi] && V[vi].sid) || ''; nextPick(sid); }
 function toProfile(){
   var first = firstVisit; firstVisit = false;
   toast(first ? 'Welcome to your profile' : 'Saved. Added to the research.');
@@ -3471,7 +3498,7 @@ if(prodBtn){
   document.getElementById('navVeil').addEventListener('click',function(){setMenu(false)});
   document.addEventListener('keydown',function(e){if(e.key==='Escape')setMenu(false)});
 }
-var CTV_ROUTES={account:'auth',signin:'auth',consent:'consent',start:'tintro',wait:'busy',test:'test',finding:'finding',again:'finding2',video:'video',after:'after',profile:'profile',compatibility:'compatlist',match:'compat',beta:'app'};
+var CTV_ROUTES={account:'auth',signin:'auth',consent:'consent',start:'tintro',wait:'busy',test:'test',finding:'finding',again:'finding2',video:'video',after:'after',luck:'luck',profile:'profile',compatibility:'compatlist',match:'compat',beta:'app'};
 function route(){
   var h=location.hash.replace('#','')||'/';
   if(h.charAt(0)!=='/')return;
