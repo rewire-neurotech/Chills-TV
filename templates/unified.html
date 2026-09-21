@@ -2629,7 +2629,7 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
   <div class="tq intro">
     <h1>Better luck<br>next time.</h1>
     <p>No chills from this one. That is completely normal, most people only get chills from a few videos. Your answers still count toward the research.</p>
-    <div class="actions"><button class="btn btn-p" id="luckAgain" style="display:none" onclick="luckAgain()">Try another video</button><button class="btn btn-l" onclick="toProfile()">Go to my profile</button></div>
+    <div class="actions"><button class="btn btn-p" onclick="toProfile()">Go to my profile</button></div>
   </div>
 </div>
 
@@ -2641,7 +2641,7 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
       <button class="btn btn-p" onclick="betaJoin()">Join the beta</button>
     </div>
 
-    {% if has_chills %}
+    {% if show_score %}
     <div class="sec">
       <div class="sec-h">
         <h2>Your chills score</h2>
@@ -3282,19 +3282,18 @@ function aDone(){
   try { if(ytPlayer && ytPlayer.destroy){ ytPlayer.destroy(); ytPlayer = null; } } catch(x){}
   var sid = window._afterSid || (V[vi] && V[vi].sid) || '';
   fetch('/flow/after', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sid: sid, chills: !!aAns.chills, what: aAns.what || '', why: aAns.why || ''})}).catch(function(){});
-  if(!aAns.chills){ goLuck(); return; }
+  if(!aAns.chills && loopOn){ ai = 3; renderA(); return; }
   toProfile();
 }
 function askPick(btn, yes){
   btn.parentNode.querySelectorAll('button').forEach(function(b){ b.classList.remove('on'); }); btn.classList.add('on');
   var sid = window._afterSid || (V[vi] && V[vi].sid) || '';
-  setTimeout(function(){ if(yes){ nextPick(sid); } else { toProfile(); } }, 260);
+  setTimeout(function(){ if(yes){ nextPick(sid); } else { goLuck('declined'); } }, 260);
 }
-function goLuck(){
-  var b = document.getElementById('luckAgain'); if(b){ b.style.display = loopOn ? '' : 'none'; }
+function goLuck(reason){
+  fetch('/flow/luck', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({reason: reason || 'declined'})}).catch(function(){});
   go('luck');
 }
-function luckAgain(){ var sid = window._afterSid || (V[vi] && V[vi].sid) || ''; nextPick(sid); }
 function toProfile(){
   var first = firstVisit; firstVisit = false;
   toast(first ? 'Welcome to your profile' : 'Saved. Added to the research.');
@@ -3308,7 +3307,8 @@ function nextPick(sid){
     .then(function(d){
       var wait = Math.max(0, 2400 - (Date.now() - started));
       setTimeout(function(){
-        if(!d || !d.ok || d.done || !d.video){ if(d && !d.ok && d.error){ toast(d.error); } toProfile(); return; }
+        if(d && d.ok && d.done){ goLuck('exhausted'); return; }
+        if(!d || !d.ok || !d.video){ if(d && !d.ok && d.error){ toast(d.error); } toProfile(); return; }
         try {
           V.push(d.video); vi = V.length - 1;
           openVideo(vi, 'again');
