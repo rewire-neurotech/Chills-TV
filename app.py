@@ -1,5 +1,5 @@
 import sitecustomize
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, Query
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -938,6 +938,7 @@ def avatar_color(seed: str) -> str:
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
+EDGE_URL = os.getenv("EDGE_URL", "https://app.rewire.bio")  # where from=edge google logins bounce back to
 MATCH_BAR = float(os.getenv("MATCH_BAR", "0.65"))
 TERMS_VERSION = os.getenv("TERMS_VERSION", "1.1")
 PRIVACY_VERSION = os.getenv("PRIVACY_VERSION", "1.0")
@@ -1391,9 +1392,12 @@ async def auth_logout(req: Request):
     return resp
 
 @a.get("/auth/google/start")
-def google_start(req: Request):
+def google_start(req: Request, x_from: str = Query("", alias="from")):
+    # Edge sends its users through here (?from=edge) because google only
+    # trusts this domain; the callback bounces them back into Edge.
+    from_edge = x_from == "edge"
     if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
-        return RedirectResponse("/?gerr=1#/account")
+        return RedirectResponse(EDGE_URL + "/#gerr=google" if from_edge else "/?gerr=1#/account")
     state = secrets.token_urlsafe(16)
     from urllib.parse import urlencode
     params = urlencode({
@@ -1406,12 +1410,16 @@ def google_start(req: Request):
     })
     resp = RedirectResponse("https://accounts.google.com/o/oauth2/v2/auth?" + params)
     resp.set_cookie("g_state", state, max_age=600, httponly=True, samesite="lax", secure=chillsauth.secure_cookies(req))
+    if from_edge:
+        resp.set_cookie("g_from", "edge", max_age=600, httponly=True, samesite="lax", secure=chillsauth.secure_cookies(req))
     return resp
 
 @a.get("/auth/google/callback")
 def google_callback(req: Request, code: str = "", state: str = ""):
+    from_edge = req.cookies.get("g_from", "") == "edge"
+    gerr = RedirectResponse(EDGE_URL + "/#gerr=google") if from_edge else RedirectResponse("/?gerr=1#/account")
     if not code or not state or state != req.cookies.get("g_state", ""):
-        return RedirectResponse("/?gerr=1#/account")
+        return gerr
     try:
         tok = requests.post("https://oauth2.googleapis.com/token", data={
             "code": code,
@@ -1425,11 +1433,11 @@ def google_callback(req: Request, code: str = "", state: str = ""):
                              timeout=15).json()
     except Exception as ex:
         E["msg"] = f"google oauth: {ex}"; E["when"] = datetime.utcnow().isoformat()
-        return RedirectResponse("/?gerr=1#/account")
+        return gerr
     sub = str(info.get("sub") or "")
     email = (info.get("email") or "").strip().lower()
     if not sub or not email:
-        return RedirectResponse("/?gerr=1#/account")
+        return gerr
     user = chillsdb.get_user_by_google_sub(sub)
     created = False
     if not user:
@@ -1445,7 +1453,25 @@ def google_callback(req: Request, code: str = "", state: str = ""):
             else:
                 user = chillsdb.create_account_user(email, "", sub)
             created = True
-    dest = "/#/profile" if _user_has_profile(user) else "/#/consent"
+    if from_edge:
+        # born in or bound for Edge: new accounts get access on the spot
+        # (edge signup grants instantly), existing granted accounts pass,
+        # everyone else gets the same no-access bounce the password door gives.
+        if created or (user["beta_status"] or "none") == "granted":
+            edge_code = chillsdb.grant_edge(user["id"])
+            resp = RedirectResponse(EDGE_URL + "/go/" + edge_code)
+        else:
+            resp = RedirectResponse(EDGE_URL + "/#gerr=noaccess")
+        resp.delete_cookie("g_state"); resp.delete_cookie("g_from")
+        chillsauth.start_session(resp, req, user["id"])
+        log_ev("account_created" if created else "signed_in", user=user, detail={"method": "google", "via": "edge"})
+        return resp
+    # consented already (an edge born account visiting for the questionnaire):
+    # skip the consent screen, land on the test intro instead
+    if _user_has_profile(user):
+        dest = "/#/profile"
+    else:
+        dest = "/#/start" if user["consented_at"] else "/#/consent"
     resp = RedirectResponse(dest)
     resp.delete_cookie("g_state")
     chillsauth.start_session(resp, req, user["id"])
