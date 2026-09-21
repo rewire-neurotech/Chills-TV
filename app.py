@@ -1127,7 +1127,7 @@ def unified_context(req: Request, user) -> dict:
                                  "date_str": datetime.utcnow().strftime("%b %d")})
         board = bets_scoreboard([dict(r) for r in chillsdb.responses_for_sender(user["id"])])
         you_points, algo_points = board["you_points"], board["algo_points"]
-    has_chills = chillsdb.user_has_chills(user["id"]) if (user and has_profile) else False
+    show_score = bool(user and has_profile and not (user["score_hidden"] or 0))
     pending_sid = (user["pending_after_sid"] or "") if user else ""
     ctx = {
         "logged_in": chillsauth.is_logged_in(req),
@@ -1139,7 +1139,7 @@ def unified_context(req: Request, user) -> dict:
         "pending_after": bool(pending_sid),
         "pending_sid": pending_sid,
         "likely_pct": likely,
-        "has_chills": has_chills,
+        "show_score": show_score,
         "videos": videos,
         "lab_items": _lab_items(user["id"]) if user else [],
         "you_points": you_points, "algo_points": algo_points,
@@ -1148,7 +1148,7 @@ def unified_context(req: Request, user) -> dict:
     }
     return {
         "request": req, "ctx": ctx, "initial": _user_initial(user) or "?",
-        "likely_pct": likely, "one_in": one_in, "has_chills": has_chills,
+        "likely_pct": likely, "one_in": one_in, "show_score": show_score,
         "hist_bars": bars, "marker_x": marker_x, "videos": videos,
         "latest_duo": latest_duo, "you_points": you_points, "algo_points": algo_points,
         "duo_results": duo_results, "duo_waiting": duo_waiting, "duo_link": duo_link,
@@ -1606,7 +1606,7 @@ async def flow_after(req: Request):
     log_ev("after_answers", user=user, detail={
         "stimulus_id": sid, "chills": chills, "what": what, "why": why,
     })
-    return JSONResponse({"ok": True, "has_chills": chillsdb.user_has_chills(user["id"])})
+    return JSONResponse({"ok": True})
 
 @a.post("/flow/beta")
 async def flow_beta(req: Request):
@@ -1634,6 +1634,23 @@ async def flow_next_pick(req: Request):
         return JSONResponse({"ok": True, "done": True})
     log_ev("next_pick_served", user=user, detail={"sid": pick["sid"], "name": pick["t"]})
     return JSONResponse({"ok": True, "done": False, "video": pick})
+
+@a.post("/flow/luck")
+async def flow_luck(req: Request):
+    # the first visit ended with no chills: hide the score forever
+    user = chillsauth.get_current_user(req)
+    if not user or not _user_has_profile(user):
+        return JSONResponse({"ok": False, "error": "Please sign in first."})
+    try:
+        d = await req.json()
+    except Exception:
+        d = {}
+    reason = "exhausted" if (d.get("reason") or "") == "exhausted" else "declined"
+    if chillsdb.user_has_chills(user["id"]):
+        return JSONResponse({"ok": True, "hidden": False})
+    chillsdb.set_score_hidden(user["id"])
+    log_ev("score_hidden", user=user, detail={"reason": reason})
+    return JSONResponse({"ok": True, "hidden": True})
 
 @a.post("/flow/lab")
 async def flow_lab(req: Request):
@@ -2676,7 +2693,7 @@ def admin_export_csv(req: Request):
     out = [["signed_up","name","email","google","consented","beta_status","chills_score",
             "match_video","match_p","top5","paid","vector",
             "edge_code","edge_granted","beta_requested",
-            "terms_version","privacy_version","consent_boxes"] + akeys]
+            "terms_version","privacy_version","consent_boxes","score_hidden"] + akeys]
     for u in rows:
         try:
             aj = json.loads(u["answers_json"] or "{}")
@@ -2698,6 +2715,7 @@ def admin_export_csv(req: Request):
             datetime.utcfromtimestamp(u["edge_granted_at"]).isoformat() if u["edge_granted_at"] else "",
             datetime.utcfromtimestamp(u["beta_requested_at"]).isoformat() if u["beta_requested_at"] else "",
             u["terms_version"] or "", u["privacy_version"] or "", u["consent_boxes"] or "",
+            bool(u["score_hidden"] or 0),
         ] + [aj.get(k, "") for k in akeys])
     csv_text = "\n".join(",".join('"' + str(c).replace('"', '""') + '"' for c in row) for row in out)
     headers = {"Content-Disposition": "attachment; filename=chillstv_users.csv"}
