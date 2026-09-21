@@ -1127,6 +1127,7 @@ def unified_context(req: Request, user) -> dict:
                                  "date_str": datetime.utcnow().strftime("%b %d")})
         board = bets_scoreboard([dict(r) for r in chillsdb.responses_for_sender(user["id"])])
         you_points, algo_points = board["you_points"], board["algo_points"]
+    has_chills = chillsdb.user_has_chills(user["id"]) if (user and has_profile) else False
     pending_sid = (user["pending_after_sid"] or "") if user else ""
     ctx = {
         "logged_in": chillsauth.is_logged_in(req),
@@ -1138,6 +1139,7 @@ def unified_context(req: Request, user) -> dict:
         "pending_after": bool(pending_sid),
         "pending_sid": pending_sid,
         "likely_pct": likely,
+        "has_chills": has_chills,
         "videos": videos,
         "lab_items": _lab_items(user["id"]) if user else [],
         "you_points": you_points, "algo_points": algo_points,
@@ -1146,7 +1148,7 @@ def unified_context(req: Request, user) -> dict:
     }
     return {
         "request": req, "ctx": ctx, "initial": _user_initial(user) or "?",
-        "likely_pct": likely, "one_in": one_in,
+        "likely_pct": likely, "one_in": one_in, "has_chills": has_chills,
         "hist_bars": bars, "marker_x": marker_x, "videos": videos,
         "latest_duo": latest_duo, "you_points": you_points, "algo_points": algo_points,
         "duo_results": duo_results, "duo_waiting": duo_waiting, "duo_link": duo_link,
@@ -1596,13 +1598,15 @@ async def flow_after(req: Request):
         except Exception:
             pass
         if user["pending_send_token"] and (user["stimulus_id"] or "") == sid:
+            chillsdb.create_send_response(user["pending_send_token"], chills,
+                                           respondent_name=author, respondent_user_id=user["id"])
             chillsdb.record_send_response(user["pending_send_token"], chills, recipient_name=author)
             chillsdb.set_pending_send_token(user["token"], "")
     chillsdb.clear_pending_after(user["id"])
     log_ev("after_answers", user=user, detail={
         "stimulus_id": sid, "chills": chills, "what": what, "why": why,
     })
-    return JSONResponse({"ok": True})
+    return JSONResponse({"ok": True, "has_chills": chillsdb.user_has_chills(user["id"])})
 
 @a.post("/flow/beta")
 async def flow_beta(req: Request):
@@ -2144,6 +2148,8 @@ async def video_report(req: Request, sid: str):
         pass
 
     if user and user["pending_send_token"] and user["stimulus_id"] == sid:
+        chillsdb.create_send_response(user["pending_send_token"], experienced,
+                                       respondent_name=author, respondent_user_id=user["id"])
         chillsdb.record_send_response(user["pending_send_token"], experienced,
                                        recipient_name=author)
         chillsdb.set_pending_send_token(user["token"], "")
@@ -2668,7 +2674,9 @@ def admin_export_csv(req: Request):
     rows = chillsdb.all_users(limit=100000)
     akeys = [x["k"] for x in qall()]
     out = [["signed_up","name","email","google","consented","beta_status","chills_score",
-            "match_video","match_p","top5","paid","vector"] + akeys]
+            "match_video","match_p","top5","paid","vector",
+            "edge_code","edge_granted","beta_requested",
+            "terms_version","privacy_version","consent_boxes"] + akeys]
     for u in rows:
         try:
             aj = json.loads(u["answers_json"] or "{}")
@@ -2686,6 +2694,10 @@ def admin_export_csv(req: Request):
             round(float(u["percentile"] or 0), 1),
             u["stimulus_name"], round(float(u["score"] or 0) * 100, 1), t5, bool(u["paid"]),
             u["vector_json"] or "",
+            u["edge_code"] or "",
+            datetime.utcfromtimestamp(u["edge_granted_at"]).isoformat() if u["edge_granted_at"] else "",
+            datetime.utcfromtimestamp(u["beta_requested_at"]).isoformat() if u["beta_requested_at"] else "",
+            u["terms_version"] or "", u["privacy_version"] or "", u["consent_boxes"] or "",
         ] + [aj.get(k, "") for k in akeys])
     csv_text = "\n".join(",".join('"' + str(c).replace('"', '""') + '"' for c in row) for row in out)
     headers = {"Content-Disposition": "attachment; filename=chillstv_users.csv"}
@@ -2786,6 +2798,34 @@ def admin_sends_csv(req: Request):
         ])
     csv_text = "\n".join(",".join('"' + str(c).replace('"', '""') + '"' for c in row) for row in out)
     headers = {"Content-Disposition": "attachment; filename=chillstv_sends.csv"}
+    return HTMLResponse(csv_text, media_type="text/csv", headers=headers)
+
+
+@a.get("/admin/responses.csv")
+def admin_responses_csv(req: Request):
+    if not chillsauth.is_admin(req):
+        return RedirectResponse("/admin/login")
+    rows = chillsdb.all_send_responses()
+    out = [["time","sender","sender_email","respondent","respondent_email","video","mode",
+            "chills","intensity","chills_length","chills_waves","description",
+            "closeness","relationship","revealed","token"]]
+    for r in rows:
+        exp = "" if r["experienced"] is None else ("yes" if r["experienced"] else "no")
+        out.append([
+            datetime.utcfromtimestamp(r["created_at"]).isoformat(),
+            r["sender_pid"] or "", r["sender_email"] or "",
+            r["respondent_name"] or r["respondent_pid"] or "", r["respondent_email"] or "",
+            r["stimulus_name"] or "", r["mode"] or "",
+            exp, r["intensity"] if r["intensity"] is not None else "",
+            r["chills_length"] if r["chills_length"] is not None else "",
+            r["chills_waves"] if r["chills_waves"] is not None else "",
+            r["description"] or "",
+            r["closeness"] if r["closeness"] is not None else "", r["relationship"] or "",
+            datetime.utcfromtimestamp(r["revealed_at"]).isoformat() if r["revealed_at"] else "",
+            r["send_token"],
+        ])
+    csv_text = "\n".join(",".join('"' + str(c).replace('"', '""') + '"' for c in row) for row in out)
+    headers = {"Content-Disposition": "attachment; filename=chillstv_responses.csv"}
     return HTMLResponse(csv_text, media_type="text/csv", headers=headers)
 
 
