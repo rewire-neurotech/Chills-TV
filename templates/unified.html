@@ -3281,8 +3281,14 @@ function aDone(){
   clearInterval(vT);
   try { if(ytPlayer && ytPlayer.destroy){ ytPlayer.destroy(); ytPlayer = null; } } catch(x){}
   var sid = window._afterSid || (V[vi] && V[vi].sid) || '';
-  fetch('/flow/after', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sid: sid, chills: !!aAns.chills, what: aAns.what || '', why: aAns.why || ''})}).catch(function(){});
-  if(!aAns.chills && loopOn){ ai = 3; renderA(); return; }
+  var req = fetch('/flow/after', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sid: sid, chills: !!aAns.chills, what: aAns.what || '', why: aAns.why || ''})});
+  if(!aAns.chills && loopOn){
+    req.then(function(r){ return r.json(); })
+       .then(function(d){ if(d && d.ok && d.more_picks === false){ goLuck('exhausted'); } else { ai = 3; renderA(); } })
+       .catch(function(){ ai = 3; renderA(); });
+    return;
+  }
+  req.catch(function(){});
   toProfile();
 }
 function askPick(btn, yes){
