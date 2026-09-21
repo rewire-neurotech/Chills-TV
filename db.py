@@ -497,6 +497,24 @@ def responses_for_send(send_token: str):
         ).fetchall()
 
 
+def all_send_responses():
+    # every bet response with sender and respondent info, for the admin csv
+    with get_conn() as conn:
+        return conn.execute(
+            """SELECT r.created_at, r.send_token, r.respondent_name, r.experienced,
+                      r.intensity, r.chills_length, r.chills_waves, r.description,
+                      r.closeness, r.relationship, r.revealed_at,
+                      ru.pid AS respondent_pid, ru.email AS respondent_email,
+                      s.stimulus_name, s.mode,
+                      su.pid AS sender_pid, su.email AS sender_email
+               FROM send_responses r
+               LEFT JOIN sends s ON s.token = r.send_token
+               LEFT JOIN users su ON su.id = s.sender_user_id
+               LEFT JOIN users ru ON ru.id = r.respondent_user_id
+               ORDER BY r.created_at DESC"""
+        ).fetchall()
+
+
 def reveal_send_response(response_id: int, closeness: int, relationship: str):
     """Stamp the sender's gate answers on one response and mark it revealed.
     Each respondent is a different person, so the gate runs per response."""
@@ -961,6 +979,18 @@ def after_answers_for_user(user_id: int, limit: int = 100):
             "SELECT * FROM after_answers WHERE user_id=? ORDER BY created_at DESC LIMIT ?",
             (user_id, limit),
         ).fetchall()
+
+
+def user_has_chills(user_id: int) -> bool:
+    # true if they ever answered chills yes on any video
+    if not user_id:
+        return False
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT 1 FROM after_answers WHERE user_id=? AND chills=1 LIMIT 1",
+            (user_id,),
+        ).fetchone()
+    return row is not None
 
 
 # ── auth sessions (account sign in) ───────────────────────────
