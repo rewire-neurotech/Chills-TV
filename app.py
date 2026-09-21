@@ -1606,7 +1606,8 @@ async def flow_after(req: Request):
     log_ev("after_answers", user=user, detail={
         "stimulus_id": sid, "chills": chills, "what": what, "why": why,
     })
-    return JSONResponse({"ok": True})
+    more_picks = next_unseen_pick(user, exclude_sid=sid) is not None
+    return JSONResponse({"ok": True, "more_picks": more_picks})
 
 @a.post("/flow/beta")
 async def flow_beta(req: Request):
