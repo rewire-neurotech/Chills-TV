@@ -2508,6 +2508,9 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
     <a role="menuitem" onclick="go('app')">Edge</a>
     <a role="menuitem" onclick="location.href='/about'">About</a>
     <hr>
+    <a role="menuitem" onclick="location.href='/account/export'">Download my data</a>
+    <a role="menuitem" onclick="deleteAccount()">Delete account</a>
+    <hr>
     <a role="menuitem" onclick="signOut()">Sign out</a>
   </div>
 </nav>
@@ -2956,6 +2959,11 @@ function authGo(){
 }
 function googleGo(){ location.href = '/auth/google/start'; }
 function signOut(){ fetch('/auth/logout', {method:'POST'}).then(function(){ location.href = '/'; }).catch(function(){ location.href = '/'; }); }
+function deleteAccount(){
+  if(!confirm('Delete your account? This removes your profile, answers, score and history. It cannot be undone.')) return;
+  if(!confirm('Last check: really delete everything?')) return;
+  fetch('/account/delete', {method:'POST'}).then(function(){ location.href = '/'; }).catch(function(){ toast('Could not reach the server'); });
+}
 function consentGo(){
   go('tintro');
   fetch('/flow/consent', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({boxes:{age_terms:true, not_medical:true, research:true}})})
