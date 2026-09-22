@@ -32,9 +32,9 @@ h1{font-family:var(--display);font-size:clamp(26px,5.4vw,34px);font-weight:700;l
 .lede{color:var(--muted);font-size:15px;margin:0 0 24px}
 .boardcard{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;margin-bottom:34px}
 .board{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.tile2{display:flex;align-items:center;gap:10px;padding:14px 16px;border-radius:16px;background:rgba(28,26,22,.045)}
+.tile2{display:flex;align-items:center;gap:10px;padding:14px 16px;border-radius:16px;background:rgba(28,26,22,.045);min-width:0}
 .tile2.win{background:rgba(28,26,22,.09)}
-.tile2 span{color:var(--muted);font-size:14px;flex:1}
+.tile2 span{color:var(--muted);font-size:14px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tile2 b{font-family:var(--display);font-size:22px;font-weight:700}
 .av{width:34px;height:34px;border-radius:50%;background:var(--btn);color:#FBF9F4;display:grid;place-content:center;font-weight:600;font-size:14px;flex:none}
 .av.bot svg{width:18px;height:18px;stroke:#FBF9F4;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
