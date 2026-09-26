@@ -3001,7 +3001,7 @@ def admin_data(req: Request):
                 "date": r["created_at"],
             })
         matched_sid = u["stimulus_id"] or ""
-        chills = any(r["chills"] for r in rep_rows if r["stimulus_id"] == matched_sid)
+        chills = any(r["chills"] for r in rep_rows)
         status = {"none": "none", "listed": "requested", "granted": "granted"}.get(u["beta_status"] or "none", "none")
         edge = {"status": status, "opened": False, "signedIn": None, "sessions": [], "protocols": []}
         if status == "requested":
