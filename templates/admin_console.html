@@ -135,6 +135,14 @@ td.em{font-weight:600}
 .days i.ch{background:var(--gold)}
 .empty{padding:30px;text-align:center;color:var(--muted);font-size:14px}
 
+/* ── frozen people table: name stays on horizontal scroll, header on vertical ── */
+.freeze{max-height:72vh}
+.freeze thead th{position:sticky;top:0;background:#fff;z-index:3}
+.freeze th:first-child,.freeze td:first-child{position:sticky;left:0;background:#fff;z-index:2;box-shadow:1px 0 0 var(--rule)}
+.freeze th:last-child,.freeze td:last-child{position:sticky;right:0;background:#fff;z-index:2;box-shadow:-1px 0 0 var(--rule)}
+.freeze thead th:first-child,.freeze thead th:last-child{z-index:4}
+.freeze tbody tr:hover td:first-child,.freeze tbody tr:hover td:last-child{background:#f9f8f7}
+
 /* ── drawer ── */
 .veil{position:fixed;inset:0;background:rgba(28,26,22,.28);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .25s;z-index:60}
 .veil.open{opacity:1;pointer-events:auto}
@@ -235,7 +243,7 @@ td.em{font-weight:600}
     <div class="chips" id="pFilters"></div>
     <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="Name or email" id="pSearch" oninput="pPage=0;renderPeople()"></div>
   </div>
-  <div class="tablewrap"><table id="pTable"></table></div>
+  <div class="tablewrap freeze"><table id="pTable"></table></div>
   <div class="pager" id="pPager"></div>
 </section>
 
@@ -456,7 +464,16 @@ function renderOverview(){
 /* ═══════════ people ═══════════ */
 var pFilter='all', pPage=0, pSort='created', pDir=-1;
 var pSel={};
-var FILTERS=[['all','All',function(){return true;}],['req','Asked for Edge',function(p){return p.edge.status==='requested';}],['gr','Has Edge',function(p){return p.edge.status==='granted';}],['act','Active in Edge',function(p){return p.edge.status==='granted'&&p.edge.opened&&p.edge.sessions.some(function(s){return (TODAY-s.date)/864e5<=7;});}],['chills','Got chills',function(p){return p.chills;}],['inv','Invited someone',function(p){return p.invites>0;}],['notest','No test yet',function(p){return !p.test;}],['tag','Tagged',function(p){return p.tags.length>0;}]];
+function invTotal(p){ return (p.invites||0)+(p.compat||0); }
+function invLabel(p){
+  var parts=[];
+  if(p.compat) parts.push(p.compat+' compat');
+  if(p.invites) parts.push(p.invites+' bet');
+  if(!parts.length) return '';
+  if(parts.length===1) return parts[0];
+  return invTotal(p)+' \u00b7 '+parts.join(' \u00b7 ');
+}
+var FILTERS=[['all','All',function(){return true;}],['req','Asked for Edge',function(p){return p.edge.status==='requested';}],['gr','Has Edge',function(p){return p.edge.status==='granted';}],['act','Active in Edge',function(p){return p.edge.status==='granted'&&p.edge.opened&&p.edge.sessions.some(function(s){return (TODAY-s.date)/864e5<=7;});}],['chills','Got chills',function(p){return p.chills;}],['inv','Invited someone',function(p){return invTotal(p)>0;}],['notest','No test yet',function(p){return !p.test;}],['tag','Tagged',function(p){return p.tags.length>0;}]];
 function renderPeople(){
   document.getElementById('pFilters').innerHTML=FILTERS.map(function(f){return '<button class="chip'+(pFilter===f[0]?' on':'')+'" onclick="pFilter=\''+f[0]+'\';pPage=0;renderPeople()">'+f[1]+' <span class="n num">'+count(f[2]).toLocaleString()+'</span></button>';}).join('');
   var q=document.getElementById('pSearch').value.trim().toLowerCase();
@@ -466,7 +483,7 @@ function renderPeople(){
     if(k==='email') return (p.email||'').toLowerCase();
     if(k==='created') return p.created||0;
     if(k==='last') return p.lastActive||0;
-    if(k==='inv') return p.invites||0;
+    if(k==='inv') return invTotal(p);
     if(k==='test') return p.test?1:0;
     if(k==='chills') return p.test?(p.chills?2:1):0;
     if(k==='video') return (p.test&&p.video?String(p.video):'').toLowerCase();
@@ -478,7 +495,7 @@ function renderPeople(){
   var rows=list.slice(pPage*per,pPage*per+per);
   var th=function(k,l){ return '<th class="'+(pSort===k?'on':'')+'" onclick="sortP(\''+k+'\')">'+l+(pSort===k?'<span class="car">'+(pDir<0?'\u25bc':'\u25b2')+'</span>':'')+'</th>'; };
   document.getElementById('pTable').innerHTML='<thead><tr>'+th('name','Name')+th('email','Email')+th('created','Signed up')+th('test','Test')+th('chills','Chills')+th('video','Video')+th('inv','Invites')+th('edge','Edge')+th('last','Last active')+'<th style="width:34px;text-align:center"><input type="checkbox" id="pSelAll" onclick="toggleSelAll(this)"></th></tr></thead><tbody>'+
-    (rows.length?rows.map(function(p){return '<tr onclick="openPerson('+p.id+')"><td class="em">'+p.name+' '+tagHtml(p)+'</td><td>'+mailHtml(p.email)+'</td><td class="num">'+fmtD(p.created)+'</td><td>'+(p.test?'<span class="pill yes">done</span>':'<span class="pill no">no</span>')+'</td><td>'+(p.test?(p.chills?'<span class="pill yes">yes</span>':'<span class="pill no">no</span>'):'')+'</td><td>'+(p.test?p.video:'')+'</td><td class="num">'+(p.invites||'')+'</td><td>'+edgeStatus(p)+'</td><td class="num">'+fmtD(p.lastActive)+'</td><td style="text-align:center" onclick="event.stopPropagation()"><input type="checkbox" class="psel" value="'+p.id+'" '+(pSel[p.id]?'checked':'')+' onchange="toggleSel(this)"></td></tr>';}).join(''):'<tr><td colspan="10" class="empty">Nobody matches.</td></tr>')+'</tbody>';
+    (rows.length?rows.map(function(p){return '<tr onclick="openPerson('+p.id+')"><td class="em">'+p.name+' '+tagHtml(p)+'</td><td>'+mailHtml(p.email)+'</td><td class="num">'+fmtD(p.created)+'</td><td>'+(p.test?'<span class="pill yes">done</span>':'<span class="pill no">no</span>')+'</td><td>'+(p.test?(p.chills?'<span class="pill yes">yes</span>':'<span class="pill no">no</span>'):'')+'</td><td>'+(p.test?p.video:'')+'</td><td class="num">'+invLabel(p)+'</td><td>'+edgeStatus(p)+'</td><td class="num">'+fmtD(p.lastActive)+'</td><td style="text-align:center" onclick="event.stopPropagation()"><input type="checkbox" class="psel" value="'+p.id+'" '+(pSel[p.id]?'checked':'')+' onchange="toggleSel(this)"></td></tr>';}).join(''):'<tr><td colspan="10" class="empty">Nobody matches.</td></tr>')+'</tbody>';
   document.getElementById('pPager').innerHTML='<span>'+list.length.toLocaleString()+' people</span><span><button class="btn btn-o btn-s" '+(pPage===0?'disabled':'')+' onclick="pPage--;renderPeople()">Previous</button> <span class="num" style="margin:0 8px">'+(pPage+1)+' of '+pages+'</span> <button class="btn btn-o btn-s" '+(pPage>=pages-1?'disabled':'')+' onclick="pPage++;renderPeople()">Next</button></span>';
   var vis={}; rows.forEach(function(p){vis[p.id]=1;}); Object.keys(pSel).forEach(function(id){ if(!vis[id]) delete pSel[id]; });
   updateSelUI();
@@ -515,7 +532,7 @@ function openPerson(id){
      (e.status==='granted'?'<button class="btn btn-o" onclick="copyText(\'https://'+e.link+'\',\'Link copied\')">Copy their link</button><button class="btn btn-o btn-d" onclick="revoke('+p.id+')">Revoke</button>':'')+
      '<button class="btn btn-o" onclick="addTag('+p.id+')">Tag</button><button class="btn btn-o" onclick="addNote('+p.id+')">Note</button><button class="btn btn-o btn-d" onclick="delUser('+p.id+')">Delete account</button></div>';
   if(e.status==='granted') h+='<div class="linkbox"><span>https://'+e.link+'</span><button onclick="copyText(\'https://'+e.link+'\',\'Link copied\')" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/></svg></button></div><p class="note">A personal link. It signs them in on their phone. '+(e.opened?'Opened '+fmtD(e.signedIn)+'.':'Not opened yet.')+'</p>';
-  h+='<div class="rows"><div class="row"><b>Signed up</b><span>'+fmtDT(p.created)+'</span></div><div class="row"><b>Last active</b><span>'+fmtD(p.lastActive)+'</span></div><div class="row"><b>Test</b><span>'+(p.test?'Completed. Chills score top '+(100-p.score)+'%.':'Not taken.')+'</span></div><div class="row"><b>Matched video</b><span>'+(p.test?p.video:'')+'</span></div><div class="row"><b>Invites</b><span>'+p.invites+' sent'+(p.compat?', '+p.compat+' compatibility tests':'')+'</span></div><div class="row"><b>Edge</b><span>'+(e.status==='none'?'Never asked.':e.status==='requested'?'Asked on '+fmtD(e.requested)+'.':'Granted '+fmtD(e.granted)+(e.invited?', you sent it':'')+'. '+(e.sessions?e.sessions.length+' sessions, '+e.sessions.filter(function(s){return s.completed;}).length+' completed, chills in '+e.sessions.filter(function(s){return s.chills;}).length+'.':''))+'</span></div></div>';
+  h+='<div class="rows"><div class="row"><b>Signed up</b><span>'+fmtDT(p.created)+'</span></div><div class="row"><b>Last active</b><span>'+fmtD(p.lastActive)+'</span></div><div class="row"><b>Test</b><span>'+(p.test?'Completed. Chills score top '+(100-p.score)+'%.':'Not taken.')+'</span></div><div class="row"><b>Matched video</b><span>'+(p.test?p.video:'')+'</span></div><div class="row"><b>Invites</b><span>'+(invTotal(p)?invTotal(p)+' total: '+(p.compat||0)+' compatibility tests completed, '+(p.invites||0)+' bet links sent':'None yet.')+'</span></div><div class="row"><b>End questions</b><span>'+((p.endq&&(p.endq.compat||p.endq.edge))?('Compatibility '+(p.endq.compat||'\u2014')+(p.endq.shared?' (link shared)':'')+', Edge '+(p.endq.edge||'\u2014')):'Not answered yet.')+'</span></div><div class="row"><b>Edge</b><span>'+(e.status==='none'?'Never asked.':e.status==='requested'?'Asked on '+fmtD(e.requested)+'.':'Granted '+fmtD(e.granted)+(e.invited?', you sent it':'')+'. '+(e.sessions?e.sessions.length+' sessions, '+e.sessions.filter(function(s){return s.completed;}).length+' completed, chills in '+e.sessions.filter(function(s){return s.chills;}).length+'.':''))+'</span></div></div>';
   if(p.notes.length) h+='<div class="sec-h" style="margin-top:22px"><h2>Notes</h2></div><div class="feed">'+p.notes.map(function(n){return '<div class="fitem"><div class="m">'+fmtD(n.date)+'</div><p>'+n.text+'</p></div>';}).join('')+'</div>';
   if(e.status==='granted' && e.protocols && e.protocols.length){ h+='<div class="sec-h" style="margin-top:22px"><h2>In Edge</h2><span class="hint">'+daysHtml(p)+'</span></div><div class="feed">'; e.protocols.forEach(function(pr){ h+='<div class="fitem"><div class="m">'+pr.exp+', '+fmtD(pr.created)+'</div><p>'+pr.title+'</p></div>'; }); e.sessions.forEach(function(s){ h+='<div class="fitem"><div class="m">'+fmtD(s.date)+' <span class="pill '+(s.completed?'yes':'no')+'">'+(s.completed?'completed':'stopped')+'</span> '+(s.chills?'<span class="pill act">chills</span>':'')+' session '+s.n+' of '+s.protocol+'</div>'+(s.stayed?'<p>'+s.stayed+'</p>':'')+'</div>'; }); h+='</div>'; }
   if(p.reports.length){ h+='<div class="sec-h" style="margin-top:22px"><h2>ChillsTV</h2></div><div class="feed">'; p.reports.forEach(function(r){ h+='<div class="fitem"><div class="m">'+fmtD(r.date)+' '+r.video+' '+(r.chills?'<span class="pill act">chills</span>':'<span class="pill no">no chills</span>')+'</div>'+(r.what?'<p>'+r.what+'</p>':'')+(r.why?'<p class="q">'+r.why+'</p>':'')+'</div>'; }); h+='</div>'; }
