@@ -2632,7 +2632,7 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
   <div class="tq intro">
     <h1>Better luck<br>next time.</h1>
     <p>No chills from this one. That is completely normal, most people only get chills from a few videos. Your answers still count toward the research.</p>
-    <div class="actions"><button class="btn btn-p" onclick="toProfile()">Go to my profile</button></div>
+    <div class="actions"><button class="btn btn-p" onclick="luckDone()">Go to my profile</button></div>
   </div>
 </div>
 
@@ -2866,6 +2866,248 @@ body.ctv-on.ctv-auth>nav.top .ncta{opacity:.55}
 </div>
 
 <div class="toast" id="ctvToast"></div>
+
+<!-- ═══════ END OF TEST QUESTIONS: Felix's compat + Edge screens ═══════ -->
+<div id="endq">
+<style>
+#endq{
+  --paper:#f5f3ee; --ink:#161616; --mute:#6f6b63; --rule:#e1ddd4; --rule2:#cbc6bb; --white:#ffffff;
+  --display:"Familjen Grotesk","Inter",system-ui,sans-serif;
+  --body:"Inter",system-ui,-apple-system,sans-serif;
+  --pad:20px; --btn:64px; --radius:14px;
+}
+#endq, #endq *{box-sizing:border-box}
+#endq{display:none;position:fixed;inset:0;z-index:800;overflow:auto;margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased;line-height:1.35}
+#endq.on{display:block}
+#endq button,#endq input{font:inherit;color:inherit}
+#endq button{cursor:pointer}
+
+#endq .app{min-height:100%;display:flex;flex-direction:column}
+
+/* header */
+#endq .top{display:flex;align-items:center;height:56px;padding:0 var(--pad);padding-top:env(safe-area-inset-top,0px);position:relative}
+#endq .brand{font-family:var(--display);font-weight:600;font-size:20px;letter-spacing:-0.01em;position:absolute;left:50%;transform:translateX(-50%)}
+#endq .back{background:none;border:0;padding:0;width:44px;height:44px;margin-left:-12px;display:flex;align-items:center;justify-content:center;border-radius:12px;visibility:hidden}
+#endq .back.show{visibility:visible}
+#endq .back:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+#endq .back svg{width:22px;height:22px;stroke:var(--ink);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+/* screen */
+#endq .screen{flex:1;padding:28px var(--pad) 0;max-width:560px;width:100%;display:flex;flex-direction:column}
+#endq .art{flex:1;display:flex;align-items:center;justify-content:center;padding:8px 0 28px}
+#endq .ill{width:100%;max-width:250px;height:auto;display:block}
+
+#endq .q{font-family:var(--display);font-weight:500;font-size:31px;line-height:1.12;letter-spacing:-0.015em;margin:0 0 14px}
+#endq .sub{font-size:18.5px;line-height:1.45;color:var(--mute);margin:0 0 26px;max-width:32em}
+#endq .sub b{font-weight:500;color:var(--ink)}
+
+#endq .field{position:relative}
+#endq .field input{width:100%;height:var(--btn);border:1.5px solid var(--rule2);border-radius:var(--radius);background:var(--white);padding:0 18px;font-size:20px;outline:none}
+#endq .field input:focus{border-color:var(--ink)}
+#endq .field input::placeholder{color:#a6a198}
+#endq .hint{font-size:15px;color:var(--mute);margin:10px 2px 0;min-height:20px}
+
+#endq .linkbox{display:flex;gap:8px;margin-top:4px}
+#endq .linkbox input{flex:1;height:56px;border:1.5px solid var(--rule2);border-radius:var(--radius);background:var(--white);padding:0 14px;font-size:16px;color:var(--ink);outline:none}
+#endq .linkbox button{height:56px;padding:0 18px;border-radius:var(--radius);border:1.5px solid var(--rule2);background:var(--white);font-size:16px;font-weight:500}
+
+#endq .fade{animation:endqfade .22s ease-out}
+@keyframes endqfade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){#endq .fade{animation:none}}
+
+/* actions */
+#endq .actions{padding:12px var(--pad) calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px;background:var(--paper);max-width:560px;width:100%}
+#endq .btn{height:var(--btn);width:100%;border-radius:var(--radius);border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);font-size:19px;font-weight:500;display:flex;align-items:center;justify-content:center;transition:opacity .15s}
+#endq .btn.secondary{background:var(--white);color:var(--ink);border-color:var(--rule2)}
+#endq a.btn{text-decoration:none}
+#endq .btn.secondary:active{background:#f0ede6}
+#endq .btn:disabled{opacity:.35;cursor:default}
+#endq .btn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+#endq .textlink{background:none;border:0;padding:10px;font-size:17px;color:var(--mute);text-decoration:underline;text-underline-offset:4px;align-self:center}
+
+/* phone: actions pinned to the bottom, above the keyboard */
+@media (max-width:699px){
+  #endq .actions{position:fixed;left:0;right:0;bottom:0;max-width:none}
+  #endq .screen{padding-bottom:calc(var(--btn) * 3 + 60px)}
+}
+/* desktop: one centered column */
+@media (min-width:700px){
+  #endq .art{flex:0;padding:24px 0 36px}
+  #endq .app{align-items:center}
+  #endq .top{width:100%;max-width:560px;height:72px}
+  #endq .screen{padding-top:80px;flex:0}
+  #endq .q{font-size:40px}
+  #endq .sub{font-size:20px}
+  #endq .actions{padding-top:8px}
+}
+</style>
+<div class="app">
+  <header class="top">
+    <button class="back" id="back" aria-label="Back">
+      <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="brand">ReWire</div>
+  </header>
+  <main class="screen" id="screen"></main>
+  <div class="actions" id="actions"></div>
+</div>
+</div>
+
+<script>
+(function(){
+/* ---- state ---- */
+var INVITE_URL = '';
+var state = { shared:false, compat:null, edge:null };
+var stack = [];
+var cur = null;
+var wrap = document.getElementById('endq');
+
+function post(body, cb){
+  fetch('/flow/endq', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)})
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if(cb) cb(d); })
+    .catch(function(){ if(cb) cb(null); });
+}
+function markShared(){
+  if(state.shared) return;
+  state.shared = true;
+  post({shared:true});
+}
+function exitToProfile(){
+  wrap.classList.remove('on');
+  toProfile();
+}
+
+/* ---- screens ---- */
+var S = {
+
+  compat: {
+    render: function(){
+      return '<h1 class="q">Do you want to test your chills compatibility with your friends?</h1>'
+           + '<p class="sub">For each friend, we will find the video most likely to give chills to both of you.</p>'
+           + '<div class="art"><svg class="ill" viewBox="0 0 260 180" aria-hidden="true">   <defs>     <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="var(--ink)" stroke-width="1"/></pattern>     <clipPath id="lensA"><circle cx="95" cy="90" r="70"/></clipPath>   </defs>   <circle cx="165" cy="90" r="70" fill="url(#hatch)" clip-path="url(#lensA)" opacity=".55"/>   <circle cx="95" cy="90" r="70" fill="none" stroke="var(--ink)" stroke-width="2"/>   <circle cx="165" cy="90" r="70" fill="none" stroke="var(--ink)" stroke-width="2"/>   <circle cx="130" cy="90" r="21" fill="var(--paper)"/>   <path d="M122 77 L144 90 L122 103 Z" fill="var(--ink)"/> </svg></div>';
+    },
+    actions: function(){
+      return btn('Yes', function(){
+               state.compat = true;
+               post({compat:'yes'}, function(d){
+                 if(d && d.duo_link){ INVITE_URL = location.origin + '/us/' + d.duo_link; go('compatShare'); }
+                 else if(window.CTX && CTX.duo_link){ INVITE_URL = location.origin + '/us/' + CTX.duo_link; go('compatShare'); }
+                 else { go('edge'); }
+               });
+             })
+           + btn('Not now', function(){ state.compat = false; post({compat:'declined'}); go('edge'); }, 'secondary');
+    }
+  },
+
+  compatShare: {
+    render: function(){
+      return '<h1 class="q">Send your link to your friends.</h1>'
+           + '<p class="sub">You can send it to up to five people. Everyone who finishes the test appears on your compatibility page, and you will see who you are closest to.</p>'
+           + '<div class="linkbox"><input id="link" readonly value="'+INVITE_URL+'"><button id="copy" type="button">Copy</button></div>'
+           + '<div class="hint" id="hint"></div>';
+    },
+    actions: function(){
+      return btn('Share your link', shareLink)
+           + '<a class="btn secondary" id="wa" href="'+waHref()+'" target="_blank" rel="noopener">Send on WhatsApp</a>'
+           + '<button type="button" class="textlink" data-h="cont">Continue</button>';
+    },
+    after: function(){
+      handlers.cont = function(){ go('edge'); };
+      document.getElementById('copy').addEventListener('click', copyLink);
+      document.getElementById('wa').addEventListener('click', function(){ markShared(); note('Opening WhatsApp. Pick who to send it to.'); });
+    }
+  },
+
+  edge: {
+    render: function(){
+      return '<h1 class="q">Would you like to try Edge?</h1>'
+           + '<p class="sub">We built an app to give people chills. Edge makes ten-minute audio experiences from your own life, and the beta is free.</p>'
+           + '<div class="art"><svg class="ill" viewBox="0 0 260 180" aria-hidden="true">   <defs>     <linearGradient id="frisson" gradientUnits="userSpaceOnUse" x1="0" y1="34" x2="0" y2="118"><stop offset="0" stop-color="#f6c7a4"/><stop offset=".55" stop-color="#f0a8c4"/><stop offset="1" stop-color="#c8bcf0"/></linearGradient>     <clipPath id="sky"><rect x="0" y="0" width="260" height="118"/></clipPath>   </defs>   <circle cx="130" cy="118" r="84" fill="url(#frisson)" clip-path="url(#sky)"/>   <line x1="18" y1="118" x2="242" y2="118" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/> </svg></div>';
+    },
+    actions: function(){
+      return btn('Yes, I want to try it', function(){ state.edge = true; post({edge:'yes'}); go('edgeYes'); })
+           + btn('Not now', function(){ state.edge = false; post({edge:'declined'}); exitToProfile(); }, 'secondary');
+    }
+  },
+
+  edgeYes: {
+    render: function(){
+      return '<h1 class="q">You are on the list.</h1>'
+           + '<p class="sub">We will email your access to the address on your account.</p>';
+    },
+    actions: function(){ return btn('Continue', function(){ exitToProfile(); }); }
+  }
+};
+
+/* ---- helpers ---- */
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+var handlers = {};
+function btn(label, fn, cls, id){
+  var key = id || ('b'+Math.random().toString(36).slice(2,8));
+  handlers[key] = fn;
+  return '<button type="button" class="btn '+(cls||'')+'" id="'+key+'" data-h="'+key+'">'+label+'</button>';
+}
+function copy(text){
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).catch(function(){}); }
+  else { var t=document.createElement('textarea'); t.value=text; document.body.appendChild(t); t.select(); try{document.execCommand('copy');}catch(e){} document.body.removeChild(t); }
+}
+
+var SHARE_TEXT = 'Do we get chills from the same things? Take the two-minute ChillsTV test and we will both see our result.';
+function waHref(){ return 'https://wa.me/?text=' + encodeURIComponent(SHARE_TEXT + ' ' + INVITE_URL); }
+function note(t){ var h = document.getElementById('hint'); if(h) h.textContent = t; }
+function copyLink(){
+  copy(INVITE_URL); markShared();
+  note('The link is copied. Paste it in any message.');
+}
+function shareLink(){
+  var data = { title:'Chills compatibility', text:SHARE_TEXT, url:INVITE_URL };
+  var ok = navigator.share && (!navigator.canShare || navigator.canShare(data));
+  if(!ok){ copyLink(); return; }
+  navigator.share(data)
+    .then(function(){ markShared(); note('Sent. You can send it to more people.'); })
+    .catch(function(err){ if(err && err.name === 'AbortError') return; copyLink(); }); // sheet blocked: copy instead
+}
+
+function go(name, isBack){
+  if(cur && !isBack) stack.push(cur);
+  cur = name;
+  var s = S[name], screen = document.getElementById('screen'), act = document.getElementById('actions');
+  handlers = {};
+  screen.innerHTML = s.render();
+  act.innerHTML = s.actions();
+  screen.classList.remove('fade'); void screen.offsetWidth; screen.classList.add('fade');
+  document.getElementById('back').classList.toggle('show', stack.length>0 && !s.noBack);
+  if(s.after) s.after();
+  wrap.scrollTop = 0;
+}
+document.getElementById('actions').addEventListener('click', function(e){
+  var b = e.target.closest('button[data-h]'); if(b && handlers[b.dataset.h]) handlers[b.dataset.h]();
+});
+document.getElementById('back').addEventListener('click', function(){
+  if(stack.length){ go(stack.pop(), true); }
+});
+
+/* keep the bottom buttons above the keyboard on phones */
+(function(){
+  var act = document.getElementById('actions');
+  function fit(){
+    if(window.innerWidth >= 700 || !window.visualViewport){ act.style.bottom=''; return; }
+    var vv = window.visualViewport;
+    var gap = window.innerHeight - (vv.height + vv.offsetTop);
+    act.style.bottom = (gap>0 ? gap : 0) + 'px';
+  }
+  if(window.visualViewport){ visualViewport.addEventListener('resize', fit); visualViewport.addEventListener('scroll', fit); }
+  window.addEventListener('resize', fit);
+})();
+
+window.startEndq = function(){
+  stack = []; cur = null;
+  wrap.classList.add('on');
+  go('compat');
+};
+})();
+</script>
 
 
 <script>window.CTX = {{ ctx | tojson }};</script>
@@ -3296,8 +3538,9 @@ function aDone(){
        .catch(function(){ ai = 3; renderA(); });
     return;
   }
-  req.catch(function(){});
-  toProfile();
+  req.then(function(r){ return r.json(); })
+     .then(function(d){ if(d && d.ok && d.show_endq && window.startEndq){ startEndq(); } else { toProfile(); } })
+     .catch(function(){ toProfile(); });
 }
 function askPick(btn, yes){
   btn.parentNode.querySelectorAll('button').forEach(function(b){ b.classList.remove('on'); }); btn.classList.add('on');
@@ -3305,8 +3548,14 @@ function askPick(btn, yes){
   setTimeout(function(){ if(yes){ nextPick(sid); } else { goLuck('declined'); } }, 260);
 }
 function goLuck(reason){
-  fetch('/flow/luck', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({reason: reason || 'declined'})}).catch(function(){});
+  fetch('/flow/luck', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({reason: reason || 'declined'})})
+    .then(function(r){ return r.json(); })
+    .then(function(d){ window._showEndq = !!(d && d.show_endq); })
+    .catch(function(){});
   go('luck');
+}
+function luckDone(){
+  if(window._showEndq && window.startEndq){ startEndq(); } else { toProfile(); }
 }
 function toProfile(){
   var first = firstVisit; firstVisit = false;
