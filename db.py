@@ -660,6 +660,13 @@ def add_duo_result(link_user_id: int, partner_user_id: int, partner_name: str, m
     token = new_token(6)
     now = time.time()
     with get_conn() as conn:
+        if partner_user_id:
+            dup = conn.execute(
+                "SELECT token FROM duo_pairs WHERE user_id=? AND partner_user_id=? AND status='completed' LIMIT 1",
+                (link_user_id, partner_user_id),
+            ).fetchone()
+            if dup:
+                return dup["token"]
         conn.execute(
             """INSERT INTO duo_pairs (token, user_id, partner_user_id, partner_name, status,
                match_pct, video_stimulus_id, video_stimulus_name, created_at, opened_at, completed_at)
