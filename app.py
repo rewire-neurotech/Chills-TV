@@ -1633,7 +1633,8 @@ async def flow_after(req: Request):
         "stimulus_id": sid, "chills": chills, "what": what, "why": why,
     })
     more_picks = next_unseen_pick(user, exclude_sid=sid) is not None
-    return JSONResponse({"ok": True, "more_picks": more_picks})
+    return JSONResponse({"ok": True, "more_picks": more_picks,
+                         "show_endq": user["endq_at"] is None})
 
 @a.post("/flow/beta")
 async def flow_beta(req: Request):
@@ -1645,6 +1646,44 @@ async def flow_beta(req: Request):
         chillsdb.set_beta_requested(user["id"])
         log_ev("beta_joined", user=user)
     return JSONResponse({"ok": True})
+
+@a.post("/flow/endq")
+async def flow_endq(req: Request):
+    """End-of-test questions: compat yes/declined, link shared, edge yes/declined."""
+    user = chillsauth.get_current_user(req)
+    if not user:
+        return JSONResponse({"ok": False, "error": "Please sign in first."})
+    try:
+        d = await req.json()
+    except Exception:
+        d = {}
+    out = {"ok": True}
+    compat = d.get("compat")
+    if compat in ("yes", "declined"):
+        chillsdb.save_endq(user["id"], compat_choice=compat)
+        log_ev("endq_compat_yes" if compat == "yes" else "endq_compat_declined", user=user)
+        if compat == "yes":
+            pending = [x for x in chillsdb.duos_for_user(user["id"]) if x["status"] == "pending"]
+            if pending:
+                token = pending[0]["token"]
+            else:
+                token = chillsdb.create_duo(user["id"])["token"]
+                log_ev("duo_created", user=user, detail={"token": token, "from": "endq"})
+            out["duo_link"] = token
+    if d.get("shared"):
+        chillsdb.save_endq(user["id"], link_shared=True)
+        log_ev("endq_link_shared", user=user)
+    edge = d.get("edge")
+    if edge in ("yes", "declined"):
+        chillsdb.save_endq(user["id"], edge_choice=edge)
+        if edge == "yes":
+            if (user["beta_status"] or "none") != "granted":
+                chillsdb.set_beta_status(user["id"], "listed")
+                chillsdb.set_beta_requested(user["id"])
+            log_ev("endq_edge_requested", user=user)
+        else:
+            log_ev("endq_edge_declined", user=user)
+    return JSONResponse(out)
 
 @a.post("/flow/next-pick")
 async def flow_next_pick(req: Request):
@@ -1673,11 +1712,12 @@ async def flow_luck(req: Request):
     except Exception:
         d = {}
     reason = "exhausted" if (d.get("reason") or "") == "exhausted" else "declined"
+    show_endq = user["endq_at"] is None
     if chillsdb.user_has_chills(user["id"]):
-        return JSONResponse({"ok": True, "hidden": False})
+        return JSONResponse({"ok": True, "hidden": False, "show_endq": show_endq})
     chillsdb.set_score_hidden(user["id"])
     log_ev("score_hidden", user=user, detail={"reason": reason})
-    return JSONResponse({"ok": True, "hidden": True})
+    return JSONResponse({"ok": True, "hidden": True, "show_endq": show_endq})
 
 @a.post("/flow/lab")
 async def flow_lab(req: Request):
@@ -2720,7 +2760,8 @@ def admin_export_csv(req: Request):
     out = [["signed_up","name","email","google","consented","beta_status","chills_score",
             "match_video","match_p","top5","paid","vector",
             "edge_code","edge_granted","beta_requested",
-            "terms_version","privacy_version","consent_boxes","score_hidden"] + akeys]
+            "terms_version","privacy_version","consent_boxes","score_hidden",
+            "compat_choice","edge_choice","link_shared","endq_at"] + akeys]
     for u in rows:
         try:
             aj = json.loads(u["answers_json"] or "{}")
@@ -2743,6 +2784,8 @@ def admin_export_csv(req: Request):
             datetime.utcfromtimestamp(u["beta_requested_at"]).isoformat() if u["beta_requested_at"] else "",
             u["terms_version"] or "", u["privacy_version"] or "", u["consent_boxes"] or "",
             bool(u["score_hidden"] or 0),
+            u["compat_choice"] or "", u["edge_choice"] or "", bool(u["link_shared"] or 0),
+            datetime.utcfromtimestamp(u["endq_at"]).isoformat() if u["endq_at"] else "",
         ] + [aj.get(k, "") for k in akeys])
     csv_text = "\n".join(",".join('"' + str(c).replace('"', '""') + '"' for c in row) for row in out)
     headers = {"Content-Disposition": "attachment; filename=chillstv_users.csv"}
@@ -3023,6 +3066,11 @@ def admin_data(req: Request):
             "reports": reports,
             "invites": sent_map.get(u["id"], 0),
             "compat": duo_map.get(u["id"], 0),
+            "endq": {
+                "compat": u["compat_choice"] or "",
+                "edge": u["edge_choice"] or "",
+                "shared": bool(u["link_shared"] or 0),
+            },
             "tags": tags.get(u["id"], []),
             "notes": notes.get(u["id"], []),
             "edge": edge,
