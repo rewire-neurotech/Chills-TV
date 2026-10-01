@@ -300,6 +300,10 @@ def _migrate(conn):
         ("privacy_version", "TEXT DEFAULT ''"),
         ("consent_boxes", "TEXT DEFAULT ''"),
         ("score_hidden", "INTEGER DEFAULT 0"),
+        ("compat_choice", "TEXT DEFAULT ''"),
+        ("edge_choice", "TEXT DEFAULT ''"),
+        ("link_shared", "INTEGER DEFAULT 0"),
+        ("endq_at", "REAL"),
     ]:
         if col not in existing:
             conn.execute(f"ALTER TABLE users ADD COLUMN {col} {decl}")
@@ -1218,12 +1222,25 @@ def duos_all():
 
 
 def duo_counts_map() -> dict:
-    """user_id -> duo links created. Feeds the compat column."""
+    """user_id -> completed compat tests. The link row stays pending, so
+    counting completed rows counts friends who actually finished."""
     with get_conn() as conn:
         rows = conn.execute(
-            "SELECT user_id, COUNT(*) AS n FROM duo_pairs GROUP BY user_id"
+            "SELECT user_id, COUNT(*) AS n FROM duo_pairs WHERE status='completed' GROUP BY user_id"
         ).fetchall()
     return {r["user_id"]: r["n"] for r in rows}
+
+
+def save_endq(user_id: int, compat_choice: str = None, edge_choice: str = None, link_shared: bool = None):
+    """End-of-test questions. Saves whichever answer came in, stamps endq_at once."""
+    with get_conn() as conn:
+        if compat_choice is not None:
+            conn.execute("UPDATE users SET compat_choice=? WHERE id=?", (compat_choice, user_id))
+        if edge_choice is not None:
+            conn.execute("UPDATE users SET edge_choice=? WHERE id=?", (edge_choice, user_id))
+        if link_shared:
+            conn.execute("UPDATE users SET link_shared=1 WHERE id=?", (user_id,))
+        conn.execute("UPDATE users SET endq_at=? WHERE id=? AND endq_at IS NULL", (time.time(), user_id))
 
 
 def watches_all():
