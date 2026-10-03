@@ -214,24 +214,15 @@ def qdemo():
 NEW_QUESTIONS = [
     {"k": "FREQ_MUSIC_CHILLS", "q": "How often do you get chills or goosebumps from music?", "min": 1, "max": 5},
     {"k": "FREQ_FILM_CHILLS", "q": "How often do you get chills from a film, a speech, or a story?", "min": 1, "max": 5},
-    {"k": "FREQ_MOVED_TEARS", "q": "How often are you moved to tears by something beautiful?", "min": 1, "max": 5},
     {"k": "FREQ_MEDITATE", "q": "How often do you meditate?", "min": 1, "max": 5},
-    {"k": "FREQ_LUMP_THROAT", "q": "When something moves you, how often do you feel a lump in your throat?", "min": 1, "max": 5},
-    {"k": "FREQ_CHEST_WARMTH", "q": "When something moves you, how often do you feel warmth in your chest?", "min": 1, "max": 5},
-    {"k": "FREQ_GOOSEBUMPS_MOVED", "q": "How often do you get goosebumps when you are moved?", "min": 1, "max": 5},
     {"k": "DESC_BEAUTY_NOTICE", "q": "I see beauty in things that others might not notice.", "min": 1, "max": 5},
-    {"k": "DESC_LOST_THOUGHT", "q": "I like to get lost in thought.", "min": 1, "max": 5},
+    {"k": "DESC_LOST_THOUGHT", "q": "Sometimes, I get lost in thought.", "min": 1, "max": 5},
     {"k": "DESC_VIVID_IMAGINATION", "q": "I have a vivid imagination.", "min": 1, "max": 5},
     {"k": "DESC_DAYDREAM", "q": "I love to daydream.", "min": 1, "max": 5},
-    {"k": "DESC_FANTASY", "q": "I enjoy wild flights of fantasy.", "min": 1, "max": 5},
     {"k": "DESC_DEEPER_MEANING_R", "q": "I rarely look for a deeper meaning in things.", "min": 1, "max": 5},
     {"k": "DESC_EMOTIONS_INTENSE", "q": "I experience my emotions intensely.", "min": 1, "max": 5},
-    {"k": "DESC_FEEL_OTHERS", "q": "I feel others' emotions.", "min": 1, "max": 5},
-    {"k": "DESC_SELDOM_EMOTIONAL_R", "q": "I seldom get emotional.", "min": 1, "max": 5},
-    {"k": "DESC_LIKE_MUSIC", "q": "I like music.", "min": 1, "max": 5},
-    {"k": "DESC_NATURE_BEAUTY", "q": "I enjoy the beauty of nature.", "min": 1, "max": 5},
-    {"k": "DESC_POETRY_R", "q": "I do not like poetry.", "min": 1, "max": 5},
-    {"k": "HABIT_MOTIVATIONAL", "q": "How often do you listen to motivational videos or speeches?", "min": 1, "max": 5},
+    {"k": "DESC_LIKE_MUSIC", "q": "Music is very important to me.", "min": 1, "max": 5},
+    {"k": "HABIT_MOTIVATIONAL", "q": "I often listen to motivational videos and speeches.", "min": 1, "max": 5},
     {"k": "STATE_AROUSAL", "q": "Right now, how calm or excited do you feel?", "min": 1, "max": 5},
     {"k": "STATE_VALENCE", "q": "Right now, how unpleasant or pleasant do you feel?", "min": 1, "max": 5},
 ]
@@ -940,8 +931,8 @@ GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 EDGE_URL = os.getenv("EDGE_URL", "https://app.rewire.bio")  # where from=edge google logins bounce back to
 MATCH_BAR = float(os.getenv("MATCH_BAR", "0.65"))
-TERMS_VERSION = os.getenv("TERMS_VERSION", "1.1")
-PRIVACY_VERSION = os.getenv("PRIVACY_VERSION", "1.0")
+TERMS_VERSION = os.getenv("TERMS_VERSION", "1.3")
+PRIVACY_VERSION = os.getenv("PRIVACY_VERSION", "1.2")
 
 FLOW_GRADIENTS = [
     "radial-gradient(120% 90% at 30% 20%,#2a2438 0%,#141320 55%,#0c0b12 100%)",
